@@ -79,6 +79,7 @@ cat > /usr/local/sbin/sauvegarde-logistique <<'EOF'
 #!/bin/sh
 # Sauvegarde quotidienne de la base logistique vers le serveur de sauvegarde.
 set -eu
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin  # cron ne donne que /usr/bin:/bin ; runuser est dans /usr/sbin
 set -a; . /etc/restic/logistique.env; set +a
 mkdir -p /var/backups/logistique
 runuser -u postgres -- pg_dump -Fc logistique > /var/backups/logistique/logistique.dump

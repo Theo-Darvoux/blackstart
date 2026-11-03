@@ -34,6 +34,7 @@ cat > /usr/local/sbin/archive-commandes <<'EOF'
 #!/bin/sh
 # Archive mensuelle des commandes de plus d'un an, puis purge de la base.
 set -eu
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin  # cron ne donne que /usr/bin:/bin ; runuser est dans /usr/sbin
 mkdir -p /srv/archives
 f=/srv/archives/commandes-$(date +%Y%m).csv
 runuser -u postgres -- psql -At -F';' logistique -c "SELECT * FROM commandes WHERE cree_le < now() - interval '1 year'" > "$f"

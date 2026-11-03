@@ -11,8 +11,9 @@ Le nom « Black Start » est proposé et reste à confirmer par l'équipe.
 2. `docs/02-attendus-challenge.md` : dates, rendus, barème et consignes du jury.
 3. `docs/03-spec-prototype.md` : périmètre, architecture et critères de réussite.
 4. `docs/04-marche-et-sources.md` : faits sourcés, hypothèses et limites.
-5. `TODO.md` : planning de l'équipe, état au lundi 2 novembre 2026 à 17h14.
-6. `docs/Attendus_du_Challenge.pdf` : support officiel, qui fait foi.
+5. `docs/05-mesures.md` : chiffres mesurés du prototype, avec leur source (à citer dans les rendus).
+6. `TODO.md` : planning de l'équipe, état au lundi 2 novembre 2026 à 17h14.
+7. `docs/Attendus_du_Challenge.pdf` : support officiel, qui fait foi.
 
 ## Priorités
 
@@ -68,6 +69,9 @@ Restent inconnus : ressources de `luna.minet.lan` (CPU, RAM, GPU).
 - **Journal du prototype** (Claude Docs, à tenir à jour au fil du travail) : https://claude.ai/artifact/WkkoWpocFpR39CXRbhL8tS
 - `rapport/bs-rapport` : page de rapport de reprise (score, preuve CI, bascule, décisions) générée depuis les résultats réels ; config `rapport/vms.json`, sortie `rapport/sortie/index.html`, `--fragment` pour l'artifact publié (https://claude.ai/artifact/4BYpgZ3ms6AnwWwUXMjemH). Formule du score à valider par l'équipe.
 - `infra/bs-decider.py <vm> --par <nom> [--depuis F]` : décision humaine sur chaque inconnu, proposition du modèle affichée, puis `bs-mr.sh` (code régénéré, MR à jour, CI). Démo « premier audit » : `BS_A_ZERO=1 BS_OLLAMA=http://192.168.103.204:11434 infra/bs-mr.sh bs-logistique` remet les décisions sur les inconnus à zéro ; décisions de Théo gardées dans `infra/demo/decisions-bs-logistique.json`.
+- `infra/demo-scenario-b.sh --par <nom> [--repetition] [--cache] [--sans-bascule] | --preparer` : démo chronométrée du scénario B (audit en direct, MR, CI rouge, refus de bascule, décisions, CI verte, bascule, retour), résultats dans `banc/resultats/demo-b-*.json`.
 - `infra/bascule.py vers-copie|retour` : bascule de production vers la copie vérifiée (refuse si la CI de la dernière MR n'est pas verte), mesure la coupure dans `banc/resultats/bascule-*.json`.
 - `banc/` : test métier de bout en bout (`test-metier.py`), mesure du banc de pièges (`mesure.py`), résultats dans `banc/resultats/`.
+- `infra/bs-mr.sh` copie aussi `inventaires/<vm>-pieges.json` dans `forge/pme-infra/inventaires/<vm>.json` (référence de la comparaison en CI). La CI écrit l'âge de l'instantané restic restauré et alerte s'il est plus vieux que le dernier passage prévu du cron de sauvegarde.
+- Après un redémarrage de `bs-logistique`, les pièges à chaud (P6 swappiness, P8 relais :9100) disparaissent : `pme/deploy.sh pieges` les repose avant un audit.
 - `inventaires/` (ignoré par Git) : `*-vierge.json` = état du template, référence à ne pas écraser ; `*-services.json` = après installation des services ; `bs-logistique-pieges.json` = après les pièges.

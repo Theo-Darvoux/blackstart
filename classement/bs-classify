@@ -217,6 +217,13 @@ def references(ctx, motif, exclure):
     return out[:4]
 
 
+def unite(pr):
+    """Unité systemd sans numéro de session : session-21.scope et session-26.scope
+    disent la même chose, et ce numéro sans valeur suffisait à changer 3
+    propositions sur 5 (mesuré le 3 novembre)."""
+    return re.sub(r"^session-\d+\.scope$", "session.scope", pr.get("unit") or "") or None
+
+
 def preuves(item, ref, cur, ctx):
     """Faits tirés de l'inventaire pour un inconnu, secrets masqués."""
     key = item["key"]
@@ -241,7 +248,7 @@ def preuves(item, ref, cur, ctx):
         proto, _, tail = rest.partition(":")
         port = tail.rsplit(":", 1)[-1]
         p["processus"] = [{"commande": masquer(" ".join(pr["cmdline"]), 300), "compte": pr["user"],
-                           "unite": pr.get("unit"), "paquet_du_programme": pr.get("exe_package")}
+                           "unite": unite(pr), "paquet_du_programme": pr.get("exe_package")}
                           for l in ctx.listen.get((proto, port), []) for pid in l["pids"]
                           if (pr := ctx.proc_by_pid.get(pid))]
         p["cite_par"] = references(ctx, f":{port}", None) + references(ctx, f" {port}", None)
@@ -252,7 +259,7 @@ def preuves(item, ref, cur, ctx):
                  and re.sub(r"-\d+\.scope$", ".scope", pr.get("unit") or "") == unit]
         ports = {pid: f"{l['proto']}:{l['address']}:{l['port']}" for l in cur["listening"] for pid in l["pids"]}
         p["processus"] = [{"commande": masquer(" ".join(pr["cmdline"]), 300), "compte": pr["user"],
-                           "unite": pr.get("unit"), "parent_pid": pr.get("ppid"),
+                           "unite": unite(pr), "parent_pid": pr.get("ppid"),
                            "port_ouvert": ports.get(pr["pid"])} for pr in procs]
     elif cat == "sysctl":
         p["valeur_courante"] = cur["kernel"]["sysctl_effective"].get(rest)

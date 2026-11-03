@@ -57,7 +57,16 @@ def render(d):
             lines += [f"- `{x['key']}` : {x['justified']}" for x in human]
             lines.append("\n</details>\n")
     # Données brutes pour la page de rapport (rapport/bs-rapport), invisibles dans la forge.
-    brut = {"chronos": chronos, "test_metier": test, "echec": echec,
+    sauv = load(os.path.join(d, "sauvegarde.json"))
+    if sauv:
+        lines.append(f"**Données restaurées** : instantané restic `{sauv['instantane']}` du {sauv['date']}, "
+                     f"âge **{sauv['age_h']} h** (perte maximale si l'on basculait maintenant).\n")
+        if sauv["trop_vieux"]:
+            quand = (f"le passage prévu du {sauv['dernier_passage_prevu']} (`{sauv['tache']}`)"
+                     if sauv.get("dernier_passage_prevu") else f"la période attendue ({sauv['max_h']:g} h)")
+            lines.append(f"> ⚠️ Sauvegarde en retard : l'instantané est plus vieux que {quand}. La sauvegarde planifiée "
+                         "de l'original n'a pas tourné ; à la bascule, tout ce qui a été écrit depuis serait perdu.\n")
+    brut = {"chronos": chronos, "test_metier": test, "echec": echec, "sauvegarde": sauv,
             "comparaison": cmp_ and {"summary": cmp_["summary"],
                                      "bloquants": [x["key"] for x in cmp_["differences"] if not x["justified"]]}}
     lines.append("<!-- bs-verif " + json.dumps(brut, ensure_ascii=False).replace("--", "\\u002d\\u002d") + " -->")

@@ -19,6 +19,10 @@ else
     git -C "$repo" checkout -q -B "$branch" origin/main
 fi
 [ -f "$repo/decisions/$vm.json" ] || echo '{}' > "$repo/decisions/$vm.json"
+# Inventaire de référence de la CI (sans contenu de fichiers) : toujours celui
+# de l'audit qui a produit le code, sinon la comparaison juge une copie neuve
+# contre un original périmé.
+mkdir -p "$repo/inventaires" && cp "inventaires/$vm-pieges.json" "$repo/inventaires/$vm.json"
 # Démo « premier audit » : BS_A_ZERO=1 efface les décisions humaines sur les
 # éléments inconnus (les 5 restent en attente). Les décisions sur les données
 # (data:*, prises après une CI) sont gardées.
@@ -30,6 +34,8 @@ fi
 # Propositions du modèle local (bs-ia) pour les inconnus : indicatives, mises en
 # cache dans decisions/<vm>.propositions.json (rappel seulement si les preuves changent).
 props="$repo/decisions/$vm.propositions.json"
+# BS_SANS_CACHE=1 : le modèle répond en direct même si les preuves n'ont pas changé (démo).
+[ -n "${BS_SANS_CACHE:-}" ] && rm -f "$props"
 if [ -n "${BS_OLLAMA:-}" ]; then
     python3 -I classement/bs-classify "$ref" "$cur" --proposer "$BS_OLLAMA" --propositions "$props"
 fi

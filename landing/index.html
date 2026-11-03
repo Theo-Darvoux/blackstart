@@ -1,0 +1,1145 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Black Start — Quand tout s'arrête, prouvez que vous savez repartir</title>
+<meta name="description" content="Black Start audite vos serveurs, reconstruit vos machines depuis le code et la sauvegarde, et prouve que votre activité peut réellement repartir.">
+
+<!-- Polices -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   DESIGN SYSTEM — Black Start Landing Page
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Palette */
+  --noir:    #07090A;
+  --encre:   #18211e;
+  --gris:    #5b6662;
+  --gris-l:  #9aa5a0;
+  --ligne:   #d9ddd6;
+  --papier:  #EEF3EF;
+  --surface: #F7FAF8;
+  --blanc:   #ffffff;
+  --vert:    #0E9F55;
+  --vert-vif:#14C267;
+  --vert-bg: #e2f1e7;
+  --vert-sombre: #064a28;
+  --bleu:    #1d4fa3;
+  --rouge:   #b3261e;
+  --rouge-bg:#f6e0de;
+  --orange:  #a3620a;
+  --orange-bg:#f7ebd6;
+
+  /* Typo */
+  --sans:  "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono:  "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  /* Espacements */
+  --section-y: clamp(64px, 10vw, 120px);
+  --gutter:    clamp(16px, 4vw, 32px);
+  --max-w:     1120px;
+}
+
+/* Reset */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--encre);
+  background: var(--blanc);
+  -webkit-font-smoothing: antialiased;
+}
+img, svg { display: block; max-width: 100%; }
+a { color: var(--vert); text-decoration: none; transition: color .15s; }
+a:hover { color: var(--vert-vif); }
+
+/* Utilitaires */
+.wrap { max-width: var(--max-w); margin: 0 auto; padding-inline: var(--gutter); }
+.section { padding-block: var(--section-y); }
+.accent { color: var(--vert); }
+.muted  { color: var(--gris); }
+.mono   { font-family: var(--mono); }
+.num    { font-variant-numeric: tabular-nums; }
+
+
+/* ═══════════════════════════════════════════════════════════════
+   HERO
+   ═══════════════════════════════════════════════════════════════ */
+
+.hero {
+  position: relative;
+  background: var(--noir);
+  color: var(--papier);
+  overflow: hidden;
+  padding: clamp(100px, 15vw, 180px) 0 clamp(80px, 12vw, 140px);
+}
+.hero::before {
+  content: "";
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(60% 70% at 75% 20%, rgba(14,159,85,.12) 0%, transparent 70%),
+    radial-gradient(40% 50% at 20% 80%, rgba(14,159,85,.06) 0%, transparent 60%);
+  pointer-events: none;
+}
+.hero .wrap { position: relative; z-index: 1; }
+.hero-logo { width: clamp(200px, 35vw, 380px); margin-bottom: 40px; }
+.hero h1 {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -.02em;
+  max-width: 18em;
+  margin-bottom: 20px;
+}
+.hero h1 .vert { color: var(--vert-vif); }
+.hero-sub {
+  font-size: clamp(1.05rem, 2vw, 1.25rem);
+  color: var(--gris-l);
+  max-width: 42em;
+  margin-bottom: 36px;
+}
+.hero-cta {
+  display: inline-flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 32px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  border: none;
+  transition: all .2s;
+  text-decoration: none;
+}
+.btn-primary {
+  background: var(--vert);
+  color: var(--blanc);
+}
+.btn-primary:hover { background: var(--vert-vif); color: var(--blanc); }
+.btn-outline {
+  background: transparent;
+  color: var(--papier);
+  border: 1.5px solid var(--gris);
+}
+.btn-outline:hover { border-color: var(--vert-vif); color: var(--vert-vif); }
+
+/* Stat pills dans le hero */
+.hero-stats {
+  display: flex;
+  gap: 32px;
+  flex-wrap: wrap;
+  margin-top: 56px;
+  padding-top: 32px;
+  border-top: 1px solid rgba(255,255,255,.1);
+}
+.hero-stat .big {
+  font-size: 2.2rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--vert-vif);
+  font-variant-numeric: tabular-nums;
+}
+.hero-stat .label {
+  font-size: .88rem;
+  color: var(--gris-l);
+  margin-top: 4px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PROBLÈME
+   ═══════════════════════════════════════════════════════════════ */
+
+.probleme { background: var(--surface); }
+.probleme-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 32px;
+  margin-top: 40px;
+}
+.probleme-card {
+  background: var(--blanc);
+  border: 1px solid var(--ligne);
+  border-radius: 8px;
+  padding: 28px;
+}
+.probleme-card .icon {
+  width: 48px;
+  height: 48px;
+  background: var(--rouge-bg);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  margin-bottom: 16px;
+}
+.probleme-card h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.probleme-card p {
+  color: var(--gris);
+  font-size: .95rem;
+}
+
+.section-intro {
+  max-width: 42em;
+}
+.section-intro h2 {
+  font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+  font-weight: 700;
+  letter-spacing: -.01em;
+  line-height: 1.2;
+  margin-bottom: 12px;
+}
+.section-intro p {
+  color: var(--gris);
+  font-size: 1.05rem;
+}
+.eyebrow {
+  font-family: var(--mono);
+  font-size: .78rem;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--vert);
+  margin-bottom: 8px;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   COMMENT ÇA MARCHE — Étapes
+   ═══════════════════════════════════════════════════════════════ */
+
+.etapes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 24px;
+  margin-top: 48px;
+}
+.etape {
+  position: relative;
+  padding: 32px 24px;
+  border-radius: 8px;
+  border: 1px solid var(--ligne);
+  background: var(--surface);
+}
+.etape-num {
+  font-family: var(--mono);
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: var(--vert);
+  line-height: 1;
+  margin-bottom: 12px;
+}
+.etape h3 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.etape p {
+  font-size: .92rem;
+  color: var(--gris);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   PREUVE (démo chiffrée)
+   ═══════════════════════════════════════════════════════════════ */
+
+.preuve { background: var(--noir); color: var(--papier); }
+.preuve .eyebrow { color: var(--vert-vif); }
+.preuve .section-intro p { color: var(--gris-l); }
+
+.preuve-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+  margin-top: 48px;
+}
+.preuve-card {
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 8px;
+  padding: 28px;
+}
+.preuve-card .big {
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: var(--vert-vif);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.preuve-card .unit {
+  font-size: 1rem;
+  color: var(--gris-l);
+  margin-top: 6px;
+}
+.preuve-card .desc {
+  font-size: .9rem;
+  color: var(--gris-l);
+  margin-top: 12px;
+  line-height: 1.5;
+}
+
+.preuve-bar {
+  margin-top: 48px;
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 8px;
+  padding: 28px;
+}
+.preuve-bar h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+.timeline {
+  display: flex;
+  height: 32px;
+  gap: 2px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.timeline span {
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .72rem;
+  font-weight: 600;
+  color: var(--blanc);
+  white-space: nowrap;
+  padding-inline: 6px;
+}
+.tl-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 20px;
+  margin-top: 12px;
+  font-size: .85rem;
+  color: var(--gris-l);
+}
+.tl-legend span {
+  display: inline-flex;
+  gap: 6px;
+}
+.tl-legend .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  display: inline-block;
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   OFFRE
+   ═══════════════════════════════════════════════════════════════ */
+
+.offre { background: var(--surface); }
+.offre-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+  margin-top: 48px;
+}
+.offre-card {
+  background: var(--blanc);
+  border: 1px solid var(--ligne);
+  border-radius: 10px;
+  padding: 36px 28px;
+  position: relative;
+  overflow: hidden;
+}
+.offre-card.featured {
+  border-color: var(--vert);
+  box-shadow: 0 0 0 1px var(--vert);
+}
+.offre-card.featured::before {
+  content: "Le plus demandé";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  background: var(--vert);
+  color: var(--blanc);
+  font-size: .78rem;
+  font-weight: 600;
+  text-align: center;
+  padding: 4px;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.offre-card.featured { padding-top: 52px; }
+.offre-card h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.offre-card .offre-desc {
+  color: var(--gris);
+  font-size: .95rem;
+  margin-bottom: 20px;
+}
+.offre-card ul {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.offre-card li {
+  display: flex;
+  gap: 10px;
+  font-size: .92rem;
+  align-items: start;
+}
+.offre-card li::before {
+  content: "✓";
+  color: var(--vert);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   FONCTIONNEMENT (organisation)
+   ═══════════════════════════════════════════════════════════════ */
+
+.fonctionnement-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  margin-top: 48px;
+  align-items: start;
+}
+.fonctionnement-texte h3 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  margin-top: 24px;
+}
+.fonctionnement-texte h3:first-child { margin-top: 0; }
+.fonctionnement-texte p {
+  font-size: .95rem;
+  color: var(--gris);
+}
+.fonctionnement-schema {
+  background: var(--surface);
+  border: 1px solid var(--ligne);
+  border-radius: 10px;
+  padding: 28px;
+}
+.fonctionnement-schema pre {
+  font-family: var(--mono);
+  font-size: .82rem;
+  line-height: 1.7;
+  color: var(--encre);
+  white-space: pre-wrap;
+  overflow-x: auto;
+}
+
+@media (max-width: 768px) {
+  .fonctionnement-grid { grid-template-columns: 1fr; }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   MARCHÉ / CONTEXTE
+   ═══════════════════════════════════════════════════════════════ */
+
+.marche { background: var(--surface); }
+.marche-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 24px;
+  margin-top: 48px;
+}
+.marche-stat {
+  text-align: center;
+  padding: 28px;
+  background: var(--blanc);
+  border: 1px solid var(--ligne);
+  border-radius: 8px;
+}
+.marche-stat .big {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--vert);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.marche-stat .label {
+  font-size: .9rem;
+  color: var(--gris);
+  margin-top: 6px;
+}
+.marche-stat .source {
+  font-size: .75rem;
+  color: var(--gris-l);
+  font-family: var(--mono);
+  margin-top: 8px;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   NIS2 BANDEAU
+   ═══════════════════════════════════════════════════════════════ */
+
+.nis2-banner {
+  background: linear-gradient(135deg, var(--vert-sombre), #0a6b3a);
+  color: var(--blanc);
+  padding: 48px 0;
+}
+.nis2-inner {
+  display: flex;
+  gap: 32px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.nis2-inner .tag {
+  font-family: var(--mono);
+  font-size: .85rem;
+  font-weight: 600;
+  background: rgba(255,255,255,.15);
+  padding: 6px 14px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.nis2-inner p {
+  flex: 1;
+  min-width: 280px;
+  font-size: 1.05rem;
+  line-height: 1.55;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   CONCURRENCE
+   ═══════════════════════════════════════════════════════════════ */
+
+.concurrence-table {
+  margin-top: 40px;
+  overflow-x: auto;
+  border: 1px solid var(--ligne);
+  border-radius: 8px;
+  background: var(--blanc);
+}
+.concurrence-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .92rem;
+}
+.concurrence-table th {
+  background: var(--surface);
+  text-align: left;
+  padding: 12px 16px;
+  font-size: .78rem;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--gris);
+  font-weight: 600;
+  border-bottom: 1px solid var(--ligne);
+}
+.concurrence-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--ligne);
+  vertical-align: top;
+}
+.concurrence-table tr:last-child td { border-bottom: 0; }
+.concurrence-table .bs-row {
+  background: var(--vert-bg);
+  font-weight: 600;
+}
+.check { color: var(--vert); font-weight: 700; }
+.cross { color: var(--rouge); font-weight: 700; }
+.partial { color: var(--orange); font-weight: 700; }
+
+
+/* ═══════════════════════════════════════════════════════════════
+   CTA FINAL
+   ═══════════════════════════════════════════════════════════════ */
+
+.cta-final {
+  background: var(--noir);
+  color: var(--papier);
+  text-align: center;
+  padding: clamp(64px, 10vw, 120px) 0;
+}
+.cta-final h2 {
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 16px;
+}
+.cta-final p {
+  color: var(--gris-l);
+  font-size: 1.05rem;
+  max-width: 36em;
+  margin: 0 auto 32px;
+}
+.cta-final .btn-primary {
+  font-size: 1.1rem;
+  padding: 16px 40px;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   FOOTER
+   ═══════════════════════════════════════════════════════════════ */
+
+footer {
+  background: var(--encre);
+  color: var(--gris-l);
+  font-size: .85rem;
+  padding: 36px 0;
+}
+footer .wrap {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+footer a { color: var(--vert-vif); }
+footer .footer-logo { width: 140px; opacity: .7; }
+
+
+/* ═══════════════════════════════════════════════════════════════
+   NAV
+   ═══════════════════════════════════════════════════════════════ */
+
+.nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  background: rgba(7,9,10,.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  padding: 0 var(--gutter);
+  transition: background .3s;
+}
+.nav-inner {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 60px;
+}
+.nav-logo { height: 28px; }
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  list-style: none;
+}
+.nav-links a {
+  color: var(--gris-l);
+  font-size: .88rem;
+  font-weight: 500;
+}
+.nav-links a:hover { color: var(--vert-vif); }
+.nav .btn { padding: 8px 20px; font-size: .88rem; }
+
+/* Mobile nav */
+.nav-toggle { display: none; background: none; border: none; cursor: pointer; padding: 8px; }
+.nav-toggle span { display: block; width: 22px; height: 2px; background: var(--papier); margin: 5px 0; transition: .2s; }
+
+@media (max-width: 768px) {
+  .nav-toggle { display: block; }
+  .nav-links {
+    position: absolute;
+    top: 60px;
+    left: 0; right: 0;
+    background: rgba(7,9,10,.96);
+    flex-direction: column;
+    padding: 20px;
+    gap: 16px;
+    display: none;
+  }
+  .nav-links.open { display: flex; }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   ANIMATIONS SIMPLES
+   ═══════════════════════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: no-preference) {
+  .fade-up {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity .6s ease, transform .6s ease;
+  }
+  .fade-up.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════ NAV ═══════════════════════════ -->
+<nav class="nav" id="nav">
+  <div class="nav-inner">
+    <!-- Logo SVG inline (version claire) -->
+    <a href="#" aria-label="Black Start">
+      <svg class="nav-logo" viewBox="0 0 880.3 90.7" role="img" aria-label="Black Start">
+        <g transform="translate(0 90.72)">
+          <path d="M64.41 -70.53 A35.51 35.51 0 0 1 71.86 -22.50" fill="none" stroke="#0E9F55" stroke-width="14.07"/>
+          <path d="M69.09 -18.95 A35.51 35.51 0 1 1 20.68 -70.53" fill="none" stroke="#E8F2EC" stroke-width="14.07"/>
+          <rect x="35.51" y="-90.72" width="14.07" height="48.17" fill="#E8F2EC"/>
+          <path d="M161.13 0.0H116.23V-67.0H158.83Q180.53 -67.0 180.53 -50.8Q180.53 -36.3 163.83 -35.6V-34.6Q173.63 -34.2 178.63 -30.0Q183.63 -25.8 183.63 -18.6Q183.63 0.0 161.13 0.0ZM134.93 -50.1V-41.6H156.83Q159.63 -41.6 160.68 -42.5Q161.73 -43.4 161.73 -45.8Q161.73 -48.1 160.48 -49.1Q159.23 -50.1 156.33 -50.1ZM134.93 -26.2V-16.9H158.73Q162.13 -16.9 163.38 -17.85Q164.63 -18.8 164.63 -21.6Q164.63 -24.4 163.43 -25.3Q162.23 -26.2 158.73 -26.2ZM247.13 0.0H189.63V-67.0H208.43V-16.9H247.13ZM271.23 0.0H250.13L279.03 -67.0H305.93L334.93 0.0H313.33L308.23 -12.4H276.43ZM287.43 -38.7 283.53 -29.3H301.33L297.43 -38.7L293.03 -50.0H291.73ZM374.93 1.0Q357.63 1.0 347.78 -8.35Q337.93 -17.7 337.93 -33.5Q337.93 -49.3 347.78 -58.65Q357.63 -68.0 374.93 -68.0Q391.83 -68.0 401.38 -60.4Q410.93 -52.8 410.93 -39.4V-37.7H389.93V-39.4Q389.93 -45.2 386.68 -47.6Q383.43 -50.0 375.23 -50.0Q364.93 -50.0 361.43 -46.7Q357.93 -43.4 357.93 -33.5Q357.93 -23.6 361.43 -20.3Q364.93 -17.0 375.23 -17.0Q383.43 -17.0 386.68 -19.4Q389.93 -21.8 389.93 -27.6V-29.3H410.93V-27.6Q410.93 -14.2 401.38 -6.6Q391.83 1.0 374.93 1.0ZM436.73 0.0H417.93V-67.0H436.73V-42.1H450.23L466.53 -67.0H489.03L465.83 -34.1L488.53 0.0H466.03L450.43 -23.8H436.73Z" fill="#E8F2EC"/>
+          <path d="M547.53 1.0Q514.53 1.0 514.53 -23.3V-23.9H533.33V-21.8Q533.33 -18.3 535.83 -17.2Q538.33 -16.1 547.53 -16.1Q555.73 -16.1 557.93 -16.85Q560.13 -17.6 560.13 -20.0Q560.13 -21.8 558.73 -22.7Q557.33 -23.6 553.33 -24.1L532.33 -26.9Q513.53 -29.5 513.53 -46.1Q513.53 -55.2 521.38 -61.6Q529.23 -68.0 546.03 -68.0Q561.63 -68.0 569.58 -61.6Q577.53 -55.2 577.53 -43.7V-43.1H558.73V-44.6Q558.73 -48.4 555.93 -49.7Q553.13 -51.0 544.03 -51.0Q537.13 -51.0 534.73 -50.05Q532.33 -49.1 532.33 -46.8Q532.33 -45.2 533.38 -44.4Q534.43 -43.6 537.13 -43.2L558.13 -40.1Q578.93 -37.1 578.93 -20.7Q578.93 -11.3 571.18 -5.15Q563.43 1.0 547.53 1.0ZM626.43 0.0H607.63V-50.1H583.93V-67.0H650.03V-50.1H626.43ZM673.63 0.0H652.53L681.43 -67.0H708.33L737.33 0.0H715.73L710.63 -12.4H678.83ZM689.83 -38.7 685.93 -29.3H703.73L699.83 -38.7L695.43 -50.0H694.13ZM760.13 0.0H741.33V-67.0H780.43Q793.63 -67.0 800.53 -61.7Q807.43 -56.4 807.43 -46.5Q807.43 -38.4 803.08 -33.8Q798.73 -29.2 789.33 -28.0V-27.0Q794.13 -25.8 796.48 -23.5Q798.83 -21.2 800.93 -16.8L809.23 0.0H787.53L779.53 -16.4Q777.73 -20.2 775.48 -21.5Q773.23 -22.8 767.83 -22.8H760.13ZM760.13 -50.1V-36.8H780.23Q784.53 -36.8 786.13 -38.1Q787.73 -39.4 787.73 -43.5Q787.73 -47.4 786.08 -48.75Q784.43 -50.1 780.23 -50.1ZM855.23 0.0H836.43V-50.1H812.73V-67.0H878.83V-50.1H855.23Z" fill="#0E9F55"/>
+        </g>
+      </svg>
+    </a>
+    <button class="nav-toggle" aria-label="Menu" onclick="document.querySelector('.nav-links').classList.toggle('open')">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="nav-links">
+      <li><a href="#probleme">Problème</a></li>
+      <li><a href="#solution">Solution</a></li>
+      <li><a href="#preuve">Résultats</a></li>
+      <li><a href="#offre">Offre</a></li>
+      <li><a href="#marche">Marché</a></li>
+      <li><a href="#contact" class="btn btn-primary">Demander un audit</a></li>
+    </ul>
+  </div>
+</nav>
+
+
+<!-- ═══════════════════════════ HERO ═══════════════════════════ -->
+<section class="hero" id="hero">
+  <div class="wrap">
+    <div class="eyebrow" style="color:var(--vert-vif); margin-bottom:24px;">Cabinet de cyber-résilience augmenté par l'IA</div>
+    <h1>Quand tout s'arrête,<br><span class="vert">prouvez que vous savez repartir.</span></h1>
+    <p class="hero-sub">
+      Vos sauvegardes existent. Black Start prouve que votre activité peut réellement repartir — et corrige ce qui l'en empêche. Audit en lecture seule, reconstruction automatique, preuve métier de bout en bout.
+    </p>
+    <div class="hero-cta">
+      <a href="#contact" class="btn btn-primary">Demander un audit gratuit →</a>
+      <a href="#preuve" class="btn btn-outline">Voir la démo</a>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="big">3 min 59 s</div>
+        <div class="label">Reconstruction complète mesurée</div>
+      </div>
+      <div class="hero-stat">
+        <div class="big">28 s</div>
+        <div class="label">Coupure à la bascule</div>
+      </div>
+      <div class="hero-stat">
+        <div class="big">100 %</div>
+        <div class="label">Couverture du code</div>
+      </div>
+      <div class="hero-stat">
+        <div class="big">0</div>
+        <div class="label">Écart non justifié</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════ PROBLÈME ═══════════════════════════ -->
+<section class="section probleme" id="probleme">
+  <div class="wrap">
+    <div class="section-intro fade-up">
+      <div class="eyebrow">Le problème</div>
+      <h2>Vos serveurs tournent, mais personne ne sait les reconstruire.</h2>
+      <p>Des machines configurées à la main, des sauvegardes jamais testées, un admin qui part — et le jour où tout tombe, la reprise prend des semaines au lieu d'heures.</p>
+    </div>
+    <div class="probleme-grid">
+      <div class="probleme-card fade-up">
+        <div class="icon">🔥</div>
+        <h3>Panne ou ransomware</h3>
+        <p>Une image restaurée peut contenir une porte dérobée. Restaurer n'est pas reconstruire proprement.</p>
+      </div>
+      <div class="probleme-card fade-up">
+        <div class="icon">👤</div>
+        <h3>Dépendance à un admin</h3>
+        <p>Les configurations, crons, binaires et scripts vivent dans la tête d'une seule personne. Son départ est un risque métier.</p>
+      </div>
+      <div class="probleme-card fade-up">
+        <div class="icon">📦</div>
+        <h3>Sauvegardes non testées</h3>
+        <p>Avoir un backup ne prouve rien. Une VM qui démarre ne prouve pas que l'entrepôt peut expédier une commande.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════ SOLUTION ═══════════════════════════ -->
+<section class="section" id="solution">
+  <div class="wrap">
+    <div class="section-intro fade-up">
+      <div class="eyebrow">La solution</div>
+      <h2>De l'audit à la preuve métier, en une semaine.</h2>
+      <p>Black Start inventorie, classe, reconstruit et vérifie vos serveurs critiques — sans toucher à la production.</p>
+    </div>
+    <div class="etapes-grid">
+      <div class="etape fade-up">
+        <div class="etape-num">01</div>
+        <h3>Inventaire en lecture seule</h3>
+        <p>Un script déterministe scanne chaque VM : paquets, configs modifiées, services, crons, ports, secrets. Rien n'est modifié.</p>
+      </div>
+      <div class="etape fade-up">
+        <div class="etape-num">02</div>
+        <h3>Classement intelligent</h3>
+        <p>Chaque élément est classé : reproduit par le code, donnée à restaurer, secret au coffre, ou inconnu — décision humaine obligatoire.</p>
+      </div>
+      <div class="etape fade-up">
+        <div class="etape-num">03</div>
+        <h3>Reconstruction sandbox</h3>
+        <p>L'IA génère le code Ansible. La VM est recréée dans une sandbox isolée depuis le code et les sauvegardes. Aucun accès en production.</p>
+      </div>
+      <div class="etape fade-up">
+        <div class="etape-num">04</div>
+        <h3>Preuve métier</h3>
+        <p>Tests de bout en bout : la commande passe, le mail part, le DNS répond. Chaque écart est justifié ou bloque la validation.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════ PREUVE CHIFFRÉE ═══════════════════════════ -->
+<section class="section preuve" id="preuve">
+  <div class="wrap">
+    <div class="section-intro fade-up">
+      <div class="eyebrow">Résultats mesurés</div>
+      <h2>Pas d'estimations. Des mesures réelles.</h2>
+      <p>Sur notre banc de test — une PME fictive avec un logiciel de logistique, mail, proxy et DNS — voici ce que Black Start a prouvé :</p>
+    </div>
+
+    <div class="preuve-grid">
+      <div class="preuve-card fade-up">
+        <div class="big">155</div>
+        <div class="unit">éléments audités</div>
+        <div class="desc">Paquets, fichiers modifiés, services, crons, ports, secrets — tout est inventorié et classé.</div>
+      </div>
+      <div class="preuve-card fade-up">
+        <div class="big">100 %</div>
+        <div class="unit">couverts par le code</div>
+        <div class="desc">Chaque élément a un traitement : code Ansible, restauration de données, coffre pour les secrets, ou décision humaine.</div>
+      </div>
+      <div class="preuve-card fade-up">
+        <div class="big">31</div>
+        <div class="unit">écarts trouvés</div>
+        <div class="desc">Entre l'original et la copie — tous les 31 justifiés par une règle ou une décision. 0 écart non expliqué.</div>
+      </div>
+      <div class="preuve-card fade-up">
+        <div class="big">28 s</div>
+        <div class="unit">de coupure</div>
+        <div class="desc">Bascule de la production vers la copie vérifiée. Test métier vert, aucun geste manuel.</div>
+      </div>
+    </div>
+
+    <!-- Timeline de reconstruction -->
+    <div class="preuve-bar fade-up">
+      <h3>Chronologie d'une reconstruction complète — 3 min 59 s</h3>
+      <div class="timeline">
+        <span style="flex:77; background:#1a6b42" title="Sandbox neuve">sandbox</span>
+        <span style="flex:89; background:#0E9F55" title="Reconstruction Ansible">ansible</span>
+        <span style="flex:10; background:#14C267" title="Restauration données">restore</span>
+        <span style="flex:30; background:#3DFF8A; color:#07090A" title="Redémarrage">reboot</span>
+        <span style="flex:10; background:#6cf5a0; color:#07090A" title="Test métier">test</span>
+        <span style="flex:23; background:#a8fbc8; color:#07090A" title="Collecte finale">collecte</span>
+      </div>
+      <div class="tl-legend">
+        <span><i class="dot" style="background:#1a6b42"></i> Sandbox neuve · 77 s</span>
+        <span><i class="dot" style="background:#0E9F55"></i> Reconstruction · 89 s</span>
+        <span><i class="dot" style="background:#14C267"></i> Restauration · 10 s</span>
+        <span><i class="dot" style="background:#3DFF8A"></i> Redémarrage · 30 s</span>
+        <span><i class="dot" style="background:#6cf5a0"></i> Test métier · 10 s</span>
+        <span><i class="dot" style="background:#a8fbc8"></i> Collecte finale · 23 s</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════ NIS2 ═══════════════════════════ -->
+<section class="nis2-banner">
+  <div class="wrap">
+    <div class="nis2-inner">
+      <span class="tag">NIS2 / Loi Résilience</span>
+      <p>
+        La directive NIS2, en cours de transposition en France, imposera à plus de <strong>15 000 entités</strong> de prouver leur capacité de reprise. Black Start vous prépare aujourd'hui aux exigences de demain — avec des preuves, pas des déclarations.
+      </p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════ OFFRE ═══════════════════════════ -->
+<section class="section offre" id="offre">
+  <div class="wrap">
+    <div class="section-intro fade-up">
+      <div class="eyebrow">Notre offre</div>
+      <h2>Un cabinet de conseil, équipé de son propre outil.</h2>
+      <p>L'outil traite les cas courants. Les consultants traitent les exceptions. Vous obtenez la preuve.</p>
+    </div>
+    <div class="offre-grid">
+      <div class="offre-card fade-up">
+        <h3>🔍 Audit</h3>
+        <p class="offre-desc">1 semaine · 5 à 10 applications critiques</p>
+        <ul>
+          <li>Inventaire en lecture seule de chaque serveur</li>
+          <li>Classement automatique de chaque élément</li>
+          <li>Score de reconstructibilité par machine</li>
+          <li>Rapport des risques et trous de sauvegarde</li>
+          <li>Cartographie des dépendances (IP en dur, secrets)</li>
+        </ul>
+      </div>
+      <div class="offre-card featured fade-up">
+        <h3>🔧 Migration</h3>
+        <p class="offre-desc">Au forfait · VM critiques reconstruites</p>
+        <ul>
+          <li>Reconstruction de chaque VM depuis le code</li>
+          <li>Restauration des données depuis les backups existants</li>
+          <li>Tests de bout en bout : preuve métier</li>
+          <li>Merge request relue par votre admin</li>
+          <li>Bascule chronométrée avec retour arrière garanti</li>
+          <li>Coffre-fort de secrets sécurisé</li>
+        </ul>
+      </div>
+      <div class="offre-card fade-up">
+        <h3>🛡️ Abonnement</h3>
+        <p class="offre-desc">Mensuel · Surveillance continue</p>
+        <ul>
+          <li>Détection de dérive par rapport au code</li>
+          <li>Test de reconstruction régulier automatisé</li>
+          <li>Rapport de reprise actualisé chaque mois</li>
+          <li>Alerte si un serveur n'est plus reconstructible</li>
+          <li>Support pour les nouvelles machines</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════ FONCTIONNEMENT ═══════════════════════════ -->
+<section class="section" id="fonctionnement">
+  <div class="wrap">
+    <div class="section-intro fade-up">
+      <div class="eyebrow">Comment on travaille</div>
+      <h2>Un commercial. Un ingénieur. L'outil fait le reste.</h2>
+    </div>
+    <div class="fonctionnement-grid fade-up">
+      <div class="fonctionnement-texte">
+        <h3>👔 Le commercial</h3>
+        <p>Il identifie les entreprises en besoin, qualifie le prospect (dernier test de reprise, parc Linux/Windows, budget), et vend l'audit puis la migration. Il gère la relation client de bout en bout.</p>
+
+        <h3>🛠️ L'ingénieur interne</h3>
+        <p>Il pilote l'outil Black Start, configure les audits, supervise les reconstructions, relit les cas complexes (binaires opaques, logiciels sous licence, secrets à ressaisir), et livre le rapport au client.</p>
+
+        <h3>🤖 L'outil Black Start</h3>
+        <p>Il fait le gros du travail : collecte automatique, classement par IA locale, génération du code Ansible, reconstruction en sandbox, tests, comparaison, rapport. L'humain valide, l'outil exécute.</p>
+      </div>
+      <div class="fonctionnement-schema">
+        <pre>
+┌─────────────┐     prospection     ┌──────────────┐
+│  Commercial │ ──────────────────▶ │   Client     │
+│             │ ◀────────────────── │   (ETI)      │
+└──────┬──────┘   signature audit   └──────────────┘
+       │                                    ▲
+       │ brief                              │ rapport
+       ▼                                    │
+┌──────────────┐                   ┌────────┴───────┐
+│  Ingénieur   │ ── pilote ──────▶ │  Outil Black   │
+│  interne     │ ◀── résultats ── │  Start         │
+└──────────────┘                   └────────────────┘
+                                    │ collecte
+                                    │ classement IA
+                                    │ Ansible
+                                    │ sandbox
+                                    │ tests
+                                    ▼
+                              ┌────────────┐
+                              │  Serveurs  │
+                              │  du client │
+                              │  (lecture  │
+                              │  seule)    │
+                              └────────────┘</pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════ MARCHÉ ═══════════════════════════ -->
+<section class="section marche" id="marche">
+  <div class="wrap">
+    <div class="section-intro fade-up">
+      <div class="eyebrow">Le marché</div>
+      <h2>Un marché massif, une obligation qui arrive.</h2>
+    </div>
+    <div class="marche-stats">
+      <div class="marche-stat fade-up">
+        <div class="big">6 800</div>
+        <div class="label">ETI en France</div>
+        <div class="source">Ministère de l'Économie, 2022</div>
+      </div>
+      <div class="marche-stat fade-up">
+        <div class="big">13 M€</div>
+        <div class="label">Coût moyen d'une cyberattaque (ETI)</div>
+        <div class="source">ANSSI / CLUSIF via le Sénat</div>
+      </div>
+      <div class="marche-stat fade-up">
+        <div class="big">15 000+</div>
+        <div class="label">Entités concernées par NIS2</div>
+        <div class="source">Commission européenne</div>
+      </div>
+      <div class="marche-stat fade-up">
+        <div class="big">~62 M€</div>
+        <div class="label">SAM estimé (ETI industrielles, France)</div>
+        <div class="source">6 200 ETI × 25 % × 40 k€/an</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════ CONCURRENCE ═══════════════════════════ -->
+<section class="section" id="concurrence">
+  <div class="wrap">
+    <div class="section-intro fade-up">
+      <div class="eyebrow">Concurrence</div>
+      <h2>Ce que les autres ne font pas.</h2>
+      <p>Les acteurs existants couvrent le cloud, Kubernetes ou la restauration seule. L'intérieur des VM on-premise et la preuve métier de bout en bout restent un trou dans le marché.</p>
+    </div>
+    <div class="concurrence-table fade-up">
+      <table>
+        <thead>
+          <tr>
+            <th>Critère</th>
+            <th>Veeam / Éditeurs backup</th>
+            <th>Firefly / ControlMonkey</th>
+            <th>ESN / Cabinets PRA</th>
+            <th style="color:var(--vert)">Black Start</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Audit du contenu des VM</td>
+            <td class="cross">✗</td>
+            <td class="partial">~</td>
+            <td class="partial">~</td>
+            <td class="check bs-row">✓</td>
+          </tr>
+          <tr>
+            <td>Reconstruction depuis le code</td>
+            <td class="cross">✗</td>
+            <td class="check">✓</td>
+            <td class="partial">~</td>
+            <td class="check bs-row">✓</td>
+          </tr>
+          <tr>
+            <td>Preuve métier de bout en bout</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="check bs-row">✓</td>
+          </tr>
+          <tr>
+            <td>On-premise / VM Linux</td>
+            <td class="check">✓</td>
+            <td class="cross">✗ (cloud)</td>
+            <td class="check">✓</td>
+            <td class="check bs-row">✓</td>
+          </tr>
+          <tr>
+            <td>Automatisé + IA</td>
+            <td class="cross">✗</td>
+            <td class="check">✓</td>
+            <td class="cross">✗</td>
+            <td class="check bs-row">✓</td>
+          </tr>
+          <tr>
+            <td>Modèle local (données souveraines)</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="check bs-row">✓</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════ CTA FINAL ═══════════════════════════ -->
+<section class="cta-final" id="contact">
+  <div class="wrap">
+    <h2>Prêt à prouver votre résilience&nbsp;?</h2>
+    <p>Contactez notre commercial pour un premier audit en lecture seule de vos applications critiques. Aucun risque pour votre production.</p>
+    <a href="mailto:contact@blackstart.fr" class="btn btn-primary">Demander un audit →</a>
+    <p style="margin-top:24px; font-size:.9rem; color:var(--gris-l);">
+      Ou écrivez-nous à <a href="mailto:contact@blackstart.fr">contact@blackstart.fr</a>
+    </p>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════ FOOTER ═══════════════════════════ -->
+<footer>
+  <div class="wrap">
+    <div>
+      <svg class="footer-logo" viewBox="0 0 880.3 90.7" role="img" aria-label="Black Start">
+        <g transform="translate(0 90.72)">
+          <path d="M64.41 -70.53 A35.51 35.51 0 0 1 71.86 -22.50" fill="none" stroke="#0E9F55" stroke-width="14.07"/>
+          <path d="M69.09 -18.95 A35.51 35.51 0 1 1 20.68 -70.53" fill="none" stroke="#9aa5a0" stroke-width="14.07"/>
+          <rect x="35.51" y="-90.72" width="14.07" height="48.17" fill="#9aa5a0"/>
+          <path d="M161.13 0.0H116.23V-67.0H158.83Q180.53 -67.0 180.53 -50.8Q180.53 -36.3 163.83 -35.6V-34.6Q173.63 -34.2 178.63 -30.0Q183.63 -25.8 183.63 -18.6Q183.63 0.0 161.13 0.0ZM134.93 -50.1V-41.6H156.83Q159.63 -41.6 160.68 -42.5Q161.73 -43.4 161.73 -45.8Q161.73 -48.1 160.48 -49.1Q159.23 -50.1 156.33 -50.1ZM134.93 -26.2V-16.9H158.73Q162.13 -16.9 163.38 -17.85Q164.63 -18.8 164.63 -21.6Q164.63 -24.4 163.43 -25.3Q162.23 -26.2 158.73 -26.2ZM247.13 0.0H189.63V-67.0H208.43V-16.9H247.13ZM271.23 0.0H250.13L279.03 -67.0H305.93L334.93 0.0H313.33L308.23 -12.4H276.43ZM287.43 -38.7 283.53 -29.3H301.33L297.43 -38.7L293.03 -50.0H291.73ZM374.93 1.0Q357.63 1.0 347.78 -8.35Q337.93 -17.7 337.93 -33.5Q337.93 -49.3 347.78 -58.65Q357.63 -68.0 374.93 -68.0Q391.83 -68.0 401.38 -60.4Q410.93 -52.8 410.93 -39.4V-37.7H389.93V-39.4Q389.93 -45.2 386.68 -47.6Q383.43 -50.0 375.23 -50.0Q364.93 -50.0 361.43 -46.7Q357.93 -43.4 357.93 -33.5Q357.93 -23.6 361.43 -20.3Q364.93 -17.0 375.23 -17.0Q383.43 -17.0 386.68 -19.4Q389.93 -21.8 389.93 -27.6V-29.3H410.93V-27.6Q410.93 -14.2 401.38 -6.6Q391.83 1.0 374.93 1.0ZM436.73 0.0H417.93V-67.0H436.73V-42.1H450.23L466.53 -67.0H489.03L465.83 -34.1L488.53 0.0H466.03L450.43 -23.8H436.73Z" fill="#9aa5a0"/>
+          <path d="M547.53 1.0Q514.53 1.0 514.53 -23.3V-23.9H533.33V-21.8Q533.33 -18.3 535.83 -17.2Q538.33 -16.1 547.53 -16.1Q555.73 -16.1 557.93 -16.85Q560.13 -17.6 560.13 -20.0Q560.13 -21.8 558.73 -22.7Q557.33 -23.6 553.33 -24.1L532.33 -26.9Q513.53 -29.5 513.53 -46.1Q513.53 -55.2 521.38 -61.6Q529.23 -68.0 546.03 -68.0Q561.63 -68.0 569.58 -61.6Q577.53 -55.2 577.53 -43.7V-43.1H558.73V-44.6Q558.73 -48.4 555.93 -49.7Q553.13 -51.0 544.03 -51.0Q537.13 -51.0 534.73 -50.05Q532.33 -49.1 532.33 -46.8Q532.33 -45.2 533.38 -44.4Q534.43 -43.6 537.13 -43.2L558.13 -40.1Q578.93 -37.1 578.93 -20.7Q578.93 -11.3 571.18 -5.15Q563.43 1.0 547.53 1.0ZM626.43 0.0H607.63V-50.1H583.93V-67.0H650.03V-50.1H626.43ZM673.63 0.0H652.53L681.43 -67.0H708.33L737.33 0.0H715.73L710.63 -12.4H678.83ZM689.83 -38.7 685.93 -29.3H703.73L699.83 -38.7L695.43 -50.0H694.13ZM760.13 0.0H741.33V-67.0H780.43Q793.63 -67.0 800.53 -61.7Q807.43 -56.4 807.43 -46.5Q807.43 -38.4 803.08 -33.8Q798.73 -29.2 789.33 -28.0V-27.0Q794.13 -25.8 796.48 -23.5Q798.83 -21.2 800.93 -16.8L809.23 0.0H787.53L779.53 -16.4Q777.73 -20.2 775.48 -21.5Q773.23 -22.8 767.83 -22.8H760.13ZM760.13 -50.1V-36.8H780.23Q784.53 -36.8 786.13 -38.1Q787.73 -39.4 787.73 -43.5Q787.73 -47.4 786.08 -48.75Q784.43 -50.1 780.23 -50.1ZM855.23 0.0H836.43V-50.1H812.73V-67.0H878.83V-50.1H855.23Z" fill="#5b6662"/>
+        </g>
+      </svg>
+    </div>
+    <div>
+      <span>© 2026 Black Start</span> · 
+      <span>IMT-BS · Télécom SudParis · ENSIIE</span>
+    </div>
+  </div>
+</footer>
+
+
+<!-- ═══════════════════════════ JS ═══════════════════════════ -->
+<script>
+// Intersection Observer pour les animations fade-up
+if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+}
+
+// Fermer le menu mobile au clic sur un lien
+document.querySelectorAll('.nav-links a').forEach(a => {
+  a.addEventListener('click', () => document.querySelector('.nav-links').classList.remove('open'));
+});
+</script>
+
+</body>
+</html>

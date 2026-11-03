@@ -1,0 +1,55 @@
+---
+# groupe principal de logistique
+- name: "Groupe logistique"
+  ansible.builtin.group:
+    name: "logistique"
+    gid: 988
+    system: true
+
+# user:logistique
+- name: "Compte logistique"
+  ansible.builtin.user:
+    name: "logistique"
+    uid: 997
+    home: "/opt/logistique"
+    shell: "/usr/sbin/nologin"
+    create_home: false
+    system: true
+    group: "logistique"
+
+# groupe principal de postgres
+- name: "Groupe postgres"
+  ansible.builtin.group:
+    name: "postgres"
+    gid: 105
+    system: true
+
+# user:postgres
+- name: "Compte postgres"
+  ansible.builtin.user:
+    name: "postgres"
+    uid: 102
+    home: "/var/lib/postgresql"
+    shell: "/bin/bash"
+    create_home: false
+    system: true
+    group: "postgres"
+
+# groupe principal de prestataire
+- name: "Groupe prestataire"
+  ansible.builtin.group:
+    name: "prestataire"
+    gid: 1001
+    system: false
+
+# user:prestataire
+- name: "Compte prestataire"
+  ansible.builtin.user:
+    name: "prestataire"
+    uid: 1001
+    home: "/home/prestataire"
+    shell: "/bin/bash"
+    create_home: true
+    system: false
+    group: "prestataire"
+

@@ -1,0 +1,329 @@
+---
+# dossier à recréer
+- name: "Dossier /etc/logistique"
+  ansible.builtin.file:
+    path: "/etc/logistique"
+    state: "directory"
+    owner: "root"
+    group: "logistique"
+    mode: "0750"
+
+# dossier à recréer
+- name: "Dossier /etc/restic"
+  ansible.builtin.file:
+    path: "/etc/restic"
+    state: "directory"
+    owner: "root"
+    group: "root"
+    mode: "0700"
+
+# dossier à recréer
+- name: "Dossier /opt/etiquettes"
+  ansible.builtin.file:
+    path: "/opt/etiquettes"
+    state: "directory"
+    owner: "root"
+    group: "root"
+    mode: "0755"
+
+# dossier à recréer
+- name: "Dossier /opt/logistique"
+  ansible.builtin.file:
+    path: "/opt/logistique"
+    state: "directory"
+    owner: "root"
+    group: "root"
+    mode: "0755"
+
+# dossier à recréer
+- name: "Dossier /etc/lighttpd/conf-enabled"
+  ansible.builtin.file:
+    path: "/etc/lighttpd/conf-enabled"
+    state: "directory"
+    owner: "root"
+    group: "root"
+    mode: "0755"
+
+# dossier à recréer
+- name: "Dossier /etc/postgresql/17"
+  ansible.builtin.file:
+    path: "/etc/postgresql/17"
+    state: "directory"
+    owner: "postgres"
+    group: "postgres"
+    mode: "0755"
+
+# dossier à recréer
+- name: "Dossier /opt/etiquettes/bin"
+  ansible.builtin.file:
+    path: "/opt/etiquettes/bin"
+    state: "directory"
+    owner: "root"
+    group: "root"
+    mode: "0755"
+
+# dossier à recréer
+- name: "Dossier /opt/logistique/app"
+  ansible.builtin.file:
+    path: "/opt/logistique/app"
+    state: "directory"
+    owner: "root"
+    group: "root"
+    mode: "0755"
+
+# dossier à recréer
+- name: "Dossier /opt/logistique/bin"
+  ansible.builtin.file:
+    path: "/opt/logistique/bin"
+    state: "directory"
+    owner: "root"
+    group: "root"
+    mode: "0755"
+
+# dossier à recréer
+- name: "Dossier /etc/postgresql/17/main"
+  ansible.builtin.file:
+    path: "/etc/postgresql/17/main"
+    state: "directory"
+    owner: "postgres"
+    group: "postgres"
+    mode: "0755"
+
+# fichier de configuration texte, versionnable ; IP et nom de l'original remplacés par ceux de la cible
+- name: "Fichier /etc/hosts (identité de la machine cible)"
+  ansible.builtin.template:
+    src: "files/etc/hosts.j2"
+    dest: "/etc/hosts"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+
+# fichier de configuration texte, versionnable
+- name: "Fichier /etc/cron.d/archive-mensuelle"
+  ansible.builtin.copy:
+    src: "files/etc/cron.d/archive-mensuelle"
+    dest: "/etc/cron.d/archive-mensuelle"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+
+# fichier de configuration texte, versionnable
+- name: "Fichier /etc/cron.d/sauvegarde-logistique"
+  ansible.builtin.copy:
+    src: "files/etc/cron.d/sauvegarde-logistique"
+    dest: "/etc/cron.d/sauvegarde-logistique"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+
+# fichier de configuration texte, versionnable
+- name: "Fichier /etc/default/sysstat"
+  ansible.builtin.copy:
+    src: "files/etc/default/sysstat"
+    dest: "/etc/default/sysstat"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+
+# secret probable (fichier fermé aux autres comptes) : à confirmer, puis gabarit + coffre
+- name: "/etc/logistique/logistique.conf (depuis le coffre)"
+  ansible.builtin.copy:
+    src: "{{ coffre }}/etc/logistique/logistique.conf"
+    dest: "/etc/logistique/logistique.conf"
+    owner: "root"
+    group: "logistique"
+    mode: "0640"
+  no_log: true
+
+# fichier de configuration texte, versionnable
+- name: "Fichier /etc/postgresql-common/createcluster.conf"
+  ansible.builtin.copy:
+    src: "files/etc/postgresql-common/createcluster.conf"
+    dest: "/etc/postgresql-common/createcluster.conf"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+
+# fichier de configuration texte, versionnable
+- name: "Fichier /etc/postgresql-common/root.crt"
+  ansible.builtin.copy:
+    src: "files/etc/postgresql-common/root.crt"
+    dest: "/etc/postgresql-common/root.crt"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+
+# fichier de configuration texte, versionnable
+- name: "Fichier /etc/restic/logistique.env"
+  ansible.builtin.copy:
+    src: "files/etc/restic/logistique.env"
+    dest: "/etc/restic/logistique.env"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+
+# secret probable (fichier fermé aux autres comptes) : à confirmer, puis gabarit + coffre
+- name: "/etc/restic/logistique.pass (depuis le coffre)"
+  ansible.builtin.copy:
+    src: "{{ coffre }}/etc/restic/logistique.pass"
+    dest: "/etc/restic/logistique.pass"
+    owner: "root"
+    group: "root"
+    mode: "0600"
+  no_log: true
+
+# fichier de paquet modifié : fichier de configuration texte, versionnable
+- name: "Fichier /etc/security/limits.conf"
+  ansible.builtin.copy:
+    src: "files/etc/security/limits.conf"
+    dest: "/etc/security/limits.conf"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+
+# fichier de configuration texte, versionnable
+- name: "Fichier /etc/apt/apt.conf.d/02autoremove-postgresql"
+  ansible.builtin.copy:
+    src: "files/etc/apt/apt.conf.d/02autoremove-postgresql"
+    dest: "/etc/apt/apt.conf.d/02autoremove-postgresql"
+    owner: "root"
+    group: "root"
+    mode: "0444"
+
+# lien à recréer
+- name: "Lien /etc/lighttpd/conf-enabled/90-javascript-alias.conf"
+  ansible.builtin.file:
+    path: "/etc/lighttpd/conf-enabled/90-javascript-alias.conf"
+    src: "../conf-available/90-javascript-alias.conf"
+    state: "link"
+    force: true
+
+# secret probable (fichier fermé aux autres comptes) : à confirmer, puis gabarit + coffre
+- name: "/etc/ssl/private/ssl-cert-snakeoil.key (depuis le coffre)"
+  ansible.builtin.copy:
+    src: "{{ coffre }}/etc/ssl/private/ssl-cert-snakeoil.key"
+    dest: "/etc/ssl/private/ssl-cert-snakeoil.key"
+    owner: "root"
+    group: "ssl-cert"
+    mode: "0640"
+  no_log: true
+
+# fichier de configuration texte, versionnable
+- name: "Fichier /etc/systemd/system/inventaire-annuel.service"
+  ansible.builtin.copy:
+    src: "files/etc/systemd/system/inventaire-annuel.service"
+    dest: "/etc/systemd/system/inventaire-annuel.service"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+
+# fichier de configuration texte, versionnable
+- name: "Fichier /etc/systemd/system/inventaire-annuel.timer"
+  ansible.builtin.copy:
+    src: "files/etc/systemd/system/inventaire-annuel.timer"
+    dest: "/etc/systemd/system/inventaire-annuel.timer"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+
+# fichier de configuration texte, versionnable
+- name: "Fichier /etc/systemd/system/logistique.service"
+  ansible.builtin.copy:
+    src: "files/etc/systemd/system/logistique.service"
+    dest: "/etc/systemd/system/logistique.service"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+
+# script texte hors paquet, versionnable
+- name: "Fichier /opt/logistique/app/logistique.py"
+  ansible.builtin.copy:
+    src: "files/opt/logistique/app/logistique.py"
+    dest: "/opt/logistique/app/logistique.py"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+
+# script texte hors paquet, versionnable
+- name: "Fichier /opt/logistique/bin/export-edi"
+  ansible.builtin.copy:
+    src: "files/opt/logistique/bin/export-edi"
+    dest: "/opt/logistique/bin/export-edi"
+    owner: "root"
+    group: "root"
+    mode: "0755"
+
+# script texte hors paquet, versionnable
+- name: "Fichier /usr/local/sbin/archive-commandes"
+  ansible.builtin.copy:
+    src: "files/usr/local/sbin/archive-commandes"
+    dest: "/usr/local/sbin/archive-commandes"
+    owner: "root"
+    group: "root"
+    mode: "0755"
+
+# script texte hors paquet, versionnable
+- name: "Fichier /usr/local/sbin/sauvegarde-logistique"
+  ansible.builtin.copy:
+    src: "files/usr/local/sbin/sauvegarde-logistique"
+    dest: "/usr/local/sbin/sauvegarde-logistique"
+    owner: "root"
+    group: "root"
+    mode: "0755"
+
+# fichier de configuration texte, versionnable
+- name: "Fichier /etc/postgresql/17/main/environment"
+  ansible.builtin.copy:
+    src: "files/etc/postgresql/17/main/environment"
+    dest: "/etc/postgresql/17/main/environment"
+    owner: "postgres"
+    group: "postgres"
+    mode: "0644"
+
+# fichier de configuration texte, versionnable
+- name: "Fichier /etc/postgresql/17/main/pg_ctl.conf"
+  ansible.builtin.copy:
+    src: "files/etc/postgresql/17/main/pg_ctl.conf"
+    dest: "/etc/postgresql/17/main/pg_ctl.conf"
+    owner: "postgres"
+    group: "postgres"
+    mode: "0644"
+
+# secret probable (fichier fermé aux autres comptes) : à confirmer, puis gabarit + coffre
+- name: "/etc/postgresql/17/main/pg_hba.conf (depuis le coffre)"
+  ansible.builtin.copy:
+    src: "{{ coffre }}/etc/postgresql/17/main/pg_hba.conf"
+    dest: "/etc/postgresql/17/main/pg_hba.conf"
+    owner: "postgres"
+    group: "postgres"
+    mode: "0640"
+  no_log: true
+
+# secret probable (fichier fermé aux autres comptes) : à confirmer, puis gabarit + coffre
+- name: "/etc/postgresql/17/main/pg_ident.conf (depuis le coffre)"
+  ansible.builtin.copy:
+    src: "{{ coffre }}/etc/postgresql/17/main/pg_ident.conf"
+    dest: "/etc/postgresql/17/main/pg_ident.conf"
+    owner: "postgres"
+    group: "postgres"
+    mode: "0640"
+  no_log: true
+
+# fichier de configuration texte, versionnable
+- name: "Fichier /etc/postgresql/17/main/postgresql.conf"
+  ansible.builtin.copy:
+    src: "files/etc/postgresql/17/main/postgresql.conf"
+    dest: "/etc/postgresql/17/main/postgresql.conf"
+    owner: "postgres"
+    group: "postgres"
+    mode: "0644"
+
+# fichier de configuration texte, versionnable
+- name: "Fichier /etc/postgresql/17/main/start.conf"
+  ansible.builtin.copy:
+    src: "files/etc/postgresql/17/main/start.conf"
+    dest: "/etc/postgresql/17/main/start.conf"
+    owner: "postgres"
+    group: "postgres"
+    mode: "0644"
+

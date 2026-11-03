@@ -1,0 +1,8 @@
+#!/bin/sh
+# Archive mensuelle des commandes de plus d'un an, puis purge de la base.
+set -eu
+mkdir -p /srv/archives
+f=/srv/archives/commandes-$(date +%Y%m).csv
+runuser -u postgres -- psql -At -F';' logistique -c "SELECT * FROM commandes WHERE cree_le < now() - interval '1 year'" > "$f"
+gzip -f "$f"
+runuser -u postgres -- psql -q logistique -c "DELETE FROM commandes WHERE cree_le < now() - interval '1 year'"

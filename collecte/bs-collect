@@ -1,0 +1,684 @@
+#!/usr/bin/python3 -I
+"""bs-collect : inventaire en lecture seule d'une VM Debian, pour Black Start.
+
+Le script ne modifie rien sur la machine : il lit des fichiers, lance des
+commandes de consultation et écrit l'inventaire JSON sur la sortie standard.
+Il ne fait appel à aucune IA. Deux exécutions sur une machine identique
+produisent le même inventaire, hormis la section `meta` et les identifiants
+volatils (PID, horaires des timers).
+
+Usage (sur la VM, via sudo) :
+    sudo /usr/local/sbin/bs-collect [--with-content] > inventaire.json
+
+Tout ce que le script n'a pas pu lire est listé dans `unreadable`.
+Ce que le script ne peut pas voir par construction est listé dans `limits`.
+"""
+
+import argparse
+import datetime
+import grp
+import hashlib
+import ipaddress
+import json
+import os
+import pwd
+import re
+import shutil
+import socket
+import stat
+import subprocess
+import sys
+
+VERSION = "0.1.0"
+
+# Racines parcourues fichier par fichier : on y cherche les fichiers qui
+# n'appartiennent à aucun paquet.
+FILE_ROOTS = ["/etc", "/opt", "/usr/local", "/usr/bin", "/usr/sbin", "/usr/lib/systemd"]
+# Racines résumées par dossier (taille, nombre de fichiers) : ce sont des
+# données, on ne les liste pas fichier par fichier.
+DATA_ROOTS = ["/var/lib", "/srv", "/home", "/root", "/var/www", "/var/opt",
+              "/var/mail", "/var/spool", "/var/backups"]
+# Volontairement non parcourus (règle « Ignoré » documentée).
+EXCLUDED = {
+    "/var/log": "journaux",
+    "/var/cache": "caches reconstructibles",
+    "/var/tmp": "fichiers temporaires",
+    "/tmp": "fichiers temporaires",
+    "/proc": "système de fichiers virtuel",
+    "/sys": "système de fichiers virtuel",
+    "/dev": "périphériques",
+    "/run": "état volatil",
+}
+
+MAX_ENTRIES_PER_ROOT = 5000
+MAX_HASH_BYTES = 64 * 1024 * 1024
+MAX_CONTENT_BYTES = 64 * 1024
+MAX_IP_SCAN_BYTES = 1024 * 1024
+
+COLLECTOR_PATHS = {"/usr/local/sbin/bs-collect", "/usr/local/sbin/bs-collect-ssh",
+                   "/etc/sudoers.d/bs-collect"}
+
+# Sysctl surveillés même s'ils ne sont pas dans /etc/sysctl.d : un réglage
+# fait à la main avec `sysctl -w` n'apparaît que là.
+WATCHED_SYSCTLS = [
+    "net.ipv4.ip_forward", "net.ipv6.conf.all.forwarding",
+    "net.ipv4.conf.all.rp_filter", "net.core.somaxconn",
+    "net.ipv4.ip_local_port_range", "vm.swappiness", "vm.overcommit_memory",
+    "vm.max_map_count", "fs.file-max", "fs.inotify.max_user_watches",
+    "kernel.pid_max", "net.ipv4.tcp_syncookies",
+]
+
+PSEUDO_FS = {"proc", "sysfs", "devtmpfs", "devpts", "cgroup", "cgroup2", "mqueue",
+             "securityfs", "debugfs", "tracefs", "pstore", "bpf", "configfs",
+             "fusectl", "hugetlbfs", "autofs", "binfmt_misc", "rpc_pipefs",
+             "efivarfs", "nsfs", "overlay", "shm"}
+
+LIMITS = [
+    "Tâches lancées à la main et processus absents au moment de la collecte.",
+    "Tâches à fréquence rare (annuelle) déclenchées hors cron et timers systemd.",
+    "Réglages noyau modifiés à chaud hors de la liste WATCHED_SYSCTLS.",
+    "Contenu des dossiers de données (DATA_ROOTS) : seuls taille et nombre de fichiers sont relevés.",
+    "Dépendances réseau implicites : seules les sockets en écoute sont relevées, pas les connexions sortantes.",
+    "Fichiers appartenant à un paquet mais dont le propriétaire ou les droits ont changé (dpkg --verify ne compare que le contenu).",
+    "Fichiers sous les dossiers exclus (EXCLUDED).",
+]
+
+
+def noise_rule(path, is_link, link_target):
+    """Renvoie l'identifiant de la règle de bruit qui s'applique, ou None."""
+    parent = os.path.dirname(path)
+    if path in COLLECTOR_PATHS:
+        return "blackstart-collector"
+    if path == "/etc/ld.so.cache":
+        return "ldconfig-cache"
+    if path == "/etc/machine-id":
+        return "machine-id"
+    if path == "/etc/.pwd.lock":
+        return "lock"
+    if path in {f"/etc/{n}-" for n in ("passwd", "group", "shadow", "gshadow", "subuid", "subgid")}:
+        return "shadow-backup"
+    if path.startswith("/etc/alternatives/") or (link_target or "").startswith("/etc/alternatives/"):
+        return "alternatives"
+    if path.startswith("/etc/ssl/certs/"):
+        return "ca-certificates"
+    if (is_link and re.search(r"\.(wants|requires|upholds)$", parent)) or \
+            re.match(r"^/etc/systemd/system/.*\.(wants|requires|upholds)$", path):
+        return "systemd-enable-link"
+    if re.match(r"^/etc/rc[0-6S]\.d/", path):
+        return "sysv-rc-link"
+    if "/__pycache__" in path or path.endswith(".pyc"):
+        return "python-cache"
+    if path.startswith("/etc/console-setup/cached_"):
+        return "console-setup-cache"
+    return None
+
+
+NOISE_DESCRIPTIONS = {
+    "blackstart-collector": "Outil de collecte Black Start lui-même",
+    "ldconfig-cache": "Cache généré par ldconfig",
+    "machine-id": "Identifiant propre à chaque machine, régénéré à l'installation",
+    "lock": "Fichier de verrou",
+    "shadow-backup": "Copie automatique faite par les outils de gestion des comptes",
+    "alternatives": "Lien géré par update-alternatives (voir packages.alternatives)",
+    "ca-certificates": "Généré par update-ca-certificates",
+    "systemd-enable-link": "Lien d'activation systemd (voir systemd.unit_files)",
+    "sysv-rc-link": "Lien d'init SysV généré",
+    "python-cache": "Cache de bytecode Python",
+    "console-setup-cache": "Cache de console-setup",
+    "empty-dir": "Dossier vide hors paquet (la plupart sont créés à l'installation)",
+}
+
+SECRET_CONTENT_PATHS = {"/etc/shadow", "/etc/gshadow"}
+
+
+def secret_reason(path, head, mode):
+    """Indique si le contenu d'un fichier ne doit jamais être embarqué."""
+    base = os.path.basename(path)
+    if path in SECRET_CONTENT_PATHS:
+        return "fichier de mots de passe"
+    if not mode & stat.S_IROTH:
+        # sssd.conf, debian.cnf, sasl_passwd... : un fichier fermé aux autres
+        # comptes contient souvent un secret. Seul le hash est gardé.
+        return "fichier non lisible par tous"
+    if re.match(r"^ssh_host_.*_key$", base):
+        return "clé privée SSH d'hôte"
+    if base.endswith(".key"):
+        return "extension .key"
+    if b"PRIVATE KEY" in head:
+        return "clé privée PEM"
+    return None
+
+
+class Collector:
+    def __init__(self, with_content):
+        self.with_content = with_content
+        self.unreadable = []
+        self.owned = {}
+        self.local_ips = set()
+
+    # --- outils -----------------------------------------------------------
+
+    def fail(self, section, target, reason):
+        self.unreadable.append({"section": section, "target": target, "reason": str(reason)})
+
+    def run(self, section, cmd, ok_codes=(0,), timeout=300):
+        """Lance une commande de consultation. Renvoie stdout ou None."""
+        if shutil.which(cmd[0]) is None:
+            self.fail(section, " ".join(cmd), "commande absente")
+            return None
+        env = {"LC_ALL": "C", "PATH": "/usr/sbin:/usr/bin:/sbin:/bin",
+               "SYSTEMD_PAGER": "", "SYSTEMD_COLORS": "0"}
+        try:
+            res = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout,
+                                 env=env, stdin=subprocess.DEVNULL)
+        except (OSError, subprocess.TimeoutExpired) as exc:
+            self.fail(section, " ".join(cmd), exc)
+            return None
+        if res.returncode not in ok_codes:
+            msg = res.stderr.strip().splitlines()
+            self.fail(section, " ".join(cmd), f"code {res.returncode}: {msg[0] if msg else ''}")
+            return None
+        return res.stdout
+
+    def read_text(self, section, path):
+        try:
+            with open(path, encoding="utf-8", errors="replace") as fh:
+                return fh.read()
+        except FileNotFoundError:
+            return None
+        except OSError as exc:
+            self.fail(section, path, exc)
+            return None
+
+    @staticmethod
+    def user_name(uid):
+        try:
+            return pwd.getpwuid(uid).pw_name
+        except KeyError:
+            return str(uid)
+
+    @staticmethod
+    def group_name(gid):
+        try:
+            return grp.getgrgid(gid).gr_name
+        except KeyError:
+            return str(gid)
+
+    # --- base dpkg ----------------------------------------------------------
+
+    def load_dpkg_owners(self):
+        info = "/var/lib/dpkg/info"
+        try:
+            names = sorted(os.listdir(info))
+        except OSError as exc:
+            self.fail("packages", info, exc)
+            return
+        for name in names:
+            if not name.endswith(".list"):
+                continue
+            pkg = name[:-5]
+            try:
+                with open(os.path.join(info, name), encoding="utf-8", errors="replace") as fh:
+                    for line in fh:
+                        p = line.rstrip("\n")
+                        if p:
+                            self._own(p, pkg)
+            except OSError as exc:
+                self.fail("packages", os.path.join(info, name), exc)
+        out = self.run("packages", ["dpkg-divert", "--list"])
+        for line in (out or "").splitlines():
+            m = re.match(r"^(?:local )?diversion of (\S+) to (\S+)(?: by (\S+))?", line)
+            if m:
+                self._own(m.group(2), m.group(3) or "local-diversion")
+
+    def _own(self, path, pkg):
+        self.owned.setdefault(path, pkg)
+        # /usr fusionné : un paquet peut déclarer /lib/x alors que le fichier est /usr/lib/x.
+        for prefix in ("/bin/", "/sbin/", "/lib/", "/lib32/", "/lib64/", "/libx32/"):
+            if path.startswith(prefix):
+                self.owned.setdefault("/usr" + path, pkg)
+            elif path.startswith("/usr" + prefix):
+                self.owned.setdefault(path[4:], pkg)
+
+    # --- sections -----------------------------------------------------------
+
+    def meta(self):
+        os_release = {}
+        for line in (self.read_text("meta", "/etc/os-release") or "").splitlines():
+            if "=" in line:
+                k, v = line.split("=", 1)
+                os_release[k] = v.strip().strip('"')
+        return {
+            "collector_version": VERSION,
+            "collected_at": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
+            "hostname": socket.gethostname(),
+            "kernel": os.uname().release,
+            "os_release": os_release,
+            "running_as_root": os.geteuid() == 0,
+            "with_content": self.with_content,
+        }
+
+    def packages(self):
+        installed = []
+        out = self.run("packages", ["dpkg-query", "-W", "-f", "${binary:Package}\t${Version}\t${db:Status-Abbrev}\n"])
+        for line in (out or "").splitlines():
+            parts = line.split("\t")
+            if len(parts) == 3 and parts[2].startswith("ii"):
+                installed.append({"name": parts[0], "version": parts[1]})
+        manual = sorted((self.run("packages", ["apt-mark", "showmanual"]) or "").split())
+        held = sorted((self.run("packages", ["apt-mark", "showhold"]) or "").split())
+        alternatives = []
+        out = self.run("packages", ["update-alternatives", "--get-selections"])
+        for line in (out or "").splitlines():
+            parts = line.split()
+            if len(parts) == 3:
+                alternatives.append({"name": parts[0], "mode": parts[1], "target": parts[2]})
+        return {"installed": sorted(installed, key=lambda x: x["name"]), "manual": manual,
+                "held": held, "alternatives": alternatives}
+
+    def describe_file(self, path, st, include_hash=True):
+        entry = {
+            "path": path,
+            "type": ("dir" if stat.S_ISDIR(st.st_mode) else "symlink" if stat.S_ISLNK(st.st_mode)
+                     else "file" if stat.S_ISREG(st.st_mode) else "other"),
+            "mode": oct(stat.S_IMODE(st.st_mode)),
+            "owner": self.user_name(st.st_uid),
+            "group": self.group_name(st.st_gid),
+        }
+        if entry["type"] == "symlink":
+            try:
+                entry["target"] = os.readlink(path)
+            except OSError as exc:
+                self.fail("files", path, exc)
+        if entry["type"] == "file":
+            entry["size"] = st.st_size
+            entry["executable"] = bool(st.st_mode & 0o111)
+            if include_hash:
+                self._hash_and_content(path, st, entry)
+        return entry
+
+    def _hash_and_content(self, path, st, entry):
+        if st.st_size > MAX_HASH_BYTES:
+            entry["sha256"] = None
+            entry["note"] = "trop gros pour être haché"
+            return
+        h = hashlib.sha256()
+        head = b""
+        try:
+            with open(path, "rb") as fh:
+                while chunk := fh.read(1 << 20):
+                    if len(head) < MAX_IP_SCAN_BYTES:
+                        head += chunk[: MAX_IP_SCAN_BYTES - len(head)]
+                    h.update(chunk)
+        except OSError as exc:
+            self.fail("files", path, exc)
+            return
+        entry["sha256"] = h.hexdigest()
+        is_text = b"\0" not in head[:8192]
+        entry["text"] = is_text
+        if not is_text:
+            return
+        text = head.decode("utf-8", errors="replace")
+        # Recherche d'IP avant le filtre des secrets : seules l'IP et la ligne
+        # sortent, jamais le contenu. Les fichiers fermés (0640…) sont souvent
+        # ceux qui portent l'adresse d'un serveur codée en dur.
+        hits = self._find_ips(text)
+        if hits:
+            entry["ip_literals"] = hits
+        secret = secret_reason(path, head, st.st_mode)
+        if secret:
+            entry["content_withheld"] = secret
+            return
+        if self.with_content and st.st_size <= MAX_CONTENT_BYTES:
+            entry["content"] = text
+
+    def _find_ips(self, text):
+        hits = []
+        for lineno, line in enumerate(text.splitlines(), 1):
+            if line.lstrip().startswith("#"):
+                continue
+            for m in re.finditer(r"(?<![\d.])(\d{1,3}(?:\.\d{1,3}){3})(?![\d.])", line):
+                try:
+                    ip = ipaddress.IPv4Address(m.group(1))
+                except ValueError:
+                    continue
+                if ip.is_loopback or ip.is_unspecified or m.group(1).startswith("255."):
+                    continue
+                # Adresse de réseau d'une plage CIDR (192.168.103.0/24) : une plage, pas une machine.
+                cidr = re.match(r"/(\d{1,2})(?!\d)", line[m.end():])
+                if cidr and int(cidr.group(1)) < 32 and \
+                        ipaddress.ip_network(f"{ip}/{cidr.group(1)}", strict=False).network_address == ip:
+                    continue
+                hits.append({"line": lineno, "ip": str(ip), "is_local_address": str(ip) in self.local_ips})
+        return hits
+
+    def modified_files(self):
+        out = self.run("modified_files", ["dpkg", "--verify"], ok_codes=(0, 1))
+        result = []
+        for line in (out or "").splitlines():
+            m = re.match(r"^(\S+)\s+(c\s+)?(/.*)$", line)
+            if not m:
+                continue
+            flags, conf, path = m.group(1), bool(m.group(2)), m.group(3)
+            entry = {"path": path, "flags": flags, "conffile": conf, "package": self.owned.get(path)}
+            try:
+                st = os.lstat(path)
+                entry.update({k: v for k, v in self.describe_file(path, st).items() if k != "path"})
+                entry["missing"] = False
+            except FileNotFoundError:
+                entry["missing"] = True
+            except OSError as exc:
+                self.fail("modified_files", path, exc)
+            result.append(entry)
+        return sorted(result, key=lambda x: x["path"])
+
+    def unowned_files(self):
+        found, noise, truncated = [], [], []
+        for root in FILE_ROOTS:
+            count = 0
+            for dirpath, dirnames, filenames in os.walk(root, onerror=lambda e: self.fail("files", e.filename, e)):
+                dirnames.sort()
+                for name in sorted(dirnames) + sorted(filenames):
+                    path = os.path.join(dirpath, name)
+                    if path in self.owned:
+                        continue
+                    try:
+                        st = os.lstat(path)
+                    except OSError as exc:
+                        self.fail("files", path, exc)
+                        continue
+                    is_link = stat.S_ISLNK(st.st_mode)
+                    target = None
+                    if is_link:
+                        try:
+                            target = os.readlink(path)
+                        except OSError:
+                            pass
+                    rule = noise_rule(path, is_link, target)
+                    if rule is None and stat.S_ISDIR(st.st_mode):
+                        try:
+                            if not os.listdir(path):
+                                rule = "empty-dir"
+                        except OSError:
+                            pass
+                    if rule:
+                        noise.append({"path": path, "rule": rule})
+                        continue
+                    count += 1
+                    if count > MAX_ENTRIES_PER_ROOT:
+                        continue
+                    entry = self.describe_file(path, st)
+                    owned_parent = os.path.dirname(path)
+                    entry["parent_owned_by"] = self.owned.get(owned_parent)
+                    found.append(entry)
+            if count > MAX_ENTRIES_PER_ROOT:
+                truncated.append({"root": root, "total": count, "kept": MAX_ENTRIES_PER_ROOT})
+                self.fail("files", root, f"{count} fichiers hors paquet, seuls {MAX_ENTRIES_PER_ROOT} gardés")
+        return {
+            "roots": FILE_ROOTS,
+            "excluded": EXCLUDED,
+            "noise_rules": NOISE_DESCRIPTIONS,
+            "files": sorted(found, key=lambda x: x["path"]),
+            "ignored": sorted(noise, key=lambda x: x["path"]),
+            "truncated": truncated,
+        }
+
+    def data_dirs(self):
+        result = []
+        for root in DATA_ROOTS:
+            try:
+                children = sorted(os.listdir(root))
+            except FileNotFoundError:
+                continue
+            except OSError as exc:
+                self.fail("data", root, exc)
+                continue
+            for name in children:
+                path = os.path.join(root, name)
+                try:
+                    st = os.lstat(path)
+                except OSError as exc:
+                    self.fail("data", path, exc)
+                    continue
+                size, files = st.st_size, 0
+                if stat.S_ISDIR(st.st_mode):
+                    for dp, dn, fn in os.walk(path, onerror=lambda e: self.fail("data", e.filename, e)):
+                        for f in fn:
+                            try:
+                                size += os.lstat(os.path.join(dp, f)).st_size
+                                files += 1
+                            except OSError:
+                                pass
+                else:
+                    files = 1
+                result.append({"path": path, "type": "dir" if stat.S_ISDIR(st.st_mode) else "file",
+                               "owner": self.user_name(st.st_uid), "size": size, "files": files,
+                               "package": self.owned.get(path)})
+        return result
+
+    def users(self):
+        users, groups = [], []
+        for line in (self.read_text("users", "/etc/passwd") or "").splitlines():
+            p = line.split(":")
+            if len(p) < 7:
+                continue
+            uid = int(p[2])
+            interactive = not p[6].endswith(("nologin", "false", "sync"))
+            users.append({"name": p[0], "uid": uid, "gid": int(p[3]), "home": p[5], "shell": p[6],
+                          "interactive": interactive, "human": 1000 <= uid < 65534,
+                          "home_exists": os.path.isdir(p[5])})
+        for line in (self.read_text("users", "/etc/group") or "").splitlines():
+            p = line.split(":")
+            if len(p) >= 4 and p[3]:
+                groups.append({"name": p[0], "gid": int(p[2]), "members": sorted(p[3].split(","))})
+        return {"users": sorted(users, key=lambda x: x["uid"]), "groups_with_members": groups}
+
+    def network(self):
+        addrs, routes = [], []
+        out = self.run("network", ["ip", "-j", "addr"])
+        if out:
+            for iface in json.loads(out):
+                for a in iface.get("addr_info", []):
+                    addrs.append({"ifname": iface.get("ifname"), "family": a.get("family"),
+                                  "address": a.get("local"), "prefixlen": a.get("prefixlen")})
+                    if a.get("family") == "inet":
+                        self.local_ips.add(a.get("local"))
+        out = self.run("network", ["ip", "-j", "route"])
+        if out:
+            routes = [{k: r.get(k) for k in ("dst", "gateway", "dev", "protocol")} for r in json.loads(out)]
+        return {"addresses": addrs, "routes": routes}
+
+    def listening(self):
+        out = self.run("listening", ["ss", "-Htulpn"])
+        result = []
+        for line in (out or "").splitlines():
+            parts = line.split(None, 6)
+            if len(parts) < 6:
+                continue
+            local = parts[4]
+            addr, _, port = local.rpartition(":")
+            procs = re.findall(r'\("([^"]+)",pid=(\d+),fd=\d+\)', parts[6] if len(parts) > 6 else "")
+            result.append({"proto": parts[0], "address": addr, "port": int(port) if port.isdigit() else port,
+                           "processes": sorted({p[0] for p in procs}),
+                           "pids": sorted({int(p[1]) for p in procs})})
+        return sorted(result, key=lambda x: (x["proto"], str(x["port"]), x["address"]))
+
+    def processes(self):
+        result = []
+        for pid in sorted((p for p in os.listdir("/proc") if p.isdigit()), key=int):
+            base = f"/proc/{pid}"
+            try:
+                with open(f"{base}/cmdline", "rb") as fh:
+                    cmdline = [a.decode("utf-8", "replace") for a in fh.read().split(b"\0") if a]
+                with open(f"{base}/status") as fh:
+                    status = dict(l.split(":\t", 1) for l in fh.read().splitlines() if ":\t" in l)
+            except OSError:
+                continue  # processus terminé entre-temps
+            if not cmdline:
+                continue  # fil d'exécution du noyau
+            entry = {"pid": int(pid), "ppid": int(status.get("PPid", "0")),
+                     "name": status.get("Name", "").strip(),
+                     "user": self.user_name(int(status.get("Uid", "0").split()[0])),
+                     "cmdline": cmdline, "unit": None, "exe": None}
+            try:
+                entry["exe"] = os.readlink(f"{base}/exe")
+            except OSError:
+                pass
+            try:
+                with open(f"{base}/cgroup") as fh:
+                    for line in fh:
+                        last = line.strip().rsplit("/", 1)[-1]
+                        if last.endswith((".service", ".scope")):
+                            entry["unit"] = last
+            except OSError:
+                pass
+            entry["exe_package"] = self.owned.get(entry["exe"]) if entry["exe"] else None
+            result.append(entry)
+        if os.geteuid() != 0:
+            self.fail("processes", "/proc/*/exe", "lancé sans root : exécutables des autres comptes illisibles")
+        return result
+
+    def systemd(self):
+        if shutil.which("systemctl") is None or not os.path.isdir("/run/systemd/system"):
+            self.fail("systemd", "systemctl", "systemd absent ou non démarré")
+            return None
+
+        def js(cmd):
+            out = self.run("systemd", ["systemctl", "--no-pager"] + cmd + ["--output=json"])
+            try:
+                return json.loads(out) if out else []
+            except json.JSONDecodeError as exc:
+                self.fail("systemd", " ".join(cmd), exc)
+                return []
+
+        units = js(["list-units", "--all", "--type=service,socket,timer,mount,path"])
+        unit_files = js(["list-unit-files"])
+        timers = js(["list-timers", "--all"])
+        return {
+            "units": sorted(({k: u.get(k) for k in ("unit", "load", "active", "sub", "description")} for u in units),
+                            key=lambda x: x["unit"] or ""),
+            "unit_files": sorted(({"unit": u.get("unit_file"), "state": u.get("state"), "preset": u.get("preset")}
+                                  for u in unit_files), key=lambda x: x["unit"] or ""),
+            "timers": sorted(({"unit": t.get("unit"), "activates": t.get("activates")} for t in timers),
+                             key=lambda x: x["unit"] or ""),
+            "failed": sorted(u.get("unit") for u in units if u.get("active") == "failed"),
+        }
+
+    def cron(self):
+        sources = ["/etc/crontab", "/etc/anacrontab"]
+        for d in ("/etc/cron.d", "/etc/cron.hourly", "/etc/cron.daily", "/etc/cron.weekly",
+                  "/etc/cron.monthly", "/etc/cron.yearly", "/var/spool/cron/crontabs"):
+            try:
+                sources += [os.path.join(d, f) for f in sorted(os.listdir(d)) if f != ".placeholder"]
+            except FileNotFoundError:
+                pass
+            except OSError as exc:
+                self.fail("cron", d, exc)
+        result = []
+        for path in sources:
+            if not os.path.isfile(path):
+                continue
+            entry = {"path": path, "package": self.owned.get(path),
+                     "kind": "script" if "/cron." in path and "/cron.d" not in path else "crontab"}
+            if entry["kind"] == "crontab":
+                text = self.read_text("cron", path)
+                if text is None:
+                    continue
+                entry["entries"] = [l.strip() for l in text.splitlines()
+                                    if l.strip() and not l.lstrip().startswith("#")]
+            else:
+                entry["executable"] = os.access(path, os.X_OK)
+            result.append(entry)
+        try:
+            atjobs = [f for f in os.listdir("/var/spool/cron/atjobs") if not f.startswith(".")]
+        except OSError:
+            atjobs = []
+        return {"files": result, "at_jobs": len(atjobs)}
+
+    def kernel(self):
+        modules = sorted(l.split()[0] for l in (self.read_text("kernel", "/proc/modules") or "").splitlines() if l)
+        configured = {}
+        files = ["/etc/sysctl.conf"]
+        try:
+            files += sorted(os.path.join("/etc/sysctl.d", f) for f in os.listdir("/etc/sysctl.d"))
+        except OSError:
+            pass
+        for f in files:
+            for line in (self.read_text("kernel", f) or "").splitlines():
+                line = line.strip()
+                if line and not line.startswith(("#", ";")) and "=" in line:
+                    k, v = line.split("=", 1)
+                    configured[k.strip().lstrip("-")] = {"value": v.strip(), "file": f}
+        effective = {}
+        for key in sorted(set(WATCHED_SYSCTLS) | set(configured)):
+            val = self.read_text("kernel", "/proc/sys/" + key.replace(".", "/"))
+            effective[key] = " ".join(val.split()) if val is not None else None
+        return {"modules": modules, "sysctl_configured": configured, "sysctl_effective": effective}
+
+    def mounts(self):
+        result = []
+        for line in (self.read_text("mounts", "/proc/self/mounts") or "").splitlines():
+            p = line.split()
+            if len(p) >= 4 and p[2] not in PSEUDO_FS:
+                result.append({"source": p[0], "target": p[1], "fstype": p[2], "options": p[3]})
+        return sorted(result, key=lambda x: x["target"])
+
+    def firewall(self):
+        # `nft` et `iptables-save` chargent nf_tables / ip_tables s'ils sont
+        # absents, ce qui modifierait le noyau. Module absent = aucune règle,
+        # donc on ne lance la commande que si le module est déjà présent
+        # (chargé ou compilé en dur : il apparaît alors dans /sys/module).
+        res = {"nftables": None, "iptables": None, "nftables_loaded": os.path.isdir("/sys/module/nf_tables"),
+               "iptables_loaded": os.path.isdir("/sys/module/ip_tables")}
+        if res["nftables_loaded"] and shutil.which("nft"):
+            out = self.run("firewall", ["nft", "-j", "list", "ruleset"])
+            res["nftables"] = json.loads(out) if out else None
+        if res["iptables_loaded"] and shutil.which("iptables-save"):
+            res["iptables"] = self.run("firewall", ["iptables-save"])
+        return res
+
+    def containers(self):
+        res = {}
+        for tool in ("docker", "podman"):
+            if shutil.which(tool):
+                out = self.run("containers", [tool, "ps", "-a", "--format", "{{json .}}"])
+                res[tool] = [json.loads(l) for l in (out or "").splitlines() if l.strip()]
+        return res
+
+    def collect(self):
+        self.load_dpkg_owners()
+        inv = {"meta": self.meta()}
+        inv["network"] = self.network()  # avant les fichiers : sert à repérer les IP locales codées en dur
+        inv["packages"] = self.packages()
+        inv["modified_files"] = self.modified_files()
+        inv["unowned"] = self.unowned_files()
+        inv["data"] = self.data_dirs()
+        inv["users"] = self.users()
+        inv["listening"] = self.listening()
+        inv["processes"] = self.processes()
+        inv["systemd"] = self.systemd()
+        inv["cron"] = self.cron()
+        inv["kernel"] = self.kernel()
+        inv["mounts"] = self.mounts()
+        inv["firewall"] = self.firewall()
+        inv["containers"] = self.containers()
+        inv["limits"] = LIMITS
+        inv["unreadable"] = sorted(self.unreadable, key=lambda x: (x["section"], x["target"]))
+        return inv
+
+
+def main():
+    ap = argparse.ArgumentParser(description="Inventaire en lecture seule d'une VM Debian (Black Start).")
+    ap.add_argument("--with-content", action="store_true",
+                    help="embarquer le contenu des petits fichiers texte modifiés ou hors paquet "
+                         "(jamais celui des secrets évidents ; l'inventaire devient sensible)")
+    args = ap.parse_args()
+    if os.geteuid() != 0:
+        print("bs-collect : attention, lancé sans root, l'inventaire sera incomplet", file=sys.stderr)
+    inv = Collector(args.with_content).collect()
+    json.dump(inv, sys.stdout, indent=2, sort_keys=True, ensure_ascii=False)
+    sys.stdout.write("\n")
+
+
+if __name__ == "__main__":
+    main()

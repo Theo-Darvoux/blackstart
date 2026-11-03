@@ -1,0 +1,268 @@
+#!/usr/bin/env python3
+"""bs-compare : compare deux inventaires produits par bs-collect.
+
+Deux usages :
+  - original contre copie reconstruite : tout écart non justifié fait échouer
+    la commande (code 1) et doit bloquer la merge request ;
+  - référence (template vierge) contre VM actuelle : la liste des ajouts est
+    ce que l'admin a installé ou modifié depuis l'installation.
+
+Un écart est « justifié » quand une règle d'un fichier de justification
+correspond à sa clé (motif fnmatch). Chaque règle porte sa raison, reprise
+dans le rapport.
+
+Usage :
+    bs-compare A.json B.json [--identity] [--justify regles.json]... [--json rapport.json]
+"""
+
+import argparse
+import fnmatch
+import hashlib
+import json
+import os
+import re
+import sys
+
+HERE = os.path.dirname(os.path.realpath(__file__))
+DEFAULT_RULES = os.path.join(HERE, "regles", "volatil.json")
+IDENTITY_RULES = os.path.join(HERE, "regles", "identite.json")
+
+
+def own_ips(inv):
+    return {a["address"] for a in inv.get("network", {}).get("addresses", [])
+            if a.get("address") and not a["address"].startswith(("127.", "::1", "fe80:"))}
+
+
+def collector_chain(procs):
+    """PID de la collecte elle-même et de ses ancêtres (sshd, sudo, sh)."""
+    by_pid = {p["pid"]: p for p in procs}
+    chain = set()
+    for p in procs:
+        if any("bs-collect" in a for a in p["cmdline"]):
+            cur = p
+            while cur and cur["pid"] not in chain and cur["pid"] > 1:
+                chain.add(cur["pid"])
+                cur = by_pid.get(cur["ppid"])
+    return chain
+
+
+def nft_digest(ruleset):
+    """Empreinte des règles nftables, sans les numéros de handle."""
+    if not ruleset:
+        return None
+    items = []
+    for entry in ruleset.get("nftables", []):
+        if "metainfo" in entry:
+            continue
+        txt = json.dumps(entry, sort_keys=True)
+        items.append(re.sub(r'"handle": \d+', '"handle": 0', txt))
+    return hashlib.sha256("\n".join(sorted(items)).encode()).hexdigest()
+
+
+def iptables_digest(text):
+    if not text:
+        return None
+    lines = [re.sub(r"\[\d+:\d+\]", "[0:0]", l) for l in text.splitlines() if not l.startswith("#")]
+    return hashlib.sha256("\n".join(lines).encode()).hexdigest()
+
+
+def flatten(inv):
+    """Ramène un inventaire à un dictionnaire clé -> valeur comparable.
+
+    Les champs volatils (PID, horaires, date de collecte) sont retirés ici.
+    Les champs informatifs non bloquants vont dans le second dictionnaire.
+    """
+    items, info = {}, {}
+    ips = own_ips(inv)
+
+    for p in inv["packages"]["installed"]:
+        items[f"pkg:{p['name']}"] = p["version"]
+    for name in inv["packages"]["manual"]:
+        items[f"pkg-manual:{name}"] = True
+    for name in inv["packages"]["held"]:
+        items[f"pkg-held:{name}"] = True
+    for a in inv["packages"]["alternatives"]:
+        items[f"alternative:{a['name']}"] = a["target"]
+
+    def file_value(f):
+        return {k: f.get(k) for k in ("type", "mode", "owner", "group", "sha256", "target") if f.get(k) is not None}
+
+    for f in inv["modified_files"]:
+        items[f"pkgfile-modified:{f['path']}"] = dict(file_value(f), flags=f["flags"], missing=f.get("missing"))
+    for f in inv["unowned"]["files"]:
+        items[f"file:{f['path']}"] = file_value(f)
+    for f in inv["unowned"].get("ignored", []):
+        if f["rule"] == "empty-dir":  # dossier présent mais vide : comparé comme dossier
+            items[f"file:{f['path']}"] = {"type": "dir", "vide": True}
+
+    for d in inv["data"]:
+        items[f"data:{d['path']}"] = {"type": d["type"], "owner": d["owner"]}
+        info[f"data:{d['path']}"] = {"files": d["files"], "size": d["size"]}
+
+    for u in inv["users"]["users"]:
+        items[f"user:{u['name']}"] = {k: u[k] for k in ("uid", "gid", "home", "shell")}
+    for g in inv["users"]["groups_with_members"]:
+        items[f"group:{g['name']}"] = g["members"]
+
+    for a in inv["network"]["addresses"]:
+        if a["ifname"] != "lo" and a["family"] == "inet":
+            items[f"addr:{a['ifname']}:{a['address']}/{a['prefixlen']}"] = True
+    for r in inv["network"]["routes"]:
+        if r.get("dst") == "default":
+            items["route:default"] = r.get("gateway")
+
+    for l in inv["listening"]:
+        addr = "<ip-locale>" if l["address"] in ips else l["address"]
+        items[f"listen:{l['proto']}:{addr}:{l['port']}"] = l["processes"]
+
+    chain = collector_chain(inv["processes"])
+    procs = {}
+    for p in inv["processes"]:
+        if p["pid"] in chain:
+            continue
+        unit = re.sub(r"^session-\d+\.scope$", "session.scope", p.get("unit") or "-")
+        key = f"process:{p.get('exe') or p['name']}@{p['user']}@{unit}"
+        procs[key] = procs.get(key, 0) + 1
+    for key, n in procs.items():
+        items[key] = True
+        info[key] = {"count": n}
+
+    sd = inv.get("systemd")
+    if sd:
+        for u in sd["units"]:
+            if u["load"] == "loaded":
+                items[f"unit:{u['unit']}"] = f"{u['active']}/{u['sub']}"
+        for u in sd["unit_files"]:
+            items[f"unit-file:{u['unit']}"] = u["state"]
+        for t in sd["timers"]:
+            items[f"timer:{t['unit']}"] = t["activates"]
+    else:
+        items["systemd:absent"] = True
+
+    for c in inv["cron"]["files"]:
+        items[f"cron:{c['path']}"] = c.get("entries", {"executable": c.get("executable")})
+    items["cron:at-jobs"] = inv["cron"]["at_jobs"]
+
+    for m in inv["kernel"]["modules"]:
+        items[f"module:{m}"] = True
+    for k, v in inv["kernel"]["sysctl_effective"].items():
+        items[f"sysctl:{k}"] = v
+
+    for m in inv["mounts"]:
+        items[f"mount:{m['target']}"] = m["fstype"]
+
+    fw = inv["firewall"]
+    items["firewall:nftables"] = nft_digest(fw.get("nftables"))
+    items["firewall:iptables"] = iptables_digest(fw.get("iptables"))
+
+    for tool, lst in inv["containers"].items():
+        for c in lst:
+            items[f"container:{tool}:{c.get('Names')}"] = c.get("Image")
+
+    for u in inv["unreadable"]:
+        items[f"unreadable:{u['section']}:{u['target']}"] = u["reason"]
+    return items, info
+
+
+def load_rules(paths):
+    rules = []
+    for path in paths:
+        with open(path, encoding="utf-8") as fh:
+            for r in json.load(fh)["rules"]:
+                rules.append({"match": r["match"], "reason": r["reason"], "source": os.path.basename(path)})
+    return rules
+
+
+def justify(key, rules):
+    for r in rules:
+        if fnmatch.fnmatchcase(key, r["match"]):
+            return r
+    return None
+
+
+def compare(a, b, rules):
+    ia, infa = a
+    ib, infb = b
+    diffs = []
+    for key in sorted(set(ia) | set(ib)):
+        if key in ia and key not in ib:
+            kind = "absent-de-B"
+        elif key in ib and key not in ia:
+            kind = "ajouté-dans-B"
+        elif ia[key] != ib[key]:
+            kind = "différent"
+        else:
+            continue
+        rule = justify(key, rules)
+        if rule is None and kind == "différent" and any(isinstance(v, dict) and v.get("vide") for v in (ia[key], ib[key])) \
+                and all(isinstance(v, dict) and v.get("type") == "dir" for v in (ia[key], ib[key])):
+            rule = {"reason": "dossier présent des deux côtés, vide d'un côté : son contenu manquant est signalé élément par élément",
+                    "source": "bs-compare", "match": "dossier vide"}
+        diffs.append({"key": key, "kind": kind, "a": ia.get(key), "b": ib.get(key),
+                      "justified": rule["reason"] if rule else None,
+                      "rule": f"{rule['source']}:{rule['match']}" if rule else None})
+    notes = []
+    for key in sorted(set(infa) & set(infb)):
+        if infa[key] != infb[key] and not justify(key, rules):
+            notes.append({"key": key, "a": infa[key], "b": infb[key]})
+    return diffs, notes
+
+
+def short(v):
+    s = json.dumps(v, ensure_ascii=False, sort_keys=True)
+    return s if len(s) <= 90 else s[:87] + "..."
+
+
+def main():
+    ap = argparse.ArgumentParser(description="Compare deux inventaires bs-collect.")
+    ap.add_argument("a", help="inventaire A (original ou référence)")
+    ap.add_argument("b", help="inventaire B (copie reconstruite ou VM actuelle)")
+    ap.add_argument("--identity", action="store_true",
+                    help="A et B sont deux machines distinctes : justifier les écarts d'identité "
+                         "(hostname, IP, clés d'hôte, machine-id)")
+    ap.add_argument("--justify", action="append", default=[], help="fichier de règles supplémentaire")
+    ap.add_argument("--no-default", action="store_true", help="ne pas charger regles/volatil.json")
+    ap.add_argument("--json", help="écrire le rapport complet dans ce fichier")
+    ap.add_argument("--show-justified", action="store_true", help="afficher aussi les écarts justifiés")
+    args = ap.parse_args()
+
+    paths = ([] if args.no_default else [DEFAULT_RULES]) + ([IDENTITY_RULES] if args.identity else []) + args.justify
+    rules = load_rules(paths)
+    inv_a = json.load(open(args.a, encoding="utf-8"))
+    inv_b = json.load(open(args.b, encoding="utf-8"))
+    diffs, notes = compare(flatten(inv_a), flatten(inv_b), rules)
+    blocking = [d for d in diffs if not d["justified"]]
+
+    report = {
+        "a": {"file": args.a, "hostname": inv_a["meta"]["hostname"], "collected_at": inv_a["meta"]["collected_at"]},
+        "b": {"file": args.b, "hostname": inv_b["meta"]["hostname"], "collected_at": inv_b["meta"]["collected_at"]},
+        "rules": paths,
+        "summary": {"differences": len(diffs), "justified": len(diffs) - len(blocking),
+                    "unjustified": len(blocking), "notes": len(notes)},
+        "differences": diffs,
+        "notes": notes,
+    }
+    if args.json:
+        with open(args.json, "w", encoding="utf-8") as fh:
+            json.dump(report, fh, indent=2, ensure_ascii=False, sort_keys=True)
+
+    print(f"A = {inv_a['meta']['hostname']} ({args.a})")
+    print(f"B = {inv_b['meta']['hostname']} ({args.b})")
+    s = report["summary"]
+    print(f"{s['differences']} écarts : {s['unjustified']} non justifiés, {s['justified']} justifiés ; {s['notes']} remarques")
+    shown = diffs if args.show_justified else blocking
+    for d in shown:
+        tag = "JUSTIFIÉ " if d["justified"] else "BLOQUANT "
+        line = f"{tag}{d['kind']:<14} {d['key']}"
+        if d["kind"] == "différent":
+            line += f"\n{'':24}A: {short(d['a'])}\n{'':24}B: {short(d['b'])}"
+        if d["justified"]:
+            line += f"\n{'':24}raison : {d['justified']}"
+        print(line)
+    for n in notes:
+        print(f"REMARQUE {'':14} {n['key']} A: {short(n['a'])} B: {short(n['b'])}")
+    sys.exit(1 if blocking else 0)
+
+
+if __name__ == "__main__":
+    main()

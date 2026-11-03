@@ -1,0 +1,10 @@
+---
+# cron:/var/spool/cron/crontabs/root
+- name: "Crontab de root"
+  ansible.builtin.copy:
+    content: "*/10 * * * * /opt/logistique/bin/export-edi\n"
+    dest: "/var/spool/cron/crontabs/root"
+    owner: "root"
+    group: "crontab"
+    mode: "0600"
+

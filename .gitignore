@@ -1,0 +1,7 @@
+inventaires/
+__pycache__/
+*.pyc
+pme/secrets/
+banc/resultats/
+.claude/settings.local.json
+forge/

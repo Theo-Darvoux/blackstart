@@ -1,0 +1,16 @@
+---
+# Reconstruction de bs-logistique, générée par generation/bs-generate depuis l'inventaire
+# du 2026-11-02T19:00:31+00:00. Ne pas éditer à la main : régénérer.
+- name: Reconstruire bs-logistique
+  hosts: all
+  become: true
+  vars:
+    coffre: "{{ lookup('env', 'COFFRE') | default('/srv/coffre/bs-logistique', true) }}"
+    vm_ip: "{{ ansible_default_ipv4.address }}"
+    vm_hostname: "{{ ansible_hostname }}"
+  tasks:
+    - ansible.builtin.import_tasks: tasks/10-paquets.yml
+    - ansible.builtin.import_tasks: tasks/20-comptes.yml
+    - ansible.builtin.import_tasks: tasks/30-fichiers.yml
+    - ansible.builtin.import_tasks: tasks/40-cron.yml
+    - ansible.builtin.import_tasks: tasks/50-services.yml

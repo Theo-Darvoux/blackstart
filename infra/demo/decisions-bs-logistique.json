@@ -1,0 +1,32 @@
+{
+  "file:/opt/etiquettes/bin/zpl-print": {
+    "decision": "reproduire",
+    "par": "Théo",
+    "raison": "pilote d'étiqueteuse fourni par l'éditeur, appelé par export-edi ; origine à documenter"
+  },
+  "file:/etc/sudoers.d/prestataire": {
+    "decision": "ne pas reproduire",
+    "par": "Théo",
+    "raison": "accès sudo d'un tiers ajouté hors procédure, retiré à la reconstruction ; le compte reste sans sudo"
+  },
+  "listen:tcp:0.0.0.0:9100": {
+    "decision": "ne pas reproduire",
+    "par": "Théo",
+    "raison": "relais HTTP lancé à la main pour le transporteur ; s'il est utile, en faire un service systemd"
+  },
+  "process:/usr/bin/python3.13@root@session.scope": {
+    "decision": "ne pas reproduire",
+    "par": "Théo",
+    "raison": "processus du relais :9100 lancé à la main (même décision que le port)"
+  },
+  "sysctl:vm.swappiness": {
+    "decision": "reproduire",
+    "par": "Théo",
+    "raison": "réglage voulu (10), désormais persisté dans /etc/sysctl.d"
+  },
+  "data:/srv/edi": {
+    "decision": "accepter",
+    "par": "Théo",
+    "raison": "exports EDI régénérés toutes les 10 min ; action : ajouter /srv/edi à la sauvegarde restic"
+  }
+}

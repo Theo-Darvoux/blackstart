@@ -1,0 +1,70 @@
+---
+# Restauration des données depuis la sauvegarde restic existante de la VM.
+# Copié par bs-generate quand l'inventaire montre PostgreSQL + un dépôt restic.
+#
+# Trous de la sauvegarde d'origine comblés ici (et signalés dans DECISIONS.md) :
+#  - la clé SSH d'accès au dépôt n'était que dans /root/.ssh, hors sauvegarde
+#    -> reprise depuis le coffre ;
+#  - pg_dump ne contient pas les rôles PostgreSQL -> rôle recréé à partir de la
+#    chaîne de connexion trouvée dans la configuration de l'application.
+- name: Restaurer les données
+  hosts: all
+  become: true
+  vars:
+    coffre: "{{ lookup('env', 'COFFRE') }}"
+  tasks:
+    - name: Accès SSH au serveur de sauvegarde (coffre)
+      ansible.builtin.copy:
+        src: "{{ coffre }}/root/.ssh/"
+        dest: /root/.ssh/
+        owner: root
+        group: root
+        mode: "0600"
+        directory_mode: "0700"
+      no_log: true
+
+    - name: Dernier instantané restic restauré
+      ansible.builtin.shell: |
+        set -eu
+        for env in /etc/restic/*.env; do
+          set -a; . "$env"; set +a
+          restic restore latest --target / --include /var/backups
+          restic snapshots --latest 1 --compact | sed -n 3p
+        done
+      register: restic_out
+      changed_when: true
+
+    - name: Rôles et bases PostgreSQL restaurés (chaînes de connexion de la configuration)
+      ansible.builtin.shell: |
+        set -eu
+        grep -rhoE 'dbname=[A-Za-z0-9_]+ user=[A-Za-z0-9_]+ password=[^ ]+' /etc --include='*.conf' 2>/dev/null | sort -u |
+        while read -r d u p; do
+          db=${d#dbname=}; role=${u#user=}; pass=${p#password=}
+          runuser -u postgres -- psql -qtAc "SELECT 1 FROM pg_roles WHERE rolname = '$role'" | grep -q 1 ||
+            runuser -u postgres -- psql -q -c "CREATE ROLE \"$role\" LOGIN"
+          runuser -u postgres -- psql -q -c "ALTER ROLE \"$role\" PASSWORD '$pass'"
+          runuser -u postgres -- psql -qtAc "SELECT 1 FROM pg_database WHERE datname = '$db'" | grep -q 1 ||
+            runuser -u postgres -- createdb -O "$role" "$db"
+          f=$(ls /var/backups/*/"$db".dump 2>/dev/null | head -1)
+          if [ -n "$f" ]; then
+            runuser -u postgres -- pg_restore --clean --if-exists -d "$db" "$f"
+            echo "base $db (rôle $role) restaurée depuis $f"
+          else
+            echo "base $db : AUCUN dump trouvé dans la sauvegarde"
+          fi
+        done
+      register: db_out
+      changed_when: true
+      no_log: true
+
+    - name: Bases restaurées
+      ansible.builtin.debug:
+        msg: "{{ db_out.stdout_lines }}"
+
+    - name: Services de l'application relancés
+      ansible.builtin.shell: systemctl list-units --type=service --state=running --no-legend | awk '{print $1}' | grep -vE '^(postgresql|ssh|cron|systemd)' | grep -E 'logistique|gunicorn' | xargs -r systemctl restart
+      changed_when: true
+
+    - name: Résumé
+      ansible.builtin.debug:
+        msg: "{{ restic_out.stdout_lines }}"

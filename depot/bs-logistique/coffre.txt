@@ -1,0 +1,9 @@
+# Chemins à copier dans le coffre (jamais dans Git)
+/etc/logistique/logistique.conf
+/etc/postgresql/17/main/pg_hba.conf
+/etc/postgresql/17/main/pg_ident.conf
+/etc/restic/logistique.pass
+/etc/ssl/private/ssl-cert-snakeoil.key
+/etc/sudoers.d/prestataire
+/opt/etiquettes/bin/zpl-print
+/root/.ssh

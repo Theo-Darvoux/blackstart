@@ -1,0 +1,8 @@
+#!/bin/sh
+# Sauvegarde quotidienne de la base logistique vers le serveur de sauvegarde.
+set -eu
+set -a; . /etc/restic/logistique.env; set +a
+mkdir -p /var/backups/logistique
+runuser -u postgres -- pg_dump -Fc logistique > /var/backups/logistique/logistique.dump
+restic backup --quiet --tag logistique /var/backups/logistique
+restic forget --quiet --keep-daily 7 --keep-weekly 4 --prune

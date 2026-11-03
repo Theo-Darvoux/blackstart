@@ -1,0 +1,49 @@
+{
+  "description": "Écarts justifiés quand A et B sont deux machines distinctes (copie en sandbox, autre clone). Chargé par bs-compare --identity. Pour une bascule en production, l'IP et les clés d'hôte doivent au contraire être reprises de l'original.",
+  "rules": [
+    {
+      "match": "addr:*",
+      "reason": "adresse IP propre à chaque machine"
+    },
+    {
+      "match": "file:/etc/hostname",
+      "reason": "nom de la machine"
+    },
+    {
+      "match": "file:/etc/hosts",
+      "reason": "contient le nom et l'IP de la machine"
+    },
+    {
+      "match": "file:/etc/network/interfaces",
+      "reason": "contient l'IP de la machine (la passerelle est comparée à part : route:default)"
+    },
+    {
+      "match": "file:/etc/ssh/ssh_host_*",
+      "reason": "clés d'hôte SSH propres à chaque machine (à restaurer depuis le coffre lors d'une bascule)"
+    },
+    {
+      "match": "file:/etc/mailname",
+      "reason": "nom de la machine pour Postfix"
+    },
+    {
+      "match": "file:/etc/passwd",
+      "reason": "bases des comptes : l'ordre des lignes dépend de l'ordre de création ; comptes et groupes comparés un par un (user:, group:)"
+    },
+    {
+      "match": "file:/etc/group",
+      "reason": "bases des comptes : l'ordre des lignes dépend de l'ordre de création ; comptes et groupes comparés un par un (user:, group:)"
+    },
+    {
+      "match": "file:/etc/shadow",
+      "reason": "bases des comptes : l'ordre des lignes dépend de l'ordre de création ; comptes et groupes comparés un par un (user:, group:)"
+    },
+    {
+      "match": "file:/etc/gshadow",
+      "reason": "bases des comptes : l'ordre des lignes dépend de l'ordre de création ; comptes et groupes comparés un par un (user:, group:)"
+    },
+    {
+      "match": "file:/etc/ssl/private/ssl-cert-snakeoil.key",
+      "reason": "paire auto-signée régénérée par le paquet ssl-cert, propre à chaque machine"
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+[Unit]
+Description=Inventaire annuel des stocks
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c 'mkdir -p /srv/archives && runuser -u postgres -- psql -At logistique -c "SELECT sku, stock FROM produits" > /srv/archives/inventaire-$(date +%%Y).txt'

@@ -1,0 +1,26 @@
+---
+- name: "Relire les unités systemd"
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+
+# unit-file:inventaire-annuel.timer
+- name: "Unité inventaire-annuel.timer"
+  ansible.builtin.systemd_service:
+    name: "inventaire-annuel.timer"
+    enabled: true
+    state: "started"
+
+# unit-file:logistique.service
+- name: "Unité logistique.service"
+  ansible.builtin.systemd_service:
+    name: "logistique.service"
+    enabled: true
+    state: "started"
+
+# unit-file:postgresql.service
+- name: "Unité postgresql.service"
+  ansible.builtin.systemd_service:
+    name: "postgresql.service"
+    enabled: true
+    state: "started"
+

@@ -1,0 +1,27 @@
+---
+# 5 paquets (apt-mark showmanual), le reste suit en dépendances
+- name: "Paquets installés à la main sur l'original"
+  ansible.builtin.apt:
+    name:
+      - "gunicorn"
+      - "postgresql"
+      - "python3-flask"
+      - "python3-psycopg"
+      - "restic"
+    state: "present"
+    update_cache: true
+
+# 2 paquets dont la version diffère du template (mises à jour de sécurité)
+- name: "Paquets mis à jour sur l'original, en version exacte"
+  ansible.builtin.apt:
+    name:
+      - "curl=8.14.1-2+deb13u7"
+      - "libcurl4t64=8.14.1-2+deb13u7"
+    state: "present"
+
+# installer une version exacte marque le paquet comme demandé à la main
+- name: "Rendre leur statut « automatique » aux dépendances mises à jour"
+  ansible.builtin.command:
+    cmd: "apt-mark auto libcurl4t64"
+  changed_when: false
+

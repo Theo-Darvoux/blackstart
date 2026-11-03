@@ -1,0 +1,345 @@
+#!/usr/bin/env python3
+"""bs-generate : génère le code Ansible qui reconstruit une VM à partir de son
+inventaire (bs-collect --with-content) et du classement de ses écarts.
+
+Déterministe : chaque tâche vient d'un élément de l'inventaire, cité en
+commentaire. Les secrets sont lus dans le coffre (variable `coffre`, hors Git).
+Les éléments « inconnu » ne sont PAS appliqués : ils sont listés dans
+DECISIONS.md et bloquent la merge request tant qu'un humain n'a pas tranché.
+
+Usage :
+    generation/bs-generate reference.json courant.content.json sortie/
+"""
+
+import argparse
+import importlib.machinery
+import importlib.util
+import json
+import os
+import shutil
+import sys
+
+HERE = os.path.dirname(os.path.realpath(__file__))
+
+
+def load(name, rel):
+    loader = importlib.machinery.SourceFileLoader(name, os.path.join(HERE, "..", rel))
+    spec = importlib.util.spec_from_loader(name, loader)
+    mod = importlib.util.module_from_spec(spec)
+    loader.exec_module(mod)
+    return mod
+
+
+def q(v):
+    """Scalaire YAML sûr : une chaîne JSON est une chaîne YAML valide."""
+    return json.dumps(v, ensure_ascii=False)
+
+
+class Writer:
+    def __init__(self):
+        self.lines = ["---"]
+
+    def task(self, name, module, args, comment=None, extra=None):
+        if comment:
+            self.lines.append(f"# {comment}")
+        self.lines.append(f"- name: {q(name)}")
+        self.lines.append(f"  {module}:")
+        for k, v in args.items():
+            if isinstance(v, list):
+                self.lines.append(f"    {k}:")
+                self.lines += [f"      - {q(x)}" for x in v]
+            else:
+                self.lines.append(f"    {k}: {q(v) if not isinstance(v, bool) else str(v).lower()}")
+        for k, v in (extra or {}).items():
+            self.lines.append(f"  {k}: {v}")
+        self.lines.append("")
+
+    def text(self):
+        return "\n".join(self.lines) + "\n"
+
+
+STATUT_MODELE = {"reproduire": "reproduire", "ne_pas_reproduire": "ne pas reproduire",
+                 "donnee": "donnée", "a_verifier": "à vérifier"}
+
+
+def cell(x):
+    """Proposition du modèle en une cellule de tableau Markdown."""
+    if not x:
+        return "-"
+    txt = f"{STATUT_MODELE.get(x['statut'], x['statut'])} (risque {x['risque'].replace('eleve', 'élevé')}) : {x['raison']}"
+    return txt.replace("|", "\\|").replace("\n", " ")
+
+
+def group_names(inv):
+    for f in inv["unowned"]["files"]:
+        if f["path"] == "/etc/group" and "content" in f:
+            return {int(p[2]): p[0] for p in (l.split(":") for l in f["content"].splitlines()) if len(p) >= 3}
+    return {}
+
+
+def generate(ref, cur, out, decided=None, props=None):
+    decided = decided or {}
+    props = props or {}
+    prop = props.get("propositions", {})
+    classify = load("bs_classify", "classement/bs-classify")
+    items, ip_hard = classify.run(ref, cur)
+    status = {i["key"]: i for i in items}
+    vm = cur["meta"]["hostname"]
+    files_by_path = {f["path"]: f for f in cur["unowned"]["files"]}
+    files_by_path.update({f["path"]: f for f in cur["modified_files"]})
+    gid_name = group_names(cur)
+
+    if os.path.exists(out):
+        shutil.rmtree(out)
+    os.makedirs(os.path.join(out, "tasks"))
+    os.makedirs(os.path.join(out, "files"))
+    decisions, coffre_paths, skipped, notes = [], [], [], []
+
+    def added(prefix):
+        return [i for i in items if i["key"].startswith(prefix) and i["ecart"] != "absent-de-B"
+                and i["statut"] not in ("ignore",)]
+
+    # 10 : paquets demandés explicitement
+    w = Writer()
+    pkgs = sorted(i["key"].split(":", 1)[1] for i in added("pkg-manual:"))
+    w.task("Paquets installés à la main sur l'original", "ansible.builtin.apt",
+           {"name": pkgs, "state": "present", "update_cache": True},
+           comment=f"{len(pkgs)} paquets (apt-mark showmanual), le reste suit en dépendances")
+    upgraded = sorted(f"{i['key'].split(':', 1)[1].split(':')[0]}={next(p['version'] for p in cur['packages']['installed'] if p['name'] == i['key'].split(':', 1)[1])}"
+                      for i in items if i["key"].startswith("pkg:") and i["ecart"] == "différent")
+    if upgraded:
+        w.task("Paquets mis à jour sur l'original, en version exacte", "ansible.builtin.apt",
+               {"name": upgraded, "state": "present"},
+               comment=f"{len(upgraded)} paquets dont la version diffère du template (mises à jour de sécurité)")
+        manual = set(cur["packages"]["manual"])
+        auto = sorted({u.split("=")[0] for u in upgraded} - manual)
+        if auto:
+            w.task("Rendre leur statut « automatique » aux dépendances mises à jour", "ansible.builtin.command",
+                   {"cmd": "apt-mark auto " + " ".join(auto)},
+                   comment="installer une version exacte marque le paquet comme demandé à la main",
+                   extra={"changed_when": "false"})
+    open(os.path.join(out, "tasks", "10-paquets.yml"), "w").write(w.text())
+
+    # 20 : comptes
+    w = Writer()
+    users = {u["name"]: u for u in cur["users"]["users"]}
+    for i in added("user:"):
+        name = i["key"].split(":", 1)[1]
+        u = users[name]
+        args = {"name": name, "uid": u["uid"], "home": u["home"], "shell": u["shell"],
+                "create_home": u.get("home_exists", False) and u["uid"] >= 1000, "system": u["uid"] < 1000}
+        if u["gid"] in gid_name:
+            args["group"] = gid_name[u["gid"]]
+            w.task(f"Groupe {gid_name[u['gid']]}", "ansible.builtin.group",
+                   {"name": gid_name[u["gid"]], "gid": u["gid"], "system": u["gid"] < 1000},
+                   comment=f"groupe principal de {name}")
+        w.task(f"Compte {name}", "ansible.builtin.user", args, comment=i["key"])
+    open(os.path.join(out, "tasks", "20-comptes.yml"), "w").write(w.text())
+
+    # 30 : fichiers (dossiers d'abord, par profondeur)
+    w = Writer()
+    file_items = [i for i in items if i["key"].startswith(("file:", "pkgfile-modified:")) and i["ecart"] != "absent-de-B"]
+    file_items.sort(key=lambda i: (files_by_path.get(i["key"].split(":", 1)[1], {}).get("type") != "dir",
+                                   i["key"].split(":", 1)[1].count("/"), i["key"]))
+    for i in file_items:
+        path = i["key"].split(":", 1)[1]
+        f = files_by_path.get(path)
+        if i["statut"] == "ignore" or f is None:
+            continue
+        if path in ("/etc/shadow", "/etc/gshadow", "/etc/passwd", "/etc/group", "/etc/subuid", "/etc/subgid"):
+            skipped.append((path, "base des comptes : produite par les tâches de comptes"))
+            continue
+        if path == "/etc/ssl/private/ssl-cert-snakeoil.key":
+            skipped.append((path, "paire auto-signée régénérée par le paquet ssl-cert sur chaque machine : "
+                                  "copier la clé sans son certificat casse PostgreSQL au redémarrage"))
+            continue
+        owner = {"owner": f["owner"], "group": f["group"], "mode": f["mode"].replace("0o", "0")}
+        if i["statut"] == "inconnu":
+            coffre_paths.append(path)
+            d = decided.get(i["key"])
+            if d and d["decision"] == "reproduire":
+                w.task(f"{path} (décision humaine : reproduire, depuis le coffre)", "ansible.builtin.copy",
+                       {"src": "{{ coffre }}" + path, "dest": path, **owner},
+                       comment=f"{i['raison']} ; décidé par {d.get('par', '?')} : {d.get('raison', '')}")
+            elif not d:
+                decisions.append((i["key"], i["raison"]))
+            continue
+        if f["type"] == "dir":
+            w.task(f"Dossier {path}", "ansible.builtin.file", {"path": path, "state": "directory", **owner},
+                   comment=i["raison"])
+        elif f["type"] == "symlink":
+            w.task(f"Lien {path}", "ansible.builtin.file",
+                   {"path": path, "src": f.get("target", ""), "state": "link", "force": True}, comment=i["raison"])
+        elif i["statut"] == "secret":
+            coffre_paths.append(path)
+            w.task(f"{path} (depuis le coffre)", "ansible.builtin.copy",
+                   {"src": "{{ coffre }}" + path, "dest": path, **owner},
+                   comment=i["raison"], extra={"no_log": "true"})
+        elif path == "/etc/hosts" and "content" in f:
+            content = f["content"]
+            own_ip = next((a["address"] for a in cur["network"]["addresses"] if a.get("family") == "inet"
+                           and not a["address"].startswith("127.")), None)
+            content = "\n".join(("{{ vm_ip }}\t{{ vm_hostname }}" if own_ip and l.split()[:1] == [own_ip] else l)
+                                 for l in content.splitlines()) + "\n"
+            local = os.path.join(out, "files", "etc", "hosts.j2")
+            os.makedirs(os.path.dirname(local), exist_ok=True)
+            open(local, "w", encoding="utf-8").write(content)
+            w.task("Fichier /etc/hosts (identité de la machine cible)", "ansible.builtin.template",
+                   {"src": "files/etc/hosts.j2", "dest": path, **owner},
+                   comment=i["raison"] + " ; IP et nom de l'original remplacés par ceux de la cible")
+        elif "content" in f:
+            local = os.path.join(out, "files", path.lstrip("/"))
+            os.makedirs(os.path.dirname(local), exist_ok=True)
+            with open(local, "w", encoding="utf-8") as fh:
+                fh.write(f["content"])
+            w.task(f"Fichier {path}", "ansible.builtin.copy",
+                   {"src": "files/" + path.lstrip("/"), "dest": path, **owner}, comment=i["raison"])
+        else:
+            decisions.append((i["key"], "contenu non collecté (trop gros ou binaire)"))
+    open(os.path.join(out, "tasks", "30-fichiers.yml"), "w").write(w.text())
+
+    # 40 : crontabs des utilisateurs (hors /etc)
+    w = Writer()
+    for c in cur["cron"]["files"]:
+        if c["path"].startswith("/var/spool/cron/crontabs/") and ("cron:" + c["path"]) in status:
+            user = os.path.basename(c["path"])
+            content = "\n".join(c.get("entries", [])) + "\n"
+            w.task(f"Crontab de {user}", "ansible.builtin.copy",
+                   {"content": content, "dest": c["path"], "owner": user, "group": "crontab", "mode": "0600"},
+                   comment=f"cron:{c['path']}")
+    open(os.path.join(out, "tasks", "40-cron.yml"), "w").write(w.text())
+
+    # 50 : services systemd
+    w = Writer()
+    w.task("Relire les unités systemd", "ansible.builtin.systemd_service", {"daemon_reload": True})
+    sd = cur.get("systemd") or {}
+    active = {u["unit"]: u for u in sd.get("units", [])}
+    for i in added("unit-file:"):
+        unit = i["key"].split(":", 1)[1]
+        state = next((u["state"] for u in sd.get("unit_files", []) if u["unit"] == unit), None)
+        if state != "enabled" or "@" in unit:
+            continue
+        args = {"name": unit, "enabled": True}
+        if active.get(unit, {}).get("active") == "active":
+            args["state"] = "started"
+        w.task(f"Unité {unit}", "ansible.builtin.systemd_service", args, comment=i["key"])
+    open(os.path.join(out, "tasks", "50-services.yml"), "w").write(w.text())
+
+    # Autres inconnus (sysctl à chaud, processus manuels, ports)
+    sysctl_keep = []
+    for i in items:
+        if i["statut"] == "inconnu" and not i["key"].startswith(("file:", "pkgfile-modified:")):
+            d = decided.get(i["key"])
+            if d and d["decision"] == "reproduire" and i["key"].startswith("sysctl:"):
+                k = i["key"].split(":", 1)[1]
+                sysctl_keep.append((k, cur["kernel"]["sysctl_effective"][k], d))
+            elif not d:
+                decisions.append((i["key"], i["raison"]))
+    if sysctl_keep:
+        w = Writer()
+        conf = "# Réglages faits à chaud sur l'original, persistés après décision humaine\n" + "".join(
+            f"# {d.get('par', '?')} : {d.get('raison', '')}\n{k} = {v}\n" for k, v, d in sysctl_keep)
+        w.task("Réglages noyau persistés (décision humaine)", "ansible.builtin.copy",
+               {"content": conf, "dest": "/etc/sysctl.d/90-blackstart.conf", "owner": "root", "group": "root", "mode": "0644"},
+               extra={"register": "sysctl_conf"})
+        w.task("Appliquer les réglages noyau", "ansible.builtin.command", {"cmd": "sysctl --system"},
+               extra={"when": "sysctl_conf.changed"})
+        open(os.path.join(out, "tasks", "60-sysctl.yml"), "w").write(w.text())
+    # Décisions « ne pas reproduire » / « accepter » : justifications pour la comparaison
+    just = [{"match": k, "reason": f"décision humaine ({d['decision']}, par {d.get('par', '?')}) : {d.get('raison', '')}"}
+            for k, d in sorted(decided.items()) if d["decision"] != "reproduire"]
+    if sysctl_keep:
+        just.append({"match": "file:/etc/sysctl.d/90-blackstart.conf",
+                     "reason": "ajouté volontairement : persistance des réglages noyau décidée par "
+                               + ", ".join(sorted({d.get("par", "?") for _, _, d in sysctl_keep}))})
+    with open(os.path.join(out, "justifications.json"), "w", encoding="utf-8") as fh:
+        json.dump({"description": "Écarts acceptés par décision humaine (decisions/<vm>.json)", "rules": just},
+                  fh, indent=2, ensure_ascii=False)
+
+    with open(os.path.join(out, "playbook.yml"), "w") as fh:
+        fh.write(f"""---
+# Reconstruction de {vm}, générée par generation/bs-generate depuis l'inventaire
+# du {cur['meta']['collected_at']}. Ne pas éditer à la main : régénérer.
+- name: Reconstruire {vm}
+  hosts: all
+  become: true
+  vars:
+    coffre: "{{{{ lookup('env', 'COFFRE') | default('/srv/coffre/{vm}', true) }}}}"
+    vm_ip: "{{{{ ansible_default_ipv4.address }}}}"
+    vm_hostname: "{{{{ ansible_hostname }}}}"
+  tasks:
+    - ansible.builtin.import_tasks: tasks/10-paquets.yml
+    - ansible.builtin.import_tasks: tasks/20-comptes.yml
+    - ansible.builtin.import_tasks: tasks/30-fichiers.yml
+    - ansible.builtin.import_tasks: tasks/40-cron.yml
+    - ansible.builtin.import_tasks: tasks/50-services.yml
+""" + ("    - ansible.builtin.import_tasks: tasks/60-sysctl.yml\n" if sysctl_keep else ""))
+    # Restauration des données : PostgreSQL sauvegardé par restic
+    has_pg = any(i["key"] == "data:/var/lib/postgresql" for i in items)
+    restic_env = [p for p in files_by_path if p.startswith("/etc/restic/") and p.endswith(".env")]
+    if has_pg and restic_env:
+        shutil.copy(os.path.join(HERE, "modeles", "restauration-restic-postgresql.yml"),
+                    os.path.join(out, "restauration.yml"))
+        coffre_paths.append("/root/.ssh")
+        notes.append(("data:/root/.ssh", "la clé d'accès au dépôt restic n'existe que sur la VM, hors sauvegarde : reprise depuis le coffre"))
+        notes.append(("data:/var/lib/postgresql", "pg_dump ne contient pas les rôles PostgreSQL : recréés depuis la chaîne de connexion"))
+    with open(os.path.join(out, "coffre.txt"), "w") as fh:
+        fh.write("# Chemins à copier dans le coffre (jamais dans Git)\n" + "\n".join(sorted(set(coffre_paths))) + "\n")
+    with open(os.path.join(out, "DECISIONS.md"), "w") as fh:
+        fh.write(f"# Décisions humaines pour {vm}\n\nCes éléments ne sont pas reproduits automatiquement. "
+                 "Tant qu'ils ne sont pas tranchés, la comparaison bloque la merge request.\n\n")
+        fh.write("## En attente de décision\n\n")
+        if decisions and prop:
+            fh.write("| Élément | Pourquoi | Proposition du modèle | Question à trancher |\n| --- | --- | --- | --- |\n")
+            fh.writelines(f"| `{k}` | {r} | {cell(prop.get(k))} | {prop.get(k, {}).get('question', '').replace('|', '/')} |\n"
+                          for k, r in decisions)
+        elif decisions:
+            fh.write("| Élément | Pourquoi |\n| --- | --- |\n")
+            fh.writelines(f"| `{k}` | {r} |\n" for k, r in decisions)
+        else:
+            fh.write("Aucune.\n")
+        if decided:
+            col = " Modèle avait proposé |" if prop else ""
+            fh.write("\n## Décisions prises\n\n| Élément | Décision | Par | Raison |" + col + "\n| --- | --- | --- | --- |"
+                     + (" --- |" if prop else "") + "\n")
+            fh.writelines(f"| `{k}` | {d['decision']} | {d.get('par', '?')} | {d.get('raison', '')} |"
+                          + (f" {cell(prop.get(k))} |" if prop else "") + "\n"
+                          for k, d in sorted(decided.items()))
+        if prop:
+            fh.write(f"\nPropositions de `{props['modele']}`, modèle local sur `bs-ia`, à partir des seules preuves "
+                     f"de l'inventaire, secrets masqués ({props['date']}, {props['duree_s']} s). "
+                     "Indicatives : seule la décision humaine dans `decisions/` compte.\n")
+        if ip_hard:
+            fh.write("\n## Adresses IP écrites en dur\n\n| Fichier | Ligne | IP |\n| --- | --- | --- |\n")
+            fh.writelines(f"| `{h['path']}` | {h['line']} | {h['ip']} |\n" for h in ip_hard)
+        if notes:
+            fh.write("\n## Trous de la sauvegarde d'origine (comblés par la restauration)\n\n")
+            fh.writelines(f"- `{k}` : {r}\n" for k, r in notes)
+        if skipped:
+            fh.write("\n## Volontairement non copiés\n\n")
+            fh.writelines(f"- `{p}` : {r}\n" for p, r in skipped)
+    return {"vm": vm, "paquets": len(pkgs), "decisions": len(decisions),
+            "coffre": len(set(coffre_paths)), "taches": sum(
+                open(os.path.join(out, "tasks", t)).read().count("- name:") for t in os.listdir(os.path.join(out, "tasks")))}
+
+
+def main():
+    ap = argparse.ArgumentParser(description="Génère le code Ansible de reconstruction d'une VM.")
+    ap.add_argument("reference")
+    ap.add_argument("courant")
+    ap.add_argument("sortie")
+    ap.add_argument("--decisions", help="décisions humaines (JSON : clé -> {decision, raison, par})")
+    ap.add_argument("--propositions", help="propositions du modèle (bs-classify --propositions), indicatives")
+    args = ap.parse_args()
+    ref = json.load(open(args.reference, encoding="utf-8"))
+    cur = json.load(open(args.courant, encoding="utf-8"))
+    if not cur["meta"].get("with_content"):
+        sys.exit("l'inventaire courant doit venir de bs-collect --with-content")
+    decided = json.load(open(args.decisions, encoding="utf-8")) if args.decisions and os.path.exists(args.decisions) else {}
+    props = json.load(open(args.propositions, encoding="utf-8")) \
+        if args.propositions and os.path.exists(args.propositions) else {}
+    print(json.dumps(generate(ref, cur, args.sortie, decided, props), ensure_ascii=False))
+
+
+if __name__ == "__main__":
+    main()

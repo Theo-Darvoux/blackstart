@@ -1,0 +1,14 @@
+{
+  "entreprise": "PME fictive du banc (domaine pme.test)",
+  "forge": "http://192.168.103.203:3000",
+  "depot": "pme/infra",
+  "copie_depot": "forge/pme-infra",
+  "vms": [
+    {"vm": "bs-logistique", "ip": "192.168.103.200", "role": "Logiciel de logistique, PostgreSQL",
+     "classement": "banc/resultats/classement-bs-logistique-20261102-1852.json"},
+    {"vm": "bs-mail", "ip": "192.168.103.201", "role": "Messagerie interne (Postfix, Dovecot)",
+     "classement": "banc/resultats/classement-bs-mail-20261102.json"},
+    {"vm": "bs-proxy", "ip": "192.168.103.202", "role": "Proxy web (Nginx) et DNS interne (Unbound)",
+     "classement": "banc/resultats/classement-bs-proxy-20261102.json"}
+  ]
+}

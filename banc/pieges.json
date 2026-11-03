@@ -1,0 +1,26 @@
+{
+  "description": "Corrigé du banc de pièges posés par pme/pieges/setup.sh sur bs-logistique. Ne jamais le donner à l'outil Black Start. Un piège est détecté si au moins une de ses clés apparaît dans les écarts non justifiés entre l'inventaire vierge et l'inventaire courant de la même VM (ou, pour ip_literal, si l'IP est relevée dans le fichier indiqué).",
+  "vm": "bs-logistique",
+  "pieges": [
+    {"id": "P1", "nom": "cron oublié (crontab root)", "spec": true,
+     "cles": ["cron:/var/spool/cron/crontabs/root"]},
+    {"id": "P2", "nom": "fichier de configuration de paquet modifié (limits.conf)", "spec": true,
+     "cles": ["pkgfile-modified:/etc/security/limits.conf"]},
+    {"id": "P3", "nom": "binaire opaque dans /opt", "spec": true,
+     "cles": ["file:/opt/etiquettes/bin/zpl-print"]},
+    {"id": "P4", "nom": "sauvegarde mensuelle hors restic", "spec": true,
+     "cles": ["cron:/etc/cron.d/archive-mensuelle"]},
+    {"id": "P5", "nom": "IP du serveur mail codée en dur", "spec": true,
+     "ip_literal": {"path": "/etc/logistique/logistique.conf", "ip": "192.168.103.201"}},
+    {"id": "P6", "nom": "sysctl modifié à chaud, non persisté", "spec": false,
+     "cles": ["sysctl:vm.swappiness"]},
+    {"id": "P7", "nom": "tâche annuelle (timer du 31 décembre)", "spec": false,
+     "cles": ["unit-file:inventaire-annuel.timer", "timer:inventaire-annuel.timer"]},
+    {"id": "P8", "nom": "processus lancé à la main (relais HTTP :9100)", "spec": false,
+     "cles": ["listen:tcp:0.0.0.0:9100"]},
+    {"id": "P9", "nom": "compte prestataire créé à la main avec sudo", "spec": false,
+     "cles": ["user:prestataire", "file:/etc/sudoers.d/prestataire"]},
+    {"id": "P10", "nom": "dépendance implicite dans /etc/hosts", "spec": false,
+     "cles": ["file:/etc/hosts"]}
+  ]
+}

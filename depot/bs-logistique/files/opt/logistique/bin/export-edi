@@ -1,0 +1,7 @@
+#!/bin/sh
+# Export EDI des commandes confirmées vers le transporteur (prestataire, 2023)
+out=/srv/edi/sortant/$(date +%Y%m%d%H%M).csv
+runuser -u postgres -- psql -At -F';' logistique -c \
+  "SELECT ref, client, sku, quantite FROM commandes WHERE statut = 'confirmée' AND cree_le > now() - interval '10 minutes'" > "$out"
+[ -s "$out" ] || rm -f "$out"
+/opt/etiquettes/bin/zpl-print < /dev/null > /dev/null 2>&1 || true

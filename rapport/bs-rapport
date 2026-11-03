@@ -1,0 +1,481 @@
+#!/usr/bin/env python3
+"""bs-rapport : page de rapport de reprise, construite uniquement à partir des
+résultats réels (classement, décisions humaines, vérification CI, bascule).
+
+    rapport/bs-rapport [--config rapport/vms.json] [--sortie rapport/sortie/index.html]
+                       [--fragment] [--hors-ligne]
+
+Sources, par VM :
+  - classement   : sortie JSON de classement/bs-classify (chemin dans vms.json)
+  - décisions    : decisions/<vm>.json et <vm>/DECISIONS.md de la copie du dépôt client
+  - vérification : dernier commentaire de la CI sur la merge request reconstruction/<vm>
+                   (bloc <!-- bs-verif … --> écrit par infra/ci-rapport.py ; sinon lecture
+                   du texte du rapport)
+  - bascule      : banc/resultats/bascule-*.json écrits par infra/bascule.py
+
+Ce que la page met en avant, par VM (validé par Théo le 3 novembre 2026) :
+  verdict    : « Reconstruction prouvée » si la CI a reconstruit la VM en sandbox,
+               restauré les données, passé le test métier et trouvé 0 écart non justifié ;
+               « Bloquée » s'il reste des inconnus sans décision ; sinon « non prouvée ».
+  reprise    : durées mesurées (parcours CI de la VM vide au service vérifié ; coupure
+               de la dernière bascule).
+  points à risque trouvés à l'audit = inconnus + trous de la sauvegarde d'origine
+               + IP d'autres machines écrites en dur ; avec combien restent en attente
+               et combien sont des risques acceptés.
+Détail seulement, « couverture du code » : part des éléments (hors « ignorés ») dont la
+reprise est codée (Ansible, données, coffre) ou tranchée par un humain. Pas de pondération.
+Rien n'est estimé : une valeur absente est affichée comme absente.
+"""
+
+import argparse
+import glob
+import html
+import json
+import os
+import re
+import sys
+import time
+
+HERE = os.path.dirname(os.path.realpath(__file__))
+ROOT = os.path.join(HERE, "..")
+sys.path.insert(0, os.path.join(ROOT, "infra"))
+
+LIBELLES = {
+    "compris": "reproduit par le code",
+    "donnee": "donnée restaurée",
+    "secret": "secret au coffre",
+    "tranche": "tranché par un humain",
+    "attente": "décision en attente",
+}
+ETAPES = [("sandbox_s", "sandbox neuve"), ("reconstruction_s", "reconstruction"), ("restauration_s", "restauration"),
+          ("redemarrage_s", "redémarrage"), ("test_metier_s", "test métier"), ("collecte_s", "collecte"),
+          ("comparaison_s", "comparaison")]
+
+
+def load(path):
+    try:
+        return json.load(open(path, encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+
+
+def esc(x):
+    return html.escape(str(x), quote=True)
+
+
+# --- Données -----------------------------------------------------------------
+
+def score(classement, decisions):
+    c = {k: 0 for k in LIBELLES}
+    attente, accepte = [], []
+    for e in classement["elements"]:
+        st, d = e["statut"], decisions.get(e["key"])
+        if st == "ignore":
+            continue
+        if d:
+            c["tranche"] += 1
+            if d["decision"] == "accepter":
+                accepte.append((e["key"], d))
+        elif st == "inconnu":
+            c["attente"] += 1
+            attente.append(e)
+        else:
+            c[st] += 1
+    total = sum(c.values())
+    # Même calcul sans les décisions humaines : l'état tel que l'audit l'a trouvé.
+    audit = 100.0 * (total - c["tranche"] - c["attente"] + sum(
+        1 for e in classement["elements"] if e["statut"] not in ("ignore", "inconnu") and e["key"] in decisions)) / total if total else 0.0
+    return {"comptes": c, "pct_audit": audit, "inconnus_audit": classement["comptes"].get("inconnu", 0), "total": total, "ignores": classement["comptes"].get("ignore", 0),
+            "traites": total - c["attente"], "pct": 100.0 * (total - c["attente"]) / total if total else 0.0,
+            "attente": attente, "accepte": accepte}
+
+
+def section_md(path, titre):
+    try:
+        txt = open(path, encoding="utf-8").read()
+    except OSError:
+        return []
+    m = re.search(r"^## " + re.escape(titre) + r".*?\n(.*?)(?=^## |\Z)", txt, re.S | re.M)
+    return [l[2:] for l in (m.group(1).splitlines() if m else []) if l.startswith("- ")]
+
+
+def parse_verif(body):
+    m = re.search(r"<!-- bs-verif (\{.*\}) -->", body, re.S)
+    if m:
+        try:
+            return json.loads(m.group(1)), "bloc JSON de la CI"
+        except ValueError:
+            pass
+    # Rapports antérieurs au bloc JSON : lecture du texte produit par ci-rapport.py.
+    v = {"chronos": {}, "test_metier": None, "echec": None, "comparaison": None}
+    m = re.search(r"Sandbox `([^`]+)` \(([\d.]+)\), parcours complet en \*\*(\d+) s\*\* \(([^)]*)\)", body)
+    if m:
+        v["chronos"] = {"sandbox": m.group(1), "ip": m.group(2), "total_s": int(m.group(3))}
+        noms = {lib: k for k, lib in ETAPES}
+        noms["sandbox"] = "sandbox_s"
+        for nom, sec in re.findall(r"([a-zé ]+?) (\d+) s", m.group(4)):
+            if nom.strip() in noms:
+                v["chronos"][noms[nom.strip()]] = int(sec)
+    m = re.search(r"\*\*Test métier\*\* : (\w+) en ([\d.]+) s", body)
+    if m:
+        etapes = [{"ok": ok == "✅", "etape": e, "detail": d}
+                  for ok, e, d in re.findall(r"^- (✅|❌) ([^:]+?) : (.*)$", body, re.M)]
+        v["test_metier"] = {"ok": m.group(1) == "vert", "duree_s": float(m.group(2)), "etapes": etapes}
+    m = re.search(r"\*\*Comparaison avec l'original\*\* : (\d+) écarts, (\d+) non justifiés, (\d+) justifiés", body)
+    if m:
+        v["comparaison"] = {"summary": {"differences": int(m.group(1)), "unjustified": int(m.group(2)),
+                                        "justified": int(m.group(3))},
+                            "bloquants": re.findall(r"^\| `([^`]+)` \|", body, re.M)}
+    m = re.search(r"Vérification interrompue : (.*)", body)
+    if m:
+        v["echec"] = {"etape_en_echec": m.group(1).strip()}
+    return v, "texte du rapport de la CI"
+
+
+def forge_state(cfg, vm):
+    """Dernière merge request de reconstruction de la VM, son état CI et son rapport."""
+    from forge import Forge
+    f = Forge()
+    branche = f"reconstruction/{vm}"
+    prs = [p for p in f.call("GET", f"/repos/{cfg['depot']}/pulls?state=all&limit=50") if branche in (p["head"]["ref"], p["head"].get("label"))
+           and (p["state"] == "open" or p["merged"])]
+    if not prs:
+        return None
+    pr = max(prs, key=lambda p: p["number"])
+    st = f.call("GET", f"/repos/{cfg['depot']}/commits/{pr['head']['sha']}/status")
+    out = {"numero": pr["number"], "url": pr["html_url"], "etat": "fusionnée" if pr["merged"] else "ouverte",
+           "sha": pr["head"]["sha"][:7], "ci": st.get("state") or "aucune", "verif": None}
+    for c in reversed(f.call("GET", f"/repos/{cfg['depot']}/issues/{pr['number']}/comments")):
+        if "bs-verif" in c["body"] or "parcours complet en" in c["body"]:
+            out["verif"], out["verif_source"] = parse_verif(c["body"])
+            out["verif_date"] = c["created_at"][:16].replace("T", " ")
+            break
+    return out
+
+
+def bascules(vm):
+    out = []
+    for p in sorted(glob.glob(os.path.join(ROOT, "banc", "resultats", "bascule-*.json"))):
+        d = load(p)
+        if d and d.get("bascule"):
+            out.append({**d["bascule"], "test_ok": d.get("ok"), "fichier": os.path.relpath(p, ROOT)})
+    return out if vm == "bs-logistique" else []
+
+
+def collect(cfg, hors_ligne):
+    vms = []
+    for v in cfg["vms"]:
+        cl = load(os.path.join(ROOT, v["classement"]))
+        if not cl:
+            sys.exit(f"classement introuvable : {v['classement']}")
+        dec = load(os.path.join(ROOT, cfg["copie_depot"], "decisions", f"{v['vm']}.json")) or {}
+        md = os.path.join(ROOT, cfg["copie_depot"], v["vm"], "DECISIONS.md")
+        f = None
+        if not hors_ligne:
+            try:
+                f = forge_state(cfg, v["vm"])
+            except Exception as exc:  # forge injoignable : on le dit, on n'invente rien
+                f = {"erreur": str(exc)}
+        vms.append({**v, "score": score(cl, dec), "decisions": dec, "ip_en_dur": cl.get("ip_en_dur", []),
+                    "trous": section_md(md, "Trous de la sauvegarde"), "forge": f, "bascules": bascules(v["vm"])})
+    return vms
+
+
+def risques(v):
+    s = v["score"]
+    trous = len(v["trous"]) + sum(1 for k, _ in s["accepte"] if k.startswith("data:"))
+    parts = [("inconnus, à trancher par un humain", s["inconnus_audit"]),
+             ("trous de la sauvegarde d'origine", trous),
+             ("IP d'autres machines écrites en dur", len(v["ip_en_dur"]))]
+    return {"parts": parts, "total": sum(n for _, n in parts),
+            "attente": s["comptes"]["attente"], "acceptes": len(s["accepte"])}
+
+
+def preuve(v):
+    n = v["score"]["comptes"]["attente"]
+    if n:
+        return "echec", f"Bloquée : {n} décision{'s' if n > 1 else ''} en attente"
+    f = v["forge"]
+    if not f or "erreur" in f:
+        return "absente", "Pas encore reconstruite"
+    ver = f.get("verif") or {}
+    cmp_ = (ver.get("comparaison") or {}).get("summary", {})
+    tm = ver.get("test_metier") or {}
+    if f["ci"] == "success" and not ver.get("echec") and tm.get("ok") and cmp_.get("unjustified") == 0:
+        return "prouvee", "Reconstruction prouvée"
+    if f["ci"] == "pending":
+        return "encours", "Vérification en cours"
+    return "echec", "Reconstruction non prouvée"
+
+
+# --- Rendu -------------------------------------------------------------------
+
+CSS = """
+/* Tableau de bord de reprise : bandeau de synthèse, puis une fiche par machine. */
+:root {
+  --bg: #f3f4f1; --surface: #fbfbf9; --ink: #18211e; --muted: #5b6662; --line: #d9ddd6;
+  --accent: #1d4fa3; --ok: #1f7a46; --warn: #a3620a; --crit: #b3261e;
+  --ok-bg: #e2f1e7; --warn-bg: #f7ebd6; --crit-bg: #f6e0de; --pending-bg: #e4eaf6;
+  --s-compris: #1d4fa3; --s-donnee: #3f8f8a; --s-secret: #7a5aa6; --s-tranche: #8a8f5a; --s-attente: #b3261e;
+  --display: "IBM Plex Sans Condensed", "Arial Narrow", system-ui, sans-serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #121715; --surface: #1a201e; --ink: #e6ebe8; --muted: #9aa5a0; --line: #2d3532;
+  --accent: #8fb1ee; --ok: #6fcf97; --warn: #e3a948; --crit: #f08a80;
+  --ok-bg: #18301f; --warn-bg: #33270f; --crit-bg: #3a1c19; --pending-bg: #1c2638;
+  --s-compris: #6f97e0; --s-donnee: #63b5ae; --s-secret: #a98bd4; --s-tranche: #b4b97c; --s-attente: #f08a80;
+  color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #121715; --surface: #1a201e; --ink: #e6ebe8; --muted: #9aa5a0; --line: #2d3532;
+  --accent: #8fb1ee; --ok: #6fcf97; --warn: #e3a948; --crit: #f08a80;
+  --ok-bg: #18301f; --warn-bg: #33270f; --crit-bg: #3a1c19; --pending-bg: #1c2638;
+  --s-compris: #6f97e0; --s-donnee: #63b5ae; --s-secret: #a98bd4; --s-tranche: #b4b97c; --s-attente: #f08a80;
+  color-scheme: dark; }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.5; }
+.wrap { max-width: 1080px; margin: 0 auto; padding-block: 28px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 28px; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; line-height: 1.15; }
+h1 { font-size: 2rem; font-weight: 600; letter-spacing: -0.01em; }
+h2 { font-size: 1.45rem; font-weight: 600; }
+h3 { font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+p { margin: 0; max-width: 68ch; }
+a { color: var(--accent); }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+code, .mono { font-family: var(--mono); font-size: 0.86em; }
+.num { font-variant-numeric: tabular-nums; }
+header { display: grid; gap: 6px; }
+.eyebrow { font-family: var(--mono); font-size: 0.78rem; color: var(--muted); letter-spacing: 0.04em; }
+.lead { color: var(--muted); }
+.synth { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); font-weight: 600; }
+tr:last-child td { border-bottom: 0; }
+.synth td { white-space: nowrap; }
+.pill { display: inline-block; padding: 1px 9px; border-radius: 999px; font-size: 0.8rem; font-weight: 600; white-space: nowrap; }
+.pill.prouvee { background: var(--ok-bg); color: var(--ok); }
+.pill.encours { background: var(--pending-bg); color: var(--accent); }
+.pill.echec { background: var(--crit-bg); color: var(--crit); }
+.pill.absente { background: var(--warn-bg); color: var(--warn); }
+.vm { display: grid; gap: 20px; padding-top: 24px; border-top: 2px solid var(--ink); }
+.vm-head { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; justify-content: space-between; }
+.vm-head .ip { font-family: var(--mono); color: var(--muted); font-size: 0.9rem; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px 32px; }
+.grid > * { min-width: 0; display: grid; gap: 10px; align-content: start; }
+.score { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.score .big { font-family: var(--display); font-size: 3rem; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; }
+.score .of { color: var(--muted); }
+.bar { display: flex; height: 14px; border-radius: 3px; overflow: hidden; background: var(--line); }
+.bar span { display: block; height: 100%; }
+.legend { display: grid; gap: 4px; font-size: 0.88rem; }
+.legend div { display: grid; grid-template-columns: 12px 1fr auto; gap: 8px; align-items: center; }
+.legend i { width: 12px; height: 12px; border-radius: 2px; display: block; }
+.legend b { font-weight: 500; font-variant-numeric: tabular-nums; }
+.legend i.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--warn); justify-self: center; }
+.score .mid { font-family: var(--display); font-size: 1.8rem; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; }
+h3.sub { padding-top: 10px; border-top: 1px solid var(--line); }
+.note { font-size: 0.85rem; color: var(--muted); }
+.timeline { display: flex; height: 26px; gap: 2px; }
+.timeline span { background: var(--accent); opacity: 0.85; border-radius: 2px; min-width: 3px; }
+.timeline span:nth-child(even) { opacity: 0.55; }
+.tl-legend { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 2px 14px; font-size: 0.85rem; }
+.tl-legend span { display: flex; justify-content: space-between; gap: 8px; border-bottom: 1px dotted var(--line); }
+.checks { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; font-size: 0.9rem; }
+.checks li { display: grid; grid-template-columns: 22px 1fr; gap: 6px; }
+.checks .ok { color: var(--ok); font-weight: 700; }
+.checks .ko { color: var(--crit); font-weight: 700; }
+.tbl { overflow-x: auto; }
+.tbl td, .tbl th { font-size: 0.88rem; }
+.dec { font-weight: 600; white-space: nowrap; }
+.dec.reproduire { color: var(--ok); } .dec.accepter { color: var(--warn); } .dec.ne { color: var(--muted); }
+.warnbox { background: var(--warn-bg); border-radius: 6px; padding: 12px 14px; display: grid; gap: 6px; }
+.warnbox ul, .plain { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 0.9rem; }
+footer { color: var(--muted); font-size: 0.82rem; display: grid; gap: 6px; border-top: 1px solid var(--line); padding-top: 16px; }
+@media (max-width: 520px) { h1 { font-size: 1.6rem; } .score .big { font-size: 2.4rem; } }
+"""
+
+FONTS = ('<link rel="preconnect" href="https://fonts.googleapis.com">'
+         '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500'
+         '&family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">')
+
+
+def fmt_pct(x):
+    return f"{x:.1f}".replace(".", ",")
+
+
+def fmt_s(s):
+    if s is None:
+        return "—"
+    s = float(s)
+    return f"{s:.0f} s" if s < 120 else f"{int(s // 60)} min {int(s % 60):02d} s"
+
+
+def render_vm(v):
+    s, f = v["score"], v["forge"] or {}
+    cls, lib = preuve(v)
+    ver = f.get("verif") or {}
+    ch = ver.get("chronos") or {}
+    out = [f'<section class="vm" id="{esc(v["vm"])}">',
+           f'<div class="vm-head"><div><h2>{esc(v["vm"])}</h2><div class="note">{esc(v["role"])}</div></div>'
+           f'<div><span class="ip">{esc(v["ip"])}</span> <span class="pill {cls}">{lib}</span></div></div>',
+           '<div class="grid">']
+    # Points à risque, puis couverture du code (détail)
+    r = risques(v)
+    rl = "".join(f'<div><i class="dot"></i><span>{esc(lib_)}</span><b>{n}</b></div>' for lib_, n in r["parts"])
+    out.append(f'<div><h3>Points à risque trouvés à l\'audit</h3><div class="score"><span class="big">{r["total"]}</span>'
+               f'<span class="of num">{r["attente"]} en attente de décision · {r["acceptes"]} risque{"s" if r["acceptes"] > 1 else ""} '
+               f'accepté{"s" if r["acceptes"] > 1 else ""}</span></div><div class="legend">{rl}</div>'
+               '<p class="note">Ce que l\'audit a trouvé et qu\'une reprise doit traiter : décider, sauvegarder, ou savoir quoi changer si une adresse change. Détail plus bas.</p>')
+    segs = "".join(f'<span style="width:{100.0 * n / s["total"]:.3f}%;background:var(--s-{k})" title="{esc(LIBELLES[k])} : {n}"></span>'
+                   for k, n in s["comptes"].items() if n and s["total"])
+    leg = "".join(f'<div><i style="background:var(--s-{k})"></i><span>{esc(LIBELLES[k])}</span><b>{n}</b></div>'
+                  for k, n in s["comptes"].items())
+    non_prouve = "" if cls == "prouvee" else ", <b>non prouvé</b>"
+    audit = (f'<p class="note">À l\'audit, avant décision : <b class="num">{fmt_pct(s["pct_audit"])} %</b>, '
+             f'{s["inconnus_audit"]} élément(s) inconnu(s) bloquaient la reconstruction.</p>'
+             if s["inconnus_audit"] else '<p class="note">À l\'audit : aucun élément inconnu.</p>')
+    out.append(f'<h3 class="sub">Couverture du code</h3><div class="score"><span class="mid">{fmt_pct(s["pct"])} %</span>'
+               f'<span class="of num">{s["traites"]} éléments traités sur {s["total"]}{non_prouve}</span></div>'
+               f'<div class="bar" role="img" aria-label="Répartition des {s["total"]} éléments par statut">{segs}</div>'
+               f'<div class="legend">{leg}</div>{audit}'
+               f'<p class="note">{s["ignores"]} éléments ignorés par règle (journaux, caches, identité de la machine) '
+               'ne sont pas comptés.</p></div>')
+    # Preuve
+    blk = ['<div><h3>Preuve par reconstruction</h3>']
+    if not f or "erreur" in f:
+        blk.append('<p>Aucune merge request de reconstruction pour cette machine. Les chiffres ci-contre viennent de l\'audit seul : '
+                   'ils n\'ont pas encore été vérifiés en reconstruisant la machine.</p>' if not f else
+                   f'<p>Forge injoignable : {esc(f["erreur"])}</p>')
+    else:
+        blk.append(f'<p><a href="{esc(f["url"])}">Merge request n° {f["numero"]}</a> ({f["etat"]}), commit '
+                   f'<code>{esc(f["sha"])}</code>, CI : <b>{esc(f["ci"])}</b>.</p>')
+        if ch.get("total_s"):
+            tot = sum(ch.get(k) or 0 for k, _ in ETAPES) or ch["total_s"]
+            bars = "".join(f'<span style="flex:{ch[k]} 0 0" title="{esc(n)} : {ch[k]} s"></span>' for k, n in ETAPES if ch.get(k))
+            legs = "".join(f'<span><span>{esc(n)}</span><span class="num">{ch[k]} s</span></span>' for k, n in ETAPES if ch.get(k) is not None)
+            blk.append(f'<div class="score"><span class="big">{fmt_s(ch["total_s"])}</span><span class="of">de la VM vide '
+                       'au service vérifié, en sandbox isolée</span></div>'
+                       f'<div class="timeline" role="img" aria-label="Durée de chaque étape, {tot} s au total">{bars}</div>'
+                       f'<div class="tl-legend">{legs}</div>')
+        tm = ver.get("test_metier")
+        if tm:
+            items = "".join(f'<li><span class="{"ok" if e["ok"] else "ko"}">{"✓" if e["ok"] else "✗"}</span>'
+                            f'<span><b>{esc(e["etape"])}</b> : {esc(e["detail"])}</span></li>' for e in tm["etapes"])
+            blk.append(f'<p class="note">Test métier sur la copie isolée : {"vert" if tm["ok"] else "ROUGE"} en '
+                       f'{fmt_pct(tm["duree_s"])} s.</p><ul class="checks">{items}</ul>')
+        c = ver.get("comparaison")
+        if c:
+            sm = c["summary"]
+            blk.append(f'<p class="note">Comparaison avec l\'original : {sm["differences"]} écarts, '
+                       f'<b>{sm["unjustified"]} non justifiés</b>, {sm["justified"]} justifiés par règle ou décision.</p>')
+        if ver.get("echec"):
+            blk.append(f'<p class="note">Arrêt à l\'étape : {esc(ver["echec"]["etape_en_echec"])}</p>')
+        if f.get("verif_date"):
+            blk.append(f'<p class="note">Rapport de CI du {esc(f["verif_date"])}, heure de la forge ({esc(f.get("verif_source", ""))}).</p>')
+    blk.append('</div>')
+    out += blk
+    out.append('</div>')
+    # Bascules
+    if v["bascules"]:
+        rows = "".join(f'<tr><td class="num">{esc(b["date"])}</td><td class="num">{fmt_s(b["coupure_s"])}</td>'
+                       f'<td>{"vert" if b["test_ok"] else "ROUGE"}</td><td>{"oui" if b.get("geste_manuel") else "non"}</td>'
+                       f'<td><code>{esc(b["fichier"])}</code></td></tr>' for b in v["bascules"])
+        out.append('<div class="grid"><div><h3>Bascule en production (répétition)</h3>'
+                   '<p class="note">Coupure mesurée de l\'arrêt de l\'original jusqu\'au test métier complet vert '
+                   '(proxy, DNS, mail réel).</p><div class="tbl"><table><thead><tr><th>Date</th><th>Coupure</th>'
+                   f'<th>Test métier</th><th>Geste manuel</th><th>Mesure</th></tr></thead><tbody>{rows}</tbody></table></div></div></div>')
+    # Décisions, attentes, trous
+    side = []
+    if s["attente"]:
+        items = "".join(f'<li><code>{esc(e["key"])}</code> : {esc(e["raison"])}</li>' for e in s["attente"])
+        side.append(f'<div><h3>En attente d\'une décision humaine</h3><ul class="plain">{items}</ul></div>')
+    if v["decisions"]:
+        rows = "".join(f'<tr><td><code>{esc(k)}</code></td><td class="dec {esc(d["decision"].split()[0])}">{esc(d["decision"])}</td>'
+                       f'<td>{esc(d.get("par", "?"))}</td><td>{esc(d.get("raison", ""))}</td></tr>'
+                       for k, d in sorted(v["decisions"].items()))
+        side.append('<div><h3>Décisions prises</h3><div class="tbl"><table><thead><tr><th>Élément</th><th>Décision</th>'
+                    f'<th>Par</th><th>Raison</th></tr></thead><tbody>{rows}</tbody></table></div></div>')
+    acc = [f'<code>{esc(k)}</code> : {esc(d.get("raison", ""))}' for k, d in s["accepte"]]
+    trous = [re.sub(r"`([^`]+)`", lambda m: f"<code>{esc(m.group(1))}</code>", esc(t).replace("&#x27;", "'")) for t in v["trous"]]
+    if acc or trous:
+        txt = ""
+        if trous:
+            txt += '<p class="note">Trous de la sauvegarde d\'origine, comblés par la restauration générée :</p><ul>' + \
+                   "".join(f"<li>{t}</li>" for t in trous) + "</ul>"
+        if acc:
+            txt += '<p class="note">Risques acceptés, avec une action à mener :</p><ul>' + \
+                   "".join(f"<li>{r}</li>" for r in acc) + "</ul>"
+        side.append(f'<div class="warnbox"><h3>Ce que la sauvegarde ne couvrait pas</h3>{txt}</div>')
+    if v["ip_en_dur"]:
+        rows = "".join(f'<tr><td><code>{esc(h["path"])}</code></td><td class="num">{h["line"]}</td><td class="mono">{esc(h["ip"])}</td></tr>'
+                       for h in v["ip_en_dur"])
+        side.append('<div><h3>Dépendances écrites en dur</h3><p class="note">Adresses d\'autres machines dans la '
+                    'configuration : à changer si une machine change d\'adresse.</p><div class="tbl"><table><thead><tr>'
+                    f'<th>Fichier</th><th>Ligne</th><th>IP</th></tr></thead><tbody>{rows}</tbody></table></div></div>')
+    if side:
+        out.append('<div class="grid">' + "".join(side) + '</div>')
+    out.append('</section>')
+    return "\n".join(out)
+
+
+def render(cfg, vms, fragment):
+    date = time.strftime("%d/%m/%Y à %H:%M")
+    rows = []
+    for v in vms:
+        cls, lib = preuve(v)
+        f = v["forge"] or {}
+        ch = ((f.get("verif") or {}).get("chronos") or {})
+        bas = v["bascules"][-1]["coupure_s"] if v["bascules"] else None
+        r = risques(v)
+        rows.append(f'<tr><td><a href="#{esc(v["vm"])}"><b>{esc(v["vm"])}</b></a><div class="note">{esc(v["role"])}</div></td>'
+                    f'<td><span class="pill {cls}">{lib}</span></td>'
+                    f'<td class="num">{fmt_s(ch.get("total_s"))}<div class="note">{"reconstruction" if ch.get("total_s") else "pas encore mesurée"}</div></td>'
+                    f'<td class="num">{fmt_s(bas)}<div class="note">{"coupure à la bascule" if bas is not None else "pas de bascule"}</div></td>'
+                    f'<td class="num"><b>{r["total"]}</b> trouvé{"s" if r["total"] > 1 else ""}<div class="note">{r["attente"]} en attente · {r["acceptes"]} accepté{"s" if r["acceptes"] > 1 else ""}</div></td>'
+                    f'<td>{f"<a href=\"{esc(f["url"])}\">n° {f["numero"]}</a>" if f.get("url") else "—"}</td></tr>')
+    body = f"""<div class="wrap">
+<header><div class="eyebrow">Black Start · rapport de reprise · généré le {date}</div>
+<h1>{esc(cfg["entreprise"])}</h1>
+<p class="lead">Chaque machine est auditée en lecture seule, puis reconstruite depuis le code et la sauvegarde dans une sandbox isolée.
+Une reconstruction n'est dite prouvée que si le service répond, que le test métier passe et qu'aucun écart avec l'original ne reste sans justification.</p></header>
+<div class="synth"><table><thead><tr><th>Machine</th><th>Verdict</th><th colspan="2">Reprise mesurée</th><th>Points à risque</th><th>Merge request</th></tr></thead>
+<tbody>{"".join(rows)}</tbody></table></div>
+{"".join(render_vm(v) for v in vms)}
+<footer><p>Points à risque : éléments inconnus (décision humaine obligatoire), trous de la sauvegarde d'origine et adresses
+d'autres machines écrites en dur, trouvés par l'audit. Couverture du code : part des éléments, hors éléments ignorés par règle,
+dont la reprise est codée (Ansible, données restaurées, secrets au coffre) ou tranchée par un humain ; tous les éléments pèsent pareil.</p>
+<p>Sources : inventaires de <code>bs-collect</code>, classement <code>bs-classify</code>, décisions du dépôt <code>{esc(cfg["depot"])}</code>,
+rapports de la CI de <a href="{esc(cfg["forge"])}">la forge</a>, mesures de <code>infra/bascule.py</code>. Aucune valeur n'est estimée.</p></footer>
+</div>"""
+    head = f'<title>Rapport de reprise</title>\n<meta name="claude:viewport-fit-sides" content="cover">\n{FONTS}\n<style>{CSS}</style>\n'
+    if fragment:
+        return head + body + "\n"
+    return ('<!doctype html>\n<html lang="fr"><head><meta charset="utf-8">'
+            '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n'
+            + head + '</head><body>\n' + body + '\n</body></html>\n')
+
+
+def main():
+    ap = argparse.ArgumentParser(description="Page de rapport de reprise, à partir des résultats réels.")
+    ap.add_argument("--config", default=os.path.join(HERE, "vms.json"))
+    ap.add_argument("--sortie", default=os.path.join(HERE, "sortie", "index.html"))
+    ap.add_argument("--fragment", action="store_true", help="sans <html>/<head>/<body> (publication en artifact)")
+    ap.add_argument("--hors-ligne", action="store_true", help="ne pas interroger la forge")
+    ap.add_argument("--json", help="écrire aussi les données collectées dans ce fichier")
+    args = ap.parse_args()
+    cfg = load(args.config)
+    vms = collect(cfg, args.hors_ligne)
+    os.makedirs(os.path.dirname(os.path.abspath(args.sortie)), exist_ok=True)
+    open(args.sortie, "w", encoding="utf-8").write(render(cfg, vms, args.fragment))
+    if args.json:
+        json.dump(vms, open(args.json, "w", encoding="utf-8"), ensure_ascii=False, indent=2, default=str)
+    for v in vms:
+        print(f"{v['vm']:15} {fmt_pct(v['score']['pct']):>6} %  {preuve(v)[1]}")
+    print(f"page écrite : {args.sortie}")
+
+
+if __name__ == "__main__":
+    main()

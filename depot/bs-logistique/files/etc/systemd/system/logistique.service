@@ -1,0 +1,15 @@
+[Unit]
+Description=Logiciel de logistique
+After=network-online.target postgresql.service
+Wants=network-online.target
+
+[Service]
+User=logistique
+Group=logistique
+WorkingDirectory=/opt/logistique/app
+Environment=LOGISTIQUE_CONF=/etc/logistique/logistique.conf
+ExecStart=/usr/bin/gunicorn --bind 0.0.0.0:8000 --workers 2 --access-logfile - logistique:app
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

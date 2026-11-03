@@ -1,0 +1,361 @@
+#!/usr/bin/env python3
+"""bs-classify : classe chaque écart entre l'inventaire de référence (template
+vierge) et l'inventaire courant d'une VM.
+
+Statuts (spec, « Classement ») :
+  compris  -> intégré au code de reconstruction (Ansible)
+  donnee   -> sauvegardé puis restauré, jamais versionné
+  secret   -> va dans le coffre, jamais au modèle ni dans Git
+  ignore   -> exclu, avec la règle
+  inconnu  -> décision humaine obligatoire
+
+Le classement est déterministe : chaque statut vient d'une règle nommée et
+d'une preuve tirée de l'inventaire. Avec --proposer, un modèle local PROPOSE
+un statut pour chaque inconnu ; il ne remplace ni ces preuves ni la décision
+humaine (decisions/<vm>.json). Le modèle ne reçoit que des preuves tirées de
+l'inventaire, secrets masqués ; jamais le contenu d'un fichier fermé.
+
+Usage :
+    classement/bs-classify reference.json courant.json [--json classement.json]
+    classement/bs-classify ref.json cur.json --proposer http://192.168.103.204:11434 \
+        --propositions decisions/bs-logistique.propositions.json
+"""
+
+import argparse
+import collections
+import datetime
+import hashlib
+import importlib.machinery
+import importlib.util
+import json
+import os
+import re
+import sys
+import time
+import urllib.request
+
+HERE = os.path.dirname(os.path.realpath(__file__))
+STATUTS = ("inconnu", "secret", "donnee", "compris", "ignore")
+
+SECRET_REASONS = {"fichier de mots de passe", "clé privée SSH d'hôte", "extension .key", "clé privée PEM"}
+CONFIG_ROOTS = ("/etc/", "/usr/local/etc/", "/usr/lib/systemd/")
+SCRIPT_ROOTS = ("/opt/", "/usr/local/bin/", "/usr/local/sbin/", "/usr/bin/", "/usr/sbin/")
+
+
+def load_compare():
+    path = os.path.join(HERE, "..", "collecte", "bs-compare")
+    loader = importlib.machinery.SourceFileLoader("bs_compare", path)
+    spec = importlib.util.spec_from_loader("bs_compare", loader)
+    mod = importlib.util.module_from_spec(spec)
+    loader.exec_module(mod)
+    return mod
+
+
+class Context:
+    """Index de l'inventaire courant pour retrouver la preuve d'une clé."""
+
+    def __init__(self, inv):
+        self.inv = inv
+        self.files = {f["path"]: f for f in inv["unowned"]["files"]}
+        self.modified = {f["path"]: f for f in inv["modified_files"]}
+        self.sysctl_conf = inv["kernel"]["sysctl_configured"]
+        self.local_ips = {a["address"] for a in inv["network"]["addresses"] if a.get("address")}
+        self.proc_by_pid = {p["pid"]: p for p in inv["processes"]}
+        self.listen = {}
+        for l in inv["listening"]:
+            self.listen.setdefault((l["proto"], str(l["port"])), []).append(l)
+
+
+def classify_file(path, f, kind):
+    if f is None:
+        if kind == "absent-de-B":
+            return "compris", "fichier supprimé par rapport au template : suppression à reproduire"
+        return "inconnu", "fichier non retrouvé dans l'inventaire courant"
+    withheld = f.get("content_withheld")
+    if withheld in SECRET_REASONS:
+        return "secret", f"secret ({withheld}) : coffre, jamais au modèle ni dans Git"
+    if withheld == "fichier non lisible par tous":
+        return "secret", "secret probable (fichier fermé aux autres comptes) : à confirmer, puis gabarit + coffre"
+    if f["type"] in ("dir", "symlink"):
+        return "compris", f"{'dossier' if f['type'] == 'dir' else 'lien'} à recréer"
+    if f["type"] != "file":
+        return "inconnu", f"type de fichier inhabituel ({f['type']})"
+    if not f.get("text", True):
+        return "inconnu", "binaire hors paquet : origine, licence et rôle à confirmer par un humain"
+    if path.startswith(CONFIG_ROOTS):
+        return "compris", "fichier de configuration texte, versionnable"
+    if path.startswith(SCRIPT_ROOTS):
+        return "compris", "script texte hors paquet, versionnable"
+    return "inconnu", "fichier texte hors des emplacements connus"
+
+
+def classify(key, diff_kind, ctx):
+    """Renvoie (statut, raison) pour une clé d'écart."""
+    cat, _, rest = key.partition(":")
+    if cat == "data":
+        return "donnee", "dossier de données : sauvegarder puis restaurer, ne pas versionner"
+    if cat == "file" and rest.startswith("/etc/sudoers.d/") and diff_kind != "absent-de-B":
+        return "inconnu", "droit sudo ajouté hors paquet : à valider avant de le reproduire"
+    if cat == "file" and rest.endswith(".db") and (rest[:-3] in ctx.files or rest[:-3] in ctx.modified):
+        return "compris", f"base générée depuis {rest[:-3]} (newaliases / postmap), à régénérer"
+    if cat == "file":
+        return classify_file(rest, ctx.files.get(rest), diff_kind)
+    if cat == "pkgfile-modified":
+        f = ctx.modified.get(rest)
+        status, reason = classify_file(rest, f, diff_kind)
+        return status, ("fichier de paquet modifié : " + reason) if status == "compris" else reason
+    if cat in ("pkg", "pkg-manual", "pkg-held", "alternative"):
+        return "compris", "paquet Debian, réinstallable par apt"
+    if cat in ("unit", "unit-file", "timer"):
+        return "compris", "unité systemd (fichier d'unité versionné ou fourni par un paquet)"
+    if cat == "cron":
+        return "compris", "tâche planifiée, versionnable"
+    if cat in ("user", "group"):
+        return "compris", "compte ou groupe à recréer"
+    if cat in ("module", "mount", "firewall", "route", "addr", "container"):
+        return "compris", "réglage système relevé tel quel"
+    if cat == "sysctl":
+        if rest in ctx.sysctl_conf:
+            return "compris", f"sysctl persisté dans {ctx.sysctl_conf[rest]['file']}"
+        return "inconnu", "valeur modifiée à chaud, absente des fichiers sysctl : perdue au prochain redémarrage"
+    if cat == "listen":
+        proto, _, tail = rest.partition(":")
+        port = tail.rsplit(":", 1)[-1]
+        units = set()
+        for l in ctx.listen.get((proto, port), []):
+            for pid in l["pids"]:
+                p = ctx.proc_by_pid.get(pid)
+                if p:
+                    units.add(p.get("unit") or "-")
+        if units and all(u.endswith(".service") for u in units):
+            return "compris", f"port ouvert par le service {', '.join(sorted(units))}"
+        return "inconnu", "port ouvert par un processus hors service systemd (lancé à la main ?)"
+    if cat == "process":
+        unit = key.rsplit("@", 1)[-1]
+        if unit.endswith(".service"):
+            return "compris", f"processus du service {unit}"
+        if unit == "session.scope":
+            return "inconnu", "processus lancé depuis une session interactive : disparaît au redémarrage"
+        return "compris", "processus système"
+    if cat == "unreadable":
+        return "inconnu", "élément illisible pendant la collecte"
+    return "inconnu", "catégorie sans règle"
+
+
+def ip_alerts(ctx, changed):
+    """IP littérales vers une autre machine, dans les fichiers qui ont changé
+    par rapport à la référence (le template a déjà les siennes)."""
+    out = []
+    for f in list(ctx.modified.values()) + list(ctx.files.values()):
+        if f["path"] not in changed:
+            continue
+        for h in f.get("ip_literals", []):
+            if not h["is_local_address"]:
+                out.append({"path": f["path"], "line": h["line"], "ip": h["ip"]})
+    return sorted(out, key=lambda x: (x["path"], x["line"]))
+
+
+def run(reference, courant, rules_paths=None):
+    bc = load_compare()
+    rules = bc.load_rules(rules_paths or [bc.DEFAULT_RULES])
+    diffs, _ = bc.compare(bc.flatten(reference), bc.flatten(courant), rules)
+    ctx = Context(courant)
+    items = []
+    for d in diffs:
+        if d["justified"]:
+            status, reason = "ignore", d["justified"]
+        else:
+            status, reason = classify(d["key"], d["kind"], ctx)
+        items.append({"key": d["key"], "ecart": d["kind"], "statut": status, "raison": reason})
+    changed = {d["key"].partition(":")[2] for d in diffs
+               if d["key"].startswith(("file:", "pkgfile-modified:")) and d["kind"] != "absent-de-B"}
+    return items, ip_alerts(ctx, changed)
+
+
+# --- Propositions du modèle local pour les inconnus -------------------------
+
+MODELE = "qwen3.6:35b"
+MASQUES = [
+    (re.compile(r"-----BEGIN [^-]+-----.*?(-----END [^-]+-----|$)", re.S), "<clé masquée>"),
+    (re.compile(r"(?i)(pass(?:word|wd)?|mot_de_passe|secret|token|api[_-]?key|private[_-]?key)(\s*[=:]\s*|\s+)(\S+)"),
+     r"\1\2<masqué>"),
+    (re.compile(r"(\w+://[^:/\s@]+:)[^@\s]+@"), r"\1<masqué>@"),
+    (re.compile(r"[A-Za-z0-9+/_=-]{32,}"), "<masqué>"),
+]
+SYSTEME = (
+    "Tu assistes l'audit de reprise d'activité d'une PME. Pour chaque élément inconnu d'un serveur Debian, "
+    "propose un statut : reproduire (le recréer dans le code de reconstruction), ne_pas_reproduire (ne pas le "
+    "recréer), donnee (le sauvegarder et le restaurer), a_verifier (les preuves ne suffisent pas pour conclure). "
+    "Le risque mesure la gravité d'une erreur sur cet élément : eleve pour un droit d'administration, un accès "
+    "donné à un tiers ou un service réseau qui tourne en root ; moyen pour un composant dont dépend un traitement "
+    "métier ; faible sinon. Raison : une phrase de 25 mots au plus, appuyée sur les preuves fournies. Question : "
+    "une seule, courte, à poser à l'administrateur. Tu ne décides pas : un humain tranche. Réponds en français, "
+    "en JSON.")
+SCHEMA = {"type": "object", "required": ["propositions"], "properties": {"propositions": {"type": "array", "items": {
+    "type": "object", "required": ["cle", "statut", "raison", "question", "risque"], "properties": {
+        "cle": {"type": "string"},
+        "statut": {"type": "string", "enum": ["reproduire", "ne_pas_reproduire", "donnee", "a_verifier"]},
+        "raison": {"type": "string"}, "question": {"type": "string"},
+        "risque": {"type": "string", "enum": ["faible", "moyen", "eleve"]}}}}}}
+
+
+def masquer(texte, limite=1200):
+    for rx, rep in MASQUES:
+        texte = rx.sub(rep, texte)
+    return texte if len(texte) <= limite else texte[:limite] + " […]"
+
+
+def references(ctx, motif, exclure):
+    """Lignes d'autres fichiers de l'inventaire qui citent ce motif (chemin, port…)."""
+    out = []
+    for f in list(ctx.files.values()) + list(ctx.modified.values()):
+        if f["path"] == exclure or not f.get("content"):
+            continue
+        for n, line in enumerate(f["content"].splitlines(), 1):
+            if motif in line:
+                out.append(f"{f['path']}:{n}: {masquer(line.strip(), 200)}")
+    return out[:4]
+
+
+def preuves(item, ref, cur, ctx):
+    """Faits tirés de l'inventaire pour un inconnu, secrets masqués."""
+    key = item["key"]
+    cat, _, rest = key.partition(":")
+    p = {"cle": key, "ecart": item["ecart"], "constat": item["raison"]}
+    users = {u["name"]: u for u in cur["users"]["users"]}
+    if cat in ("file", "pkgfile-modified"):
+        f = ctx.files.get(rest) or ctx.modified.get(rest)
+        if f:
+            p["fichier"] = {k: f[k] for k in ("type", "owner", "group", "size", "executable", "text") if k in f}
+            p["fichier"]["mode"] = f.get("mode", "").replace("0o", "0")
+            if f.get("content_withheld"):
+                p["fichier"]["contenu"] = f"non transmis ({f['content_withheld']})"
+            elif f.get("content") is not None:
+                p["fichier"]["contenu"] = masquer(f["content"])
+        p["cite_par"] = references(ctx, rest, rest)
+        if rest.startswith("/etc/sudoers.d/"):
+            u = users.get(os.path.basename(rest))
+            if u:
+                p["compte_du_meme_nom"] = {k: u[k] for k in ("uid", "shell", "interactive", "human", "home_exists")}
+    elif cat == "listen":
+        proto, _, tail = rest.partition(":")
+        port = tail.rsplit(":", 1)[-1]
+        p["processus"] = [{"commande": masquer(" ".join(pr["cmdline"]), 300), "compte": pr["user"],
+                           "unite": pr.get("unit"), "paquet_du_programme": pr.get("exe_package")}
+                          for l in ctx.listen.get((proto, port), []) for pid in l["pids"]
+                          if (pr := ctx.proc_by_pid.get(pid))]
+        p["cite_par"] = references(ctx, f":{port}", None) + references(ctx, f" {port}", None)
+    elif cat == "process":
+        exe, user, unit = (key.split(":", 1)[1].rsplit("@", 2) + ["", ""])[:3]
+        procs = [pr for pr in cur["processes"] if pr.get("exe") == exe and pr["user"] == user
+                 and "bs-collect" not in " ".join(pr["cmdline"])  # le collecteur lui-même
+                 and re.sub(r"-\d+\.scope$", ".scope", pr.get("unit") or "") == unit]
+        ports = {pid: f"{l['proto']}:{l['address']}:{l['port']}" for l in cur["listening"] for pid in l["pids"]}
+        p["processus"] = [{"commande": masquer(" ".join(pr["cmdline"]), 300), "compte": pr["user"],
+                           "unite": pr.get("unit"), "parent_pid": pr.get("ppid"),
+                           "port_ouvert": ports.get(pr["pid"])} for pr in procs]
+    elif cat == "sysctl":
+        p["valeur_courante"] = cur["kernel"]["sysctl_effective"].get(rest)
+        p["valeur_du_template"] = ref["kernel"]["sysctl_effective"].get(rest)
+    return p
+
+
+def proposer(items, ref, cur, url, modele=MODELE, cache=None):
+    """Demande au modèle local une proposition par inconnu. Renvoie le document
+    complet (preuves envoyées, propositions, durée). Réutilise `cache` si les
+    preuves et le modèle n'ont pas changé."""
+    ctx = Context(cur)
+    lot, sans_preuve = [], []
+    for i in items:
+        if i["statut"] == "inconnu":
+            p = preuves(i, ref, cur, ctx)
+            vide = (p["cle"].startswith(("file:", "pkgfile-modified:")) and "fichier" not in p) or \
+                   (p["cle"].startswith(("process:", "listen:")) and not p["processus"])
+            (sans_preuve if vide else lot).append(p)
+    empreinte = hashlib.sha256(json.dumps([modele, SYSTEME, lot], sort_keys=True).encode()).hexdigest()[:16]
+    if cache and cache.get("empreinte") == empreinte:
+        return cache
+    vm = cur["meta"]["hostname"]
+    vide = {"vm": vm, "modele": modele, "empreinte": empreinte, "duree_s": 0, "manquantes": [],
+            "sans_preuve": [p["cle"] for p in sans_preuve], "propositions": {}, "preuves_envoyees": []}
+    if not lot:  # rien à demander : pas d'appel au modèle
+        return dict(vide, date=datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"))
+    body = {"model": modele, "stream": False, "think": False, "format": SCHEMA,
+            "options": {"temperature": 0, "seed": 1},
+            "messages": [{"role": "system", "content": SYSTEME},
+                         {"role": "user", "content": f"Serveur : {vm}. Éléments inconnus et preuves :\n"
+                                                     + json.dumps(lot, ensure_ascii=False, indent=1)}]}
+    t0 = time.monotonic()
+    req = urllib.request.Request(url.rstrip("/") + "/api/chat", json.dumps(body).encode(),
+                                 {"Content-Type": "application/json"})
+    with urllib.request.urlopen(req, timeout=1200) as r:
+        rep = json.load(r)
+    props = {}
+    for x in json.loads(rep["message"]["content"]).get("propositions", []):
+        if x.get("cle") in {p["cle"] for p in lot}:
+            props[x.pop("cle")] = x
+    return {"vm": vm, "modele": modele, "empreinte": empreinte,
+            "date": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
+            "duree_s": round(time.monotonic() - t0, 1),
+            "jetons": {"entree": rep.get("prompt_eval_count"), "sortie": rep.get("eval_count")},
+            "manquantes": [p["cle"] for p in lot if p["cle"] not in props],
+            "sans_preuve": [p["cle"] for p in sans_preuve],
+            "propositions": props, "preuves_envoyees": lot}
+
+
+def main():
+    ap = argparse.ArgumentParser(description="Classe les écarts entre référence et VM courante.")
+    ap.add_argument("reference")
+    ap.add_argument("courant")
+    ap.add_argument("--json", help="écrire le classement dans ce fichier")
+    ap.add_argument("--all", action="store_true", help="afficher aussi les éléments compris et ignorés")
+    ap.add_argument("--proposer", metavar="URL", help="API Ollama : faire proposer un statut pour chaque inconnu")
+    ap.add_argument("--modele", default=MODELE)
+    ap.add_argument("--propositions", metavar="FICHIER", help="lire/écrire les propositions (cache)")
+    ap.add_argument("--preuves", action="store_true", help="afficher ce qui serait envoyé au modèle, sans l'appeler")
+    args = ap.parse_args()
+    ref = json.load(open(args.reference, encoding="utf-8"))
+    cur = json.load(open(args.courant, encoding="utf-8"))
+    items, ips = run(ref, cur)
+    if args.preuves:
+        ctx = Context(cur)
+        print(json.dumps([preuves(i, ref, cur, ctx) for i in items if i["statut"] == "inconnu"],
+                         ensure_ascii=False, indent=1))
+        return
+    if args.proposer:
+        cache = None
+        if args.propositions and os.path.exists(args.propositions):
+            cache = json.load(open(args.propositions, encoding="utf-8"))
+        doc = proposer(items, ref, cur, args.proposer, args.modele, cache)
+        print(f"propositions de {doc['modele']} : {len(doc['propositions'])} "
+              f"({'cache' if doc is cache else str(doc['duree_s']) + ' s'})"
+              + (f", manquantes : {', '.join(doc['manquantes'])}" if doc["manquantes"] else "")
+              + (f", non envoyées faute de preuve : {', '.join(doc['sans_preuve'])}" if doc["sans_preuve"] else ""))
+        for k, x in doc["propositions"].items():
+            print(f"  {x['statut']:<18} risque {x['risque']:<6} {k}\n{'':4}{x['raison']}\n{'':4}? {x['question']}")
+        if args.propositions:
+            with open(args.propositions, "w", encoding="utf-8") as fh:
+                json.dump(doc, fh, indent=2, ensure_ascii=False)
+        return
+    counts = collections.Counter(i["statut"] for i in items)
+    print(f"{cur['meta']['hostname']} : {len(items)} écarts classés -> " +
+          ", ".join(f"{s} {counts.get(s, 0)}" for s in STATUTS))
+    for s in STATUTS:
+        if s in ("compris", "ignore") and not args.all:
+            continue
+        for i in (x for x in items if x["statut"] == s):
+            print(f"  {s.upper():<8} {i['key']}\n{'':11}{i['raison']}")
+    if ips:
+        print("Dépendances réseau écrites en dur (IP d'autres machines) :")
+        for h in ips:
+            print(f"  {h['path']}:{h['line']} -> {h['ip']}")
+    if args.json:
+        with open(args.json, "w", encoding="utf-8") as fh:
+            json.dump({"vm": cur["meta"]["hostname"], "reference": args.reference, "courant": args.courant,
+                       "comptes": dict(counts), "elements": items, "ip_en_dur": ips},
+                      fh, indent=2, ensure_ascii=False)
+    sys.exit(0)
+
+
+if __name__ == "__main__":
+    main()

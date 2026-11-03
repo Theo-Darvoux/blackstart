@@ -1,0 +1,73 @@
+{
+  "description": "Écarts toujours justifiés : état volatil qui change d'une collecte à l'autre sur la même machine. Chargé par défaut par bs-compare.",
+  "rules": [
+    {
+      "match": "unit:session-*.scope",
+      "reason": "session de connexion d'un utilisateur"
+    },
+    {
+      "match": "unit-file:session-*.scope",
+      "reason": "session de connexion d'un utilisateur"
+    },
+    {
+      "match": "unit:user@*.service",
+      "reason": "gestionnaire systemd d'un utilisateur connecté"
+    },
+    {
+      "match": "unit:user-runtime-dir@*.service",
+      "reason": "dossier /run/user d'un utilisateur connecté"
+    },
+    {
+      "match": "unit:run-user-*.mount",
+      "reason": "dossier /run/user d'un utilisateur connecté"
+    },
+    {
+      "match": "mount:/run/user/*",
+      "reason": "dossier /run/user d'un utilisateur connecté"
+    },
+    {
+      "match": "process:/usr/lib/systemd/systemd@*@init.scope",
+      "reason": "gestionnaire systemd d'un utilisateur connecté"
+    },
+    {
+      "match": "process:/usr/lib/systemd/systemd-executor@*@init.scope",
+      "reason": "gestionnaire systemd d'un utilisateur connecté"
+    },
+    {
+      "match": "user:claude",
+      "reason": "compte d'administration du labo (Claude Code)"
+    },
+    {
+      "match": "file:/etc/sudoers.d/claude",
+      "reason": "compte d'administration du labo (Claude Code)"
+    },
+    {
+      "match": "data:/home/claude",
+      "reason": "compte d'administration du labo (Claude Code)"
+    },
+    {
+      "match": "data:/var/backups/*",
+      "reason": "copies automatiques des fichiers système faites par cron.daily (dpkg, apt)"
+    },
+    {
+      "match": "data:/var/lib/logrotate",
+      "reason": "état de logrotate"
+    },
+    {
+      "match": "data:/root/.bash_history",
+      "reason": "historique de shell"
+    },
+    {
+      "match": "data:/var/lib/systemd",
+      "reason": "état interne de systemd (horodatages, graines aléatoires)"
+    },
+    {
+      "match": "data:/home/psders",
+      "reason": "dossier de l'admin MiNET, créé à sa connexion LDAP (labo)"
+    },
+    {
+      "match": "process:/usr/lib/openssh/sshd-session@*@session.scope",
+      "reason": "session SSH d'administration ouverte pendant la collecte (Ansible garde sa connexion 60 s)"
+    }
+  ]
+}

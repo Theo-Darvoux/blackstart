@@ -1,0 +1,9 @@
+[Unit]
+Description=Inventaire annuel des stocks (31 décembre)
+
+[Timer]
+OnCalendar=*-12-31 23:00:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

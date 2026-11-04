@@ -8,22 +8,21 @@ résultats réels (classement, décisions humaines, vérification CI, bascule).
 Sources, par VM :
   - classement   : sortie JSON de classement/bs-classify (chemin dans vms.json)
   - décisions    : decisions/<vm>.json et <vm>/DECISIONS.md de la copie du dépôt client
-  - vérification : dernier commentaire de la CI sur la merge request reconstruction/<vm>
+  - vérification : commentaires de la CI sur les merge requests reconstruction/<vm>
                    (bloc <!-- bs-verif … --> écrit par infra/ci-rapport.py ; sinon lecture
                    du texte du rapport)
   - bascule      : banc/resultats/bascule-*.json écrits par infra/bascule.py
 
-Ce que la page met en avant, par VM (validé par Théo le 3 novembre 2026) :
-  verdict    : « Reconstruction prouvée » si la CI a reconstruit la VM en sandbox,
-               restauré les données, passé le test métier et trouvé 0 écart non justifié ;
-               « Bloquée » s'il reste des inconnus sans décision ; sinon « non prouvée ».
-  reprise    : durées mesurées (parcours CI de la VM vide au service vérifié ; coupure
-               de la dernière bascule).
-  points à risque trouvés à l'audit = inconnus + trous de la sauvegarde d'origine
-               + IP d'autres machines écrites en dur ; avec combien restent en attente
-               et combien sont des risques acceptés.
-Détail seulement, « couverture du code » : part des éléments (hors « ignorés ») dont la
-reprise est codée (Ansible, données, coffre) ou tranchée par un humain. Pas de pondération.
+La page suit la diapo « Le livrable » de l'oral (refaite le 4 novembre 2026) : pour la première
+machine de vms.json, quatre blocs, puis une ligne par machine du parc.
+  verdict : « Reconstruction prouvée » si une vérification de la CI a reconstruit la VM en sandbox,
+            passé le test métier et trouvé 0 écart non justifié ; « Bloquée » s'il reste des
+            inconnus sans décision ; sinon « non prouvée ». Preuve retenue : la dernière verte
+            partie d'une VM vide ; une vérification plus récente qui n'est pas verte est signalée.
+  chrono  : durée de la VM vide au service vérifié, en 4 étapes ; coupure de la dernière bascule.
+  risques : inconnus + trous de la sauvegarde d'origine + IP d'autres machines écrites en dur,
+            avec ce qui en a été fait.
+  preuve  : merge request, commit et date de la vérification.
 Rien n'est estimé : une valeur absente est affichée comme absente.
 """
 
@@ -132,25 +131,44 @@ def parse_verif(body):
     return v, "texte du rapport de la CI"
 
 
+def verte(ver):
+    """Vérification de la CI qui prouve la reconstruction : test métier vert, 0 écart non justifié."""
+    tm, cmp_ = ver.get("test_metier") or {}, (ver.get("comparaison") or {}).get("summary", {})
+    return bool(not ver.get("echec") and tm.get("ok") and cmp_.get("unjustified") == 0
+                and (ver.get("chronos") or {}).get("total_s"))
+
+
 def forge_state(cfg, vm):
-    """Dernière merge request de reconstruction de la VM, son état CI et son rapport."""
+    """Merge requests de reconstruction de la VM : la dernière vérification, et la dernière preuve verte.
+
+    La preuve retenue est la dernière vérification verte faite depuis une VM vide (sandbox créée pendant
+    la CI) ; à défaut, la dernière vérification verte. Une vérification plus récente qui n'est pas verte
+    (par exemple une MR qui attend des décisions) est signalée à côté, jamais cachée."""
     from forge import Forge
     f = Forge()
     branche = f"reconstruction/{vm}"
-    prs = [p for p in f.call("GET", f"/repos/{cfg['depot']}/pulls?state=all&limit=50") if branche in (p["head"]["ref"], p["head"].get("label"))
-           and (p["state"] == "open" or p["merged"])]
+    prs = sorted((p for p in f.call("GET", f"/repos/{cfg['depot']}/pulls?state=all&limit=50")
+                  if branche in (p["head"]["ref"], p["head"].get("label"))), key=lambda p: p["number"])
     if not prs:
         return None
-    pr = max(prs, key=lambda p: p["number"])
-    st = f.call("GET", f"/repos/{cfg['depot']}/commits/{pr['head']['sha']}/status")
-    out = {"numero": pr["number"], "url": pr["html_url"], "etat": "fusionnée" if pr["merged"] else "ouverte",
-           "sha": pr["head"]["sha"][:7], "ci": st.get("state") or "aucune", "verif": None}
-    for c in reversed(f.call("GET", f"/repos/{cfg['depot']}/issues/{pr['number']}/comments")):
-        if "bs-verif" in c["body"] or "parcours complet en" in c["body"]:
-            out["verif"], out["verif_source"] = parse_verif(c["body"])
-            out["verif_date"] = c["created_at"][:16].replace("T", " ")
-            break
-    return out
+    verifs = []
+    for pr in prs:
+        for c in f.call("GET", f"/repos/{cfg['depot']}/issues/{pr['number']}/comments"):
+            if "bs-verif" in c["body"] or "parcours complet en" in c["body"]:
+                ver, src = parse_verif(c["body"])
+                verifs.append({"numero": pr["number"], "url": pr["html_url"], "sha": pr["head"]["sha"][:7],
+                               "etat": "fusionnée" if pr["merged"] else ("ouverte" if pr["state"] == "open" else "fermée"),
+                               "date": c["created_at"][:16].replace("T", " "), "verif": ver, "verif_source": src})
+    verifs.sort(key=lambda v: v["date"])
+    vertes = [v for v in verifs if verte(v["verif"])]
+    completes = [v for v in vertes if (v["verif"]["chronos"].get("sandbox_s") or 0) > 0]
+    preuve_ = (completes or vertes or [None])[-1]
+    derniere = verifs[-1] if verifs else None
+    if derniere is None:
+        pr = prs[-1]
+        derniere = {"numero": pr["number"], "url": pr["html_url"], "sha": pr["head"]["sha"][:7], "date": None,
+                    "etat": "ouverte" if pr["state"] == "open" else "fermée", "verif": {}}
+    return {"preuve": preuve_, "derniere": derniere}
 
 
 def bascules(vm):
@@ -182,43 +200,58 @@ def collect(cfg, hors_ligne):
 
 
 def risques(v):
-    s = v["score"]
+    """Ce que la reprise doit traiter, trouvé à l'audit, avec ce qui en a été fait."""
+    s, prouvee = v["score"], verdict(v)[0] == "prouvee"
     trous = len(v["trous"]) + sum(1 for k, _ in s["accepte"] if k.startswith("data:"))
-    parts = [("inconnus, à trancher par un humain", s["inconnus_audit"]),
-             ("trous de la sauvegarde d'origine", trous),
-             ("IP d'autres machines écrites en dur", len(v["ip_en_dur"]))]
-    return {"parts": parts, "total": sum(n for _, n in parts),
-            "attente": s["comptes"]["attente"], "acceptes": len(s["accepte"])}
+    acc = sum(1 for k, _ in s["accepte"] if k.startswith("data:"))
+    n_inc, att = s["inconnus_audit"], s["comptes"]["attente"]
+    if not n_inc:
+        st_inc = "aucun"
+    elif prouvee:
+        st_inc = "tranchés par l'admin"
+    else:
+        st_inc = f"{att} en attente de décision" if att else "tranchés par l'admin"
+    st_trous = ("comblés par la restauration générée" + (f", dont {acc} risque{'s' if acc > 1 else ''} accepté{'s' if acc > 1 else ''}" if acc else "")) if trous else "aucun"
+    parts = [("éléments inconnus", n_inc, st_inc),
+             ("trous dans la sauvegarde", trous, st_trous),
+             ("adresses IP écrites en dur", len(v["ip_en_dur"]), "à changer si une machine change d'adresse" if v["ip_en_dur"] else "aucune")]
+    return {"parts": parts, "total": sum(n for _, n, _ in parts)}
 
 
-def preuve(v):
-    # Décisions en attente : inconnus du classement, ou celles que la CI a relevées (données sans sauvegarde).
-    ver_ = ((v["forge"] or {}).get("verif") or {}) if v["forge"] and "erreur" not in v["forge"] else {}
-    n = max(v["score"]["comptes"]["attente"], len(ver_.get("attente") or []))
+def verdict(v):
+    f = v["forge"]
+    if not f:
+        return "absente", "Pas encore reconstruite"
+    if "erreur" in f:
+        return "absente", "Forge injoignable"
+    if f["preuve"]:
+        return "prouvee", "Reconstruction prouvée"
+    n = max(v["score"]["comptes"]["attente"], len(f["derniere"]["verif"].get("attente") or []))
     if n:
         return "echec", f"Bloquée : {n} décision{'s' if n > 1 else ''} en attente"
-    f = v["forge"]
-    if not f or "erreur" in f:
-        return "absente", "Pas encore reconstruite"
-    ver = f.get("verif") or {}
-    cmp_ = (ver.get("comparaison") or {}).get("summary", {})
-    tm = ver.get("test_metier") or {}
-    if f["ci"] == "success" and not ver.get("echec") and tm.get("ok") and cmp_.get("unjustified") == 0:
-        return "prouvee", "Reconstruction prouvée"
-    if f["ci"] == "pending":
-        return "encours", "Vérification en cours"
     return "echec", "Reconstruction non prouvée"
+
+
+def suivi(v):
+    """Vérification plus récente que la preuve et pas verte : on le dit."""
+    f = v["forge"] or {}
+    p, d = f.get("preuve"), f.get("derniere")
+    if not p or not d or d is p or not d.get("date") or d["date"] <= p["date"]:
+        return ""
+    n = len(d["verif"].get("attente") or [])
+    quoi = f"attend {n} décision{'s' if n > 1 else ''}" if n else "n'est pas encore verte"
+    return f'Depuis, la <a href="{esc(d["url"])}">merge request n° {d["numero"]}</a> {quoi}.'
 
 
 # --- Rendu -------------------------------------------------------------------
 
 CSS = """
-/* Tableau de bord de reprise : bandeau de synthèse, puis une fiche par machine. */
+/* Rapport de reprise : quatre blocs (verdict, chrono, risques, preuve) pour la machine reconstruite, puis le parc. */
 :root {
   --bg: #f3f4f1; --surface: #fbfbf9; --ink: #18211e; --muted: #5b6662; --line: #d9ddd6;
   --accent: #1d4fa3; --ok: #1f7a46; --warn: #a3620a; --crit: #b3261e;
-  --ok-bg: #e2f1e7; --warn-bg: #f7ebd6; --crit-bg: #f6e0de; --pending-bg: #e4eaf6;
-  --s-compris: #1d4fa3; --s-donnee: #3f8f8a; --s-secret: #7a5aa6; --s-tranche: #8a8f5a; --s-attente: #b3261e;
+  --ok-bg: #e2f1e7; --warn-bg: #f7ebd6; --crit-bg: #f6e0de;
+  --p1: #1d4fa3; --p2: #4f78bf; --p3: #3f8f8a; --p4: #8fa5cf;
   --display: "IBM Plex Sans Condensed", "Arial Narrow", system-ui, sans-serif;
   --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
@@ -226,82 +259,75 @@ CSS = """
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   --bg: #121715; --surface: #1a201e; --ink: #e6ebe8; --muted: #9aa5a0; --line: #2d3532;
   --accent: #8fb1ee; --ok: #6fcf97; --warn: #e3a948; --crit: #f08a80;
-  --ok-bg: #18301f; --warn-bg: #33270f; --crit-bg: #3a1c19; --pending-bg: #1c2638;
-  --s-compris: #6f97e0; --s-donnee: #63b5ae; --s-secret: #a98bd4; --s-tranche: #b4b97c; --s-attente: #f08a80;
+  --ok-bg: #18301f; --warn-bg: #33270f; --crit-bg: #3a1c19;
+  --p1: #6f97e0; --p2: #4a6fae; --p3: #63b5ae; --p4: #34507f;
   color-scheme: dark; } }
 :root[data-theme="dark"] {
   --bg: #121715; --surface: #1a201e; --ink: #e6ebe8; --muted: #9aa5a0; --line: #2d3532;
   --accent: #8fb1ee; --ok: #6fcf97; --warn: #e3a948; --crit: #f08a80;
-  --ok-bg: #18301f; --warn-bg: #33270f; --crit-bg: #3a1c19; --pending-bg: #1c2638;
-  --s-compris: #6f97e0; --s-donnee: #63b5ae; --s-secret: #a98bd4; --s-tranche: #b4b97c; --s-attente: #f08a80;
+  --ok-bg: #18301f; --warn-bg: #33270f; --crit-bg: #3a1c19;
+  --p1: #6f97e0; --p2: #4a6fae; --p3: #63b5ae; --p4: #34507f;
   color-scheme: dark; }
-body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.5; }
-.wrap { max-width: 1080px; margin: 0 auto; padding-block: 28px 56px;
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.45; margin: 0; }
+.wrap { max-width: 1120px; margin: 0 auto; padding-block: 28px 40px;
   padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
-  display: grid; gap: 28px; }
-h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; line-height: 1.15; }
-h1 { font-size: 2rem; font-weight: 600; letter-spacing: -0.01em; }
-h2 { font-size: 1.45rem; font-weight: 600; }
-h3 { font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
-p { margin: 0; max-width: 68ch; }
+  display: grid; gap: 22px; }
+h1, h2 { font-family: var(--display); text-wrap: balance; margin: 0; line-height: 1.1; }
+h1 { font-size: 2.3rem; font-weight: 600; letter-spacing: -0.01em; }
+h2 { font-size: 0.8rem; font-family: var(--mono); font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+p { margin: 0; }
 a { color: var(--accent); }
 a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-code, .mono { font-family: var(--mono); font-size: 0.86em; }
+code { font-family: var(--mono); font-size: 0.9em; }
 .num { font-variant-numeric: tabular-nums; }
 header { display: grid; gap: 6px; }
-.eyebrow { font-family: var(--mono); font-size: 0.78rem; color: var(--muted); letter-spacing: 0.04em; }
-.lead { color: var(--muted); }
-.synth { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
+.eyebrow { font-family: var(--mono); font-size: 0.8rem; color: var(--muted); letter-spacing: 0.04em; }
+.lead { color: var(--muted); font-size: 1.05rem; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 16px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px;
+  display: grid; gap: 12px; align-content: start; min-width: 0; }
+.lbl { font-family: var(--mono); font-size: 0.95rem; font-weight: 500; color: var(--ok); }
+.big { font-family: var(--display); font-size: 2.9rem; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; }
+.big.mr { font-size: 2rem; }
+.big small { font-size: 1.05rem; font-family: var(--body); font-weight: 400; color: var(--muted); margin-left: 10px; }
+.verdict { font-family: var(--display); font-size: 2.2rem; font-weight: 600; line-height: 1.05; }
+.verdict.prouvee { color: var(--ok); } .verdict.echec { color: var(--crit); } .verdict.absente { color: var(--warn); }
+.checks { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
+.checks li { display: grid; grid-template-columns: 22px 1fr; gap: 4px; }
+.checks .ok { color: var(--ok); font-weight: 700; } .checks .ko { color: var(--crit); font-weight: 700; }
+.phases { display: flex; height: 22px; gap: 3px; }
+.phases span { border-radius: 3px; min-width: 4px; }
+.leg { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 18px; font-size: 0.92rem; }
+.leg div { display: grid; grid-template-columns: 12px 1fr auto; gap: 8px; align-items: center; }
+.leg i { width: 12px; height: 12px; border-radius: 2px; display: block; }
+.coupure { display: flex; align-items: baseline; gap: 10px; padding-top: 10px; border-top: 1px solid var(--line); flex-wrap: wrap; }
+.coupure b { font-family: var(--display); font-size: 1.7rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.risk { display: grid; gap: 8px; }
+.risk div { display: grid; grid-template-columns: 2.2rem 1fr; gap: 10px; align-items: baseline; }
+.risk b { font-family: var(--display); font-size: 1.6rem; font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
+.risk span small { display: block; color: var(--muted); font-size: 0.88rem; }
+.note { color: var(--muted); font-size: 0.88rem; }
+.parc { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
 table { border-collapse: collapse; width: 100%; }
-th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
-th { font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); font-weight: 600; }
+th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { font-family: var(--mono); font-size: 0.78rem; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
 tr:last-child td { border-bottom: 0; }
-.synth td { white-space: nowrap; }
-.pill { display: inline-block; padding: 1px 9px; border-radius: 999px; font-size: 0.8rem; font-weight: 600; white-space: nowrap; }
-.pill.prouvee { background: var(--ok-bg); color: var(--ok); }
-.pill.encours { background: var(--pending-bg); color: var(--accent); }
-.pill.echec { background: var(--crit-bg); color: var(--crit); }
+td small { color: var(--muted); margin-left: 6px; }
+.pill { display: inline-block; padding: 1px 10px; border-radius: 999px; font-size: 0.85rem; font-weight: 600; }
+.pill.prouvee { background: var(--ok-bg); color: var(--ok); } .pill.echec { background: var(--crit-bg); color: var(--crit); }
 .pill.absente { background: var(--warn-bg); color: var(--warn); }
-.vm { display: grid; gap: 20px; padding-top: 24px; border-top: 2px solid var(--ink); }
-.vm-head { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; justify-content: space-between; }
-.vm-head .ip { font-family: var(--mono); color: var(--muted); font-size: 0.9rem; }
-.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px 32px; }
-.grid > * { min-width: 0; display: grid; gap: 10px; align-content: start; }
-.score { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
-.score .big { font-family: var(--display); font-size: 3rem; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; }
-.score .of { color: var(--muted); }
-.bar { display: flex; height: 14px; border-radius: 3px; overflow: hidden; background: var(--line); }
-.bar span { display: block; height: 100%; }
-.legend { display: grid; gap: 4px; font-size: 0.88rem; }
-.legend div { display: grid; grid-template-columns: 12px 1fr auto; gap: 8px; align-items: center; }
-.legend i { width: 12px; height: 12px; border-radius: 2px; display: block; }
-.legend b { font-weight: 500; font-variant-numeric: tabular-nums; }
-.legend i.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--warn); justify-self: center; }
-.score .mid { font-family: var(--display); font-size: 1.8rem; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; }
-h3.sub { padding-top: 10px; border-top: 1px solid var(--line); }
-.note { font-size: 0.85rem; color: var(--muted); }
-.timeline { display: flex; height: 26px; gap: 2px; }
-.timeline span { background: var(--accent); opacity: 0.85; border-radius: 2px; min-width: 3px; }
-.timeline span:nth-child(even) { opacity: 0.55; }
-.tl-legend { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 2px 14px; font-size: 0.85rem; }
-.tl-legend span { display: flex; justify-content: space-between; gap: 8px; border-bottom: 1px dotted var(--line); }
-.checks { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; font-size: 0.9rem; }
-.checks li { display: grid; grid-template-columns: 22px 1fr; gap: 6px; }
-.checks .ok { color: var(--ok); font-weight: 700; }
-.checks .ko { color: var(--crit); font-weight: 700; }
-.tbl { overflow-x: auto; }
-.tbl td, .tbl th { font-size: 0.88rem; }
-.dec { font-weight: 600; white-space: nowrap; }
-.dec.reproduire { color: var(--ok); } .dec.accepter { color: var(--warn); } .dec.ne { color: var(--muted); }
-.warnbox { background: var(--warn-bg); border-radius: 6px; padding: 12px 14px; display: grid; gap: 6px; }
-.warnbox ul, .plain { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 0.9rem; }
-footer { color: var(--muted); font-size: 0.82rem; display: grid; gap: 6px; border-top: 1px solid var(--line); padding-top: 16px; }
-@media (max-width: 520px) { h1 { font-size: 1.6rem; } .score .big { font-size: 2.4rem; } }
+footer { color: var(--muted); font-size: 0.8rem; border-top: 1px solid var(--line); padding-top: 12px; }
+@media (max-width: 520px) { h1 { font-size: 1.8rem; } .big { font-size: 2.3rem; } .leg { grid-template-columns: 1fr; } }
 """
 
 FONTS = ('<link rel="preconnect" href="https://fonts.googleapis.com">'
          '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500'
          '&family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">')
+
+PHASES = [("VM neuve", ("sandbox_s",), "--p1"), ("reconstruction", ("reconstruction_s",), "--p2"),
+          ("données restaurées", ("restauration_s",), "--p3"),
+          ("vérification", ("redemarrage_s", "test_metier_s", "collecte_s", "comparaison_s"), "--p4")]
+MOIS = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."]
 
 
 def fmt_pct(x):
@@ -315,157 +341,120 @@ def fmt_s(s):
     return f"{s:.0f} s" if s < 120 else f"{int(s // 60)} min {int(s % 60):02d} s"
 
 
-def render_vm(v):
-    s, f = v["score"], v["forge"] or {}
-    cls, lib = preuve(v)
-    ver = f.get("verif") or {}
-    ch = ver.get("chronos") or {}
-    out = [f'<section class="vm" id="{esc(v["vm"])}">',
-           f'<div class="vm-head"><div><h2>{esc(v["vm"])}</h2><div class="note">{esc(v["role"])}</div></div>'
-           f'<div><span class="ip">{esc(v["ip"])}</span> <span class="pill {cls}">{lib}</span></div></div>',
-           '<div class="grid">']
-    # Points à risque, puis couverture du code (détail)
-    r = risques(v)
-    rl = "".join(f'<div><i class="dot"></i><span>{esc(lib_)}</span><b>{n}</b></div>' for lib_, n in r["parts"])
-    out.append(f'<div><h3>Points à risque trouvés à l\'audit</h3><div class="score"><span class="big">{r["total"]}</span>'
-               f'<span class="of num">{r["attente"]} en attente de décision · {r["acceptes"]} risque{"s" if r["acceptes"] > 1 else ""} '
-               f'accepté{"s" if r["acceptes"] > 1 else ""}</span></div><div class="legend">{rl}</div>'
-               '<p class="note">Ce que l\'audit a trouvé et qu\'une reprise doit traiter : décider, sauvegarder, ou savoir quoi changer si une adresse change. Détail plus bas.</p>')
-    segs = "".join(f'<span style="width:{100.0 * n / s["total"]:.3f}%;background:var(--s-{k})" title="{esc(LIBELLES[k])} : {n}"></span>'
-                   for k, n in s["comptes"].items() if n and s["total"])
-    leg = "".join(f'<div><i style="background:var(--s-{k})"></i><span>{esc(LIBELLES[k])}</span><b>{n}</b></div>'
-                  for k, n in s["comptes"].items())
-    non_prouve = "" if cls == "prouvee" else ", <b>non prouvé</b>"
-    audit = (f'<p class="note">À l\'audit, avant décision : <b class="num">{fmt_pct(s["pct_audit"])} %</b>, '
-             f'{s["inconnus_audit"]} élément(s) inconnu(s) bloquaient la reconstruction.</p>'
-             if s["inconnus_audit"] else '<p class="note">À l\'audit : aucun élément inconnu.</p>')
-    out.append(f'<h3 class="sub">Couverture du code</h3><div class="score"><span class="mid">{fmt_pct(s["pct"])} %</span>'
-               f'<span class="of num">{s["traites"]} éléments traités sur {s["total"]}{non_prouve}</span></div>'
-               f'<div class="bar" role="img" aria-label="Répartition des {s["total"]} éléments par statut">{segs}</div>'
-               f'<div class="legend">{leg}</div>{audit}'
-               f'<p class="note">{s["ignores"]} éléments ignorés par règle (journaux, caches, identité de la machine) '
-               'ne sont pas comptés.</p></div>')
-    # Preuve
-    blk = ['<div><h3>Preuve par reconstruction</h3>']
-    if not f or "erreur" in f:
-        blk.append('<p>Aucune merge request de reconstruction pour cette machine. Les chiffres ci-contre viennent de l\'audit seul : '
-                   'ils n\'ont pas encore été vérifiés en reconstruisant la machine.</p>' if not f else
-                   f'<p>Forge injoignable : {esc(f["erreur"])}</p>')
-    else:
-        blk.append(f'<p><a href="{esc(f["url"])}">Merge request n° {f["numero"]}</a> ({f["etat"]}), commit '
-                   f'<code>{esc(f["sha"])}</code>, CI : <b>{esc(f["ci"])}</b>.</p>')
-        if ch.get("total_s"):
-            tot = sum(ch.get(k) or 0 for k, _ in ETAPES) or ch["total_s"]
-            bars = "".join(f'<span style="flex:{ch[k]} 0 0" title="{esc(n)} : {ch[k]} s"></span>' for k, n in ETAPES if ch.get(k))
-            legs = "".join(f'<span><span>{esc(n)}</span><span class="num">{ch[k]} s</span></span>' for k, n in ETAPES if ch.get(k) is not None)
-            blk.append(f'<div class="score"><span class="big">{fmt_s(ch["total_s"])}</span><span class="of">de la VM vide '
-                       'au service vérifié, en sandbox isolée</span></div>'
-                       f'<div class="timeline" role="img" aria-label="Durée de chaque étape, {tot} s au total">{bars}</div>'
-                       f'<div class="tl-legend">{legs}</div>')
-        tm = ver.get("test_metier")
-        if tm:
-            items = "".join(f'<li><span class="{"ok" if e["ok"] else "ko"}">{"✓" if e["ok"] else "✗"}</span>'
-                            f'<span><b>{esc(e["etape"])}</b> : {esc(e["detail"])}</span></li>' for e in tm["etapes"])
-            blk.append(f'<p class="note">Test métier sur la copie isolée : {"vert" if tm["ok"] else "ROUGE"} en '
-                       f'{fmt_pct(tm["duree_s"])} s.</p><ul class="checks">{items}</ul>')
-        c = ver.get("comparaison")
-        if c:
-            sm = c["summary"]
-            blk.append(f'<p class="note">Comparaison avec l\'original : {sm["differences"]} écarts, '
-                       f'<b>{sm["unjustified"]} non justifiés</b>, {sm["justified"]} justifiés par règle ou décision.</p>')
+def fmt_date(d):
+    """« 2026-11-03 15:49 » → « 3 nov. à 15:49 »."""
+    m = re.match(r"(\d{4})-(\d\d)-(\d\d)[ T](\d\d:\d\d)", d or "")
+    return f"{int(m.group(3))} {MOIS[int(m.group(2)) - 1]} à {m.group(4)}" if m else (d or "")
+
+
+def s_(n, mot):
+    return f"{n} {mot}{'s' if n > 1 else ''}"
+
+
+def bloc_verdict(v):
+    cls, lib = verdict(v)
+    p = (v["forge"] or {}).get("preuve") if v["forge"] and "erreur" not in v["forge"] else None
+    out = [f'<div class="card"><h2 class="lbl">verdict</h2><div class="verdict {cls}">{esc(lib)}</div>']
+    if p:
+        ver = p["verif"]
+        tm, cmp_ = ver["test_metier"], ver["comparaison"]["summary"]
         sv = ver.get("sauvegarde")
+        items = [(True, "Machine reconstruite sur une VM neuve, isolée du réseau"),
+                 (True, f'Test métier vert : {" · ".join(e["etape"].lower() for e in tm["etapes"])}'),
+                 (True, f'Aucun écart non justifié avec l\'original ({cmp_["differences"]} écarts, tous expliqués)')]
         if sv:
-            blk.append(f'<p class="note">Données restaurées : instantané restic <code>{esc(sv["instantane"])}</code> du '
-                       f'{esc(sv["date"])}, âgé de <b class="num">{fmt_pct(sv["age_h"])} h</b> au moment de la vérification : '
-                       'c\'est ce qui serait perdu en basculant à cet instant.</p>')
-            if sv.get("trop_vieux"):
-                quand = (f'le passage prévu du {esc(sv["dernier_passage_prevu"])}' if sv.get("dernier_passage_prevu")
-                         else f'la période attendue ({sv["max_h"]:g} h)')
-                blk.append(f'<p class="note"><b>Sauvegarde en retard</b> : l\'instantané est plus vieux que {quand}. '
-                           'La sauvegarde planifiée de l\'original n\'a pas tourné.</p>')
-        if ver.get("echec"):
-            blk.append(f'<p class="note">Arrêt à l\'étape : {esc(ver["echec"]["etape_en_echec"])}</p>')
-        if f.get("verif_date"):
-            blk.append(f'<p class="note">Rapport de CI du {esc(f["verif_date"])}, heure de la forge ({esc(f.get("verif_source", ""))}).</p>')
-    blk.append('</div>')
-    out += blk
+            items.insert(1, (not sv.get("trop_vieux"), f'Données restaurées depuis la sauvegarde existante'
+                             f'{" (sauvegarde en retard)" if sv.get("trop_vieux") else ""}'))
+        out.append('<ul class="checks">' + "".join(
+            f'<li><span class="{"ok" if ok else "ko"}">{"✓" if ok else "✗"}</span><span>{esc(t)}</span></li>' for ok, t in items) + '</ul>')
+    elif cls == "echec":
+        out.append('<p>La reconstruction n\'est pas lancée tant qu\'un humain n\'a pas tranché chaque élément inconnu.</p>')
+    else:
+        out.append('<p>Machine auditée, pas encore reconstruite : les risques ci-contre ne sont pas encore vérifiés.</p>')
     out.append('</div>')
-    # Bascules
+    return "".join(out)
+
+
+def bloc_chrono(v):
+    p = (v["forge"] or {}).get("preuve") if v["forge"] and "erreur" not in v["forge"] else None
+    out = ['<div class="card"><h2 class="lbl">chrono</h2>']
+    if p:
+        ch = p["verif"]["chronos"]
+        ph = [(n, sum(ch.get(k) or 0 for k in ks), c) for n, ks, c in PHASES]
+        out.append(f'<div class="big">{fmt_s(ch["total_s"])}<small>de la VM vide au service vérifié</small></div>')
+        out.append(f'<div class="phases" role="img" aria-label="Durée par étape">'
+                   + "".join(f'<span style="flex:{d} 0 0;background:var({c})" title="{esc(n)} : {d} s"></span>' for n, d, c in ph if d)
+                   + '</div><div class="leg">'
+                   + "".join(f'<div><i style="background:var({c})"></i><span>{esc(n)}</span><b class="num">{d} s</b></div>' for n, d, c in ph)
+                   + '</div>')
+    else:
+        out.append('<div class="big">—<small>pas encore mesuré</small></div>')
     if v["bascules"]:
-        rows = "".join(f'<tr><td class="num">{esc(b["date"])}</td><td class="num">{fmt_s(b["coupure_s"])}</td>'
-                       f'<td>{"vert" if b["test_ok"] else "ROUGE"}</td><td>{"oui" if b.get("geste_manuel") else "non"}</td>'
-                       f'<td><code>{esc(b["fichier"])}</code></td></tr>' for b in v["bascules"])
-        out.append('<div class="grid"><div><h3>Bascule en production (répétition)</h3>'
-                   '<p class="note">Coupure mesurée de l\'arrêt de l\'original jusqu\'au test métier complet vert '
-                   '(proxy, DNS, mail réel).</p><div class="tbl"><table><thead><tr><th>Date</th><th>Coupure</th>'
-                   f'<th>Test métier</th><th>Geste manuel</th><th>Mesure</th></tr></thead><tbody>{rows}</tbody></table></div></div></div>')
-    # Décisions, attentes, trous
-    side = []
-    if s["attente"]:
-        items = "".join(f'<li><code>{esc(e["key"])}</code> : {esc(e["raison"])}</li>' for e in s["attente"])
-        side.append(f'<div><h3>En attente d\'une décision humaine</h3><ul class="plain">{items}</ul></div>')
-    if v["decisions"]:
-        rows = "".join(f'<tr><td><code>{esc(k)}</code></td><td class="dec {esc(d["decision"].split()[0])}">{esc(d["decision"])}</td>'
-                       f'<td>{esc(d.get("par", "?"))}</td><td>{esc(d.get("raison", ""))}</td></tr>'
-                       for k, d in sorted(v["decisions"].items()))
-        side.append('<div><h3>Décisions prises</h3><div class="tbl"><table><thead><tr><th>Élément</th><th>Décision</th>'
-                    f'<th>Par</th><th>Raison</th></tr></thead><tbody>{rows}</tbody></table></div></div>')
-    acc = [f'<code>{esc(k)}</code> : {esc(d.get("raison", ""))}' for k, d in s["accepte"]]
-    trous = [re.sub(r"`([^`]+)`", lambda m: f"<code>{esc(m.group(1))}</code>", esc(t).replace("&#x27;", "'")) for t in v["trous"]]
-    if acc or trous:
-        txt = ""
-        if trous:
-            txt += '<p class="note">Trous de la sauvegarde d\'origine, comblés par la restauration générée :</p><ul>' + \
-                   "".join(f"<li>{t}</li>" for t in trous) + "</ul>"
-        if acc:
-            txt += '<p class="note">Risques acceptés, avec une action à mener :</p><ul>' + \
-                   "".join(f"<li>{r}</li>" for r in acc) + "</ul>"
-        side.append(f'<div class="warnbox"><h3>Ce que la sauvegarde ne couvrait pas</h3>{txt}</div>')
-    if v["ip_en_dur"]:
-        rows = "".join(f'<tr><td><code>{esc(h["path"])}</code></td><td class="num">{h["line"]}</td><td class="mono">{esc(h["ip"])}</td></tr>'
-                       for h in v["ip_en_dur"])
-        side.append('<div><h3>Dépendances écrites en dur</h3><p class="note">Adresses d\'autres machines dans la '
-                    'configuration : à changer si une machine change d\'adresse.</p><div class="tbl"><table><thead><tr>'
-                    f'<th>Fichier</th><th>Ligne</th><th>IP</th></tr></thead><tbody>{rows}</tbody></table></div></div>')
-    if side:
-        out.append('<div class="grid">' + "".join(side) + '</div>')
-    out.append('</section>')
-    return "\n".join(out)
+        b = v["bascules"][-1]
+        cs = [x["coupure_s"] for x in v["bascules"]]
+        out.append(f'<div class="coupure"><b>{fmt_s(b["coupure_s"])}</b><span>de coupure à la bascule en production'
+                   f'{", sans geste manuel" if not b.get("geste_manuel") else ""}</span></div>'
+                   f'<p class="note">Dernière de {len(cs)} répétitions, de {fmt_s(min(cs))} à {fmt_s(max(cs))}.</p>')
+    out.append('</div>')
+    return "".join(out)
+
+
+def bloc_risques(v):
+    r = risques(v)
+    rows = "".join(f'<div><b>{n}</b><span>{esc(lib)}<small>{esc(st)}</small></span></div>' for lib, n, st in r["parts"])
+    return (f'<div class="card"><h2 class="lbl">risques</h2><div class="big">{r["total"]}<small>points que la reprise doit traiter</small></div>'
+            f'<div class="risk">{rows}</div></div>')
+
+
+def bloc_preuve(v):
+    f = v["forge"]
+    out = ['<div class="card"><h2 class="lbl">preuve</h2>']
+    if not f:
+        out.append('<p>Aucune merge request de reconstruction pour cette machine.</p>')
+    elif "erreur" in f:
+        out.append(f'<p>Forge injoignable : {esc(f["erreur"])}</p>')
+    else:
+        p = f["preuve"] or f["derniere"]
+        ci = "verte" if f["preuve"] else "rouge"
+        out.append(f'<div class="big mr"><a href="{esc(p["url"])}">Merge request n° {p["numero"]}</a><small>CI {ci}</small></div>'
+                   '<ul class="checks"><li><span class="ok">✓</span><span>Code de la machine (Ansible) proposé en merge request, relu par l\'admin</span></li>'
+                   f'<li><span class="{"ok" if f["preuve"] else "ko"}">{"✓" if f["preuve"] else "✗"}</span><span>Vérifié par la CI'
+                   f'{" le " + fmt_date(p["date"]) if p.get("date") else ""}</span></li>'
+                   '<li><span class="ok">✓</span><span>Bascule en production refusée tant que la CI n\'est pas verte</span></li></ul>')
+        sv = (p.get("verif") or {}).get("sauvegarde")
+        if sv:
+            out.append(f'<p class="note">Données de l\'instantané restic du {fmt_date(sv["date"])}, âgé de {fmt_pct(sv["age_h"])} h : '
+                       'c\'est ce qui serait perdu en basculant à cet instant.</p>')
+        t = suivi(v)
+        if t:
+            out.append(f'<p class="note">{t}</p>')
+    out.append('</div>')
+    return "".join(out)
+
+
+def ligne_parc(v):
+    cls, lib = verdict(v)
+    f = v["forge"] if v["forge"] and "erreur" not in v["forge"] else {}
+    p = f.get("preuve")
+    r = risques(v)
+    mr = f'<a href="{esc(p["url"])}">MR n° {p["numero"]}</a>' if p else "—"
+    return (f'<tr><td><b>{esc(v["vm"])}</b><small>{esc(v["role"])}</small></td><td><span class="pill {cls}">{esc(lib)}</span></td>'
+            f'<td class="num">{fmt_s(p["verif"]["chronos"]["total_s"]) if p else "—"}</td>'
+            f'<td class="num">{s_(r["total"], "point")}</td><td>{mr}</td></tr>')
 
 
 def render(cfg, vms, fragment):
     date = time.strftime("%d/%m/%Y à %H:%M")
-    rows = []
-    for v in vms:
-        cls, lib = preuve(v)
-        f = v["forge"] or {}
-        ch = ((f.get("verif") or {}).get("chronos") or {})
-        bas = v["bascules"][-1]["coupure_s"] if v["bascules"] else None
-        sv = (f.get("verif") or {}).get("sauvegarde")
-        r = risques(v)
-        rows.append(f'<tr><td><a href="#{esc(v["vm"])}"><b>{esc(v["vm"])}</b></a><div class="note">{esc(v["role"])}</div></td>'
-                    f'<td><span class="pill {cls}">{lib}</span></td>'
-                    f'<td class="num">{fmt_s(ch.get("total_s"))}<div class="note">{"reconstruction" if ch.get("total_s") else "pas encore mesurée"}</div></td>'
-                    f'<td class="num">{fmt_s(bas)}<div class="note">{"coupure à la bascule" if bas is not None else "pas de bascule"}</div></td>'
-                    f'<td class="num">{(fmt_pct(sv["age_h"]) + " h") if sv else "—"}<div class="note">'
-                    f'{("données perdues au plus" + (" · <b>sauvegarde en retard</b>" if sv.get("trop_vieux") else "")) if sv else "âge des données inconnu"}</div></td>'
-                    f'<td class="num"><b>{r["total"]}</b> trouvé{"s" if r["total"] > 1 else ""}<div class="note">{r["attente"]} en attente · {r["acceptes"]} accepté{"s" if r["acceptes"] > 1 else ""}</div></td>'
-                    f'<td>{f"<a href=\"{esc(f["url"])}\">n° {f["numero"]}</a>" if f.get("url") else "—"}</td></tr>')
+    v = vms[0]
     body = f"""<div class="wrap">
-<header><div class="eyebrow">Black Start · rapport de reprise · généré le {date}</div>
-<h1>{esc(cfg["entreprise"])}</h1>
-<p class="lead">Chaque machine est auditée en lecture seule, puis reconstruite depuis le code et la sauvegarde dans une sandbox isolée.
-Une reconstruction n'est dite prouvée que si le service répond, que le test métier passe et qu'aucun écart avec l'original ne reste sans justification.</p></header>
-<div class="synth"><table><thead><tr><th>Machine</th><th>Verdict</th><th colspan="3">Reprise mesurée</th><th>Points à risque</th><th>Merge request</th></tr></thead>
-<tbody>{"".join(rows)}</tbody></table></div>
-{"".join(render_vm(v) for v in vms)}
-<footer><p>Données perdues au plus : âge, au moment de la vérification, de l'instantané de sauvegarde restauré dans la copie.
-Une sauvegarde est dite en retard si l'instantané est plus vieux que le dernier passage prévu de la tâche planifiée qui la lance.</p>
-<p>Points à risque : éléments inconnus (décision humaine obligatoire), trous de la sauvegarde d'origine et adresses
-d'autres machines écrites en dur, trouvés par l'audit. Couverture du code : part des éléments, hors éléments ignorés par règle,
-dont la reprise est codée (Ansible, données restaurées, secrets au coffre) ou tranchée par un humain ; tous les éléments pèsent pareil.</p>
-<p>Sources : inventaires de <code>bs-collect</code>, classement <code>bs-classify</code>, décisions du dépôt <code>{esc(cfg["depot"])}</code>,
-rapports de la CI de <a href="{esc(cfg["forge"])}">la forge</a>, mesures de <code>infra/bascule.py</code>. Aucune valeur n'est estimée.</p></footer>
+<header><div class="eyebrow">Black Start · rapport de reprise · {esc(cfg["entreprise"])} · généré le {date}</div>
+<h1>{esc(v["vm"])} : {esc(v["role"][:1].lower() + v["role"][1:])}</h1>
+<p class="lead">Peut-on redémarrer cette machine, et en combien de temps ? Réponse mesurée en la reconstruisant, pas estimée.</p></header>
+<div class="cards">{bloc_verdict(v)}{bloc_chrono(v)}{bloc_risques(v)}{bloc_preuve(v)}</div>
+<div class="parc"><table><thead><tr><th>Parc</th><th>Verdict</th><th>Chrono</th><th>Risques</th><th>Preuve</th></tr></thead>
+<tbody>{"".join(ligne_parc(x) for x in vms)}</tbody></table></div>
+<footer>Sources : collecte en lecture seule (<code>bs-collect</code>), classement (<code>bs-classify</code>), rapports de la CI
+de <a href="{esc(cfg["forge"])}">la forge</a>, mesures de bascule (<code>infra/bascule.py</code>). Aucune valeur n'est estimée.</footer>
 </div>"""
     head = f'<title>Rapport de reprise</title>\n<meta name="claude:viewport-fit-sides" content="cover">\n{FONTS}\n<style>{CSS}</style>\n'
     if fragment:
@@ -490,7 +479,7 @@ def main():
     if args.json:
         json.dump(vms, open(args.json, "w", encoding="utf-8"), ensure_ascii=False, indent=2, default=str)
     for v in vms:
-        print(f"{v['vm']:15} {fmt_pct(v['score']['pct']):>6} %  {preuve(v)[1]}")
+        print(f"{v['vm']:15} {verdict(v)[1]}")
     print(f"page écrite : {args.sortie}")
 
 

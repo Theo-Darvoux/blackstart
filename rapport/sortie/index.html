@@ -4,12 +4,12 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <style>
-/* Tableau de bord de reprise : bandeau de synthèse, puis une fiche par machine. */
+/* Rapport de reprise : quatre blocs (verdict, chrono, risques, preuve) pour la machine reconstruite, puis le parc. */
 :root {
   --bg: #f3f4f1; --surface: #fbfbf9; --ink: #18211e; --muted: #5b6662; --line: #d9ddd6;
   --accent: #1d4fa3; --ok: #1f7a46; --warn: #a3620a; --crit: #b3261e;
-  --ok-bg: #e2f1e7; --warn-bg: #f7ebd6; --crit-bg: #f6e0de; --pending-bg: #e4eaf6;
-  --s-compris: #1d4fa3; --s-donnee: #3f8f8a; --s-secret: #7a5aa6; --s-tranche: #8a8f5a; --s-attente: #b3261e;
+  --ok-bg: #e2f1e7; --warn-bg: #f7ebd6; --crit-bg: #f6e0de;
+  --p1: #1d4fa3; --p2: #4f78bf; --p3: #3f8f8a; --p4: #8fa5cf;
   --display: "IBM Plex Sans Condensed", "Arial Narrow", system-ui, sans-serif;
   --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
@@ -17,138 +17,75 @@
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   --bg: #121715; --surface: #1a201e; --ink: #e6ebe8; --muted: #9aa5a0; --line: #2d3532;
   --accent: #8fb1ee; --ok: #6fcf97; --warn: #e3a948; --crit: #f08a80;
-  --ok-bg: #18301f; --warn-bg: #33270f; --crit-bg: #3a1c19; --pending-bg: #1c2638;
-  --s-compris: #6f97e0; --s-donnee: #63b5ae; --s-secret: #a98bd4; --s-tranche: #b4b97c; --s-attente: #f08a80;
+  --ok-bg: #18301f; --warn-bg: #33270f; --crit-bg: #3a1c19;
+  --p1: #6f97e0; --p2: #4a6fae; --p3: #63b5ae; --p4: #34507f;
   color-scheme: dark; } }
 :root[data-theme="dark"] {
   --bg: #121715; --surface: #1a201e; --ink: #e6ebe8; --muted: #9aa5a0; --line: #2d3532;
   --accent: #8fb1ee; --ok: #6fcf97; --warn: #e3a948; --crit: #f08a80;
-  --ok-bg: #18301f; --warn-bg: #33270f; --crit-bg: #3a1c19; --pending-bg: #1c2638;
-  --s-compris: #6f97e0; --s-donnee: #63b5ae; --s-secret: #a98bd4; --s-tranche: #b4b97c; --s-attente: #f08a80;
+  --ok-bg: #18301f; --warn-bg: #33270f; --crit-bg: #3a1c19;
+  --p1: #6f97e0; --p2: #4a6fae; --p3: #63b5ae; --p4: #34507f;
   color-scheme: dark; }
-body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.5; }
-.wrap { max-width: 1080px; margin: 0 auto; padding-block: 28px 56px;
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.45; margin: 0; }
+.wrap { max-width: 1120px; margin: 0 auto; padding-block: 28px 40px;
   padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
-  display: grid; gap: 28px; }
-h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; line-height: 1.15; }
-h1 { font-size: 2rem; font-weight: 600; letter-spacing: -0.01em; }
-h2 { font-size: 1.45rem; font-weight: 600; }
-h3 { font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
-p { margin: 0; max-width: 68ch; }
+  display: grid; gap: 22px; }
+h1, h2 { font-family: var(--display); text-wrap: balance; margin: 0; line-height: 1.1; }
+h1 { font-size: 2.3rem; font-weight: 600; letter-spacing: -0.01em; }
+h2 { font-size: 0.8rem; font-family: var(--mono); font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+p { margin: 0; }
 a { color: var(--accent); }
 a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-code, .mono { font-family: var(--mono); font-size: 0.86em; }
+code { font-family: var(--mono); font-size: 0.9em; }
 .num { font-variant-numeric: tabular-nums; }
 header { display: grid; gap: 6px; }
-.eyebrow { font-family: var(--mono); font-size: 0.78rem; color: var(--muted); letter-spacing: 0.04em; }
-.lead { color: var(--muted); }
-.synth { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
+.eyebrow { font-family: var(--mono); font-size: 0.8rem; color: var(--muted); letter-spacing: 0.04em; }
+.lead { color: var(--muted); font-size: 1.05rem; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 16px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px;
+  display: grid; gap: 12px; align-content: start; min-width: 0; }
+.lbl { font-family: var(--mono); font-size: 0.95rem; font-weight: 500; color: var(--ok); }
+.big { font-family: var(--display); font-size: 2.9rem; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; }
+.big.mr { font-size: 2rem; }
+.big small { font-size: 1.05rem; font-family: var(--body); font-weight: 400; color: var(--muted); margin-left: 10px; }
+.verdict { font-family: var(--display); font-size: 2.2rem; font-weight: 600; line-height: 1.05; }
+.verdict.prouvee { color: var(--ok); } .verdict.echec { color: var(--crit); } .verdict.absente { color: var(--warn); }
+.checks { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
+.checks li { display: grid; grid-template-columns: 22px 1fr; gap: 4px; }
+.checks .ok { color: var(--ok); font-weight: 700; } .checks .ko { color: var(--crit); font-weight: 700; }
+.phases { display: flex; height: 22px; gap: 3px; }
+.phases span { border-radius: 3px; min-width: 4px; }
+.leg { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 18px; font-size: 0.92rem; }
+.leg div { display: grid; grid-template-columns: 12px 1fr auto; gap: 8px; align-items: center; }
+.leg i { width: 12px; height: 12px; border-radius: 2px; display: block; }
+.coupure { display: flex; align-items: baseline; gap: 10px; padding-top: 10px; border-top: 1px solid var(--line); flex-wrap: wrap; }
+.coupure b { font-family: var(--display); font-size: 1.7rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.risk { display: grid; gap: 8px; }
+.risk div { display: grid; grid-template-columns: 2.2rem 1fr; gap: 10px; align-items: baseline; }
+.risk b { font-family: var(--display); font-size: 1.6rem; font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
+.risk span small { display: block; color: var(--muted); font-size: 0.88rem; }
+.note { color: var(--muted); font-size: 0.88rem; }
+.parc { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
 table { border-collapse: collapse; width: 100%; }
-th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
-th { font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); font-weight: 600; }
+th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { font-family: var(--mono); font-size: 0.78rem; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
 tr:last-child td { border-bottom: 0; }
-.synth td { white-space: nowrap; }
-.pill { display: inline-block; padding: 1px 9px; border-radius: 999px; font-size: 0.8rem; font-weight: 600; white-space: nowrap; }
-.pill.prouvee { background: var(--ok-bg); color: var(--ok); }
-.pill.encours { background: var(--pending-bg); color: var(--accent); }
-.pill.echec { background: var(--crit-bg); color: var(--crit); }
+td small { color: var(--muted); margin-left: 6px; }
+.pill { display: inline-block; padding: 1px 10px; border-radius: 999px; font-size: 0.85rem; font-weight: 600; }
+.pill.prouvee { background: var(--ok-bg); color: var(--ok); } .pill.echec { background: var(--crit-bg); color: var(--crit); }
 .pill.absente { background: var(--warn-bg); color: var(--warn); }
-.vm { display: grid; gap: 20px; padding-top: 24px; border-top: 2px solid var(--ink); }
-.vm-head { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; justify-content: space-between; }
-.vm-head .ip { font-family: var(--mono); color: var(--muted); font-size: 0.9rem; }
-.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px 32px; }
-.grid > * { min-width: 0; display: grid; gap: 10px; align-content: start; }
-.score { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
-.score .big { font-family: var(--display); font-size: 3rem; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; }
-.score .of { color: var(--muted); }
-.bar { display: flex; height: 14px; border-radius: 3px; overflow: hidden; background: var(--line); }
-.bar span { display: block; height: 100%; }
-.legend { display: grid; gap: 4px; font-size: 0.88rem; }
-.legend div { display: grid; grid-template-columns: 12px 1fr auto; gap: 8px; align-items: center; }
-.legend i { width: 12px; height: 12px; border-radius: 2px; display: block; }
-.legend b { font-weight: 500; font-variant-numeric: tabular-nums; }
-.legend i.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--warn); justify-self: center; }
-.score .mid { font-family: var(--display); font-size: 1.8rem; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; }
-h3.sub { padding-top: 10px; border-top: 1px solid var(--line); }
-.note { font-size: 0.85rem; color: var(--muted); }
-.timeline { display: flex; height: 26px; gap: 2px; }
-.timeline span { background: var(--accent); opacity: 0.85; border-radius: 2px; min-width: 3px; }
-.timeline span:nth-child(even) { opacity: 0.55; }
-.tl-legend { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 2px 14px; font-size: 0.85rem; }
-.tl-legend span { display: flex; justify-content: space-between; gap: 8px; border-bottom: 1px dotted var(--line); }
-.checks { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; font-size: 0.9rem; }
-.checks li { display: grid; grid-template-columns: 22px 1fr; gap: 6px; }
-.checks .ok { color: var(--ok); font-weight: 700; }
-.checks .ko { color: var(--crit); font-weight: 700; }
-.tbl { overflow-x: auto; }
-.tbl td, .tbl th { font-size: 0.88rem; }
-.dec { font-weight: 600; white-space: nowrap; }
-.dec.reproduire { color: var(--ok); } .dec.accepter { color: var(--warn); } .dec.ne { color: var(--muted); }
-.warnbox { background: var(--warn-bg); border-radius: 6px; padding: 12px 14px; display: grid; gap: 6px; }
-.warnbox ul, .plain { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 0.9rem; }
-footer { color: var(--muted); font-size: 0.82rem; display: grid; gap: 6px; border-top: 1px solid var(--line); padding-top: 16px; }
-@media (max-width: 520px) { h1 { font-size: 1.6rem; } .score .big { font-size: 2.4rem; } }
+footer { color: var(--muted); font-size: 0.8rem; border-top: 1px solid var(--line); padding-top: 12px; }
+@media (max-width: 520px) { h1 { font-size: 1.8rem; } .big { font-size: 2.3rem; } .leg { grid-template-columns: 1fr; } }
 </style>
 </head><body>
 <div class="wrap">
-<header><div class="eyebrow">Black Start · rapport de reprise · généré le 03/11/2026 à 13:42</div>
-<h1>PME fictive du banc (domaine pme.test)</h1>
-<p class="lead">Chaque machine est auditée en lecture seule, puis reconstruite depuis le code et la sauvegarde dans une sandbox isolée.
-Une reconstruction n'est dite prouvée que si le service répond, que le test métier passe et qu'aucun écart avec l'original ne reste sans justification.</p></header>
-<div class="synth"><table><thead><tr><th>Machine</th><th>Verdict</th><th colspan="3">Reprise mesurée</th><th>Points à risque</th><th>Merge request</th></tr></thead>
-<tbody><tr><td><a href="#bs-logistique"><b>bs-logistique</b></a><div class="note">Logiciel de logistique, PostgreSQL</div></td><td><span class="pill prouvee">Reconstruction prouvée</span></td><td class="num">3 min 44 s<div class="note">reconstruction</div></td><td class="num">28 s<div class="note">coupure à la bascule</div></td><td class="num">1,0 h<div class="note">données perdues au plus</div></td><td class="num"><b>10</b> trouvés<div class="note">0 en attente · 0 accepté</div></td><td><a href="http://192.168.103.203:3000/pme/infra/pulls/11">n° 11</a></td></tr><tr><td><a href="#bs-mail"><b>bs-mail</b></a><div class="note">Messagerie interne (Postfix, Dovecot)</div></td><td><span class="pill prouvee">Reconstruction prouvée</span></td><td class="num">3 min 26 s<div class="note">reconstruction</div></td><td class="num">—<div class="note">pas de bascule</div></td><td class="num">0,2 h<div class="note">données perdues au plus</div></td><td class="num"><b>5</b> trouvés<div class="note">0 en attente · 3 acceptés</div></td><td><a href="http://192.168.103.203:3000/pme/infra/pulls/9">n° 9</a></td></tr><tr><td><a href="#bs-proxy"><b>bs-proxy</b></a><div class="note">Proxy web (Nginx) et DNS interne (Unbound)</div></td><td><span class="pill prouvee">Reconstruction prouvée</span></td><td class="num">2 min 24 s<div class="note">reconstruction</div></td><td class="num">—<div class="note">pas de bascule</div></td><td class="num">—<div class="note">âge des données inconnu</div></td><td class="num"><b>8</b> trouvés<div class="note">0 en attente · 3 acceptés</div></td><td><a href="http://192.168.103.203:3000/pme/infra/pulls/10">n° 10</a></td></tr></tbody></table></div>
-<section class="vm" id="bs-logistique">
-<div class="vm-head"><div><h2>bs-logistique</h2><div class="note">Logiciel de logistique, PostgreSQL</div></div><div><span class="ip">192.168.103.200</span> <span class="pill prouvee">Reconstruction prouvée</span></div></div>
-<div class="grid">
-<div><h3>Points à risque trouvés à l'audit</h3><div class="score"><span class="big">10</span><span class="of num">0 en attente de décision · 0 risque accepté</span></div><div class="legend"><div><i class="dot"></i><span>inconnus, à trancher par un humain</span><b>5</b></div><div><i class="dot"></i><span>trous de la sauvegarde d&#x27;origine</span><b>2</b></div><div><i class="dot"></i><span>IP d&#x27;autres machines écrites en dur</span><b>3</b></div></div><p class="note">Ce que l'audit a trouvé et qu'une reprise doit traiter : décider, sauvegarder, ou savoir quoi changer si une adresse change. Détail plus bas.</p>
-<h3 class="sub">Couverture du code</h3><div class="score"><span class="mid">100,0 %</span><span class="of num">155 éléments traités sur 155</span></div><div class="bar" role="img" aria-label="Répartition des 155 éléments par statut"><span style="width:89.677%;background:var(--s-compris)" title="reproduit par le code : 139"></span><span style="width:2.581%;background:var(--s-donnee)" title="donnée restaurée : 4"></span><span style="width:4.516%;background:var(--s-secret)" title="secret au coffre : 7"></span><span style="width:3.226%;background:var(--s-tranche)" title="tranché par un humain : 5"></span></div><div class="legend"><div><i style="background:var(--s-compris)"></i><span>reproduit par le code</span><b>139</b></div><div><i style="background:var(--s-donnee)"></i><span>donnée restaurée</span><b>4</b></div><div><i style="background:var(--s-secret)"></i><span>secret au coffre</span><b>7</b></div><div><i style="background:var(--s-tranche)"></i><span>tranché par un humain</span><b>5</b></div><div><i style="background:var(--s-attente)"></i><span>décision en attente</span><b>0</b></div></div><p class="note">À l'audit, avant décision : <b class="num">96,8 %</b>, 5 élément(s) inconnu(s) bloquaient la reconstruction.</p><p class="note">14 éléments ignorés par règle (journaux, caches, identité de la machine) ne sont pas comptés.</p></div>
-<div><h3>Preuve par reconstruction</h3>
-<p><a href="http://192.168.103.203:3000/pme/infra/pulls/11">Merge request n° 11</a> (ouverte), commit <code>31be344</code>, CI : <b>success</b>.</p>
-<div class="score"><span class="big">3 min 44 s</span><span class="of">de la VM vide au service vérifié, en sandbox isolée</span></div><div class="timeline" role="img" aria-label="Durée de chaque étape, 224 s au total"><span style="flex:76 0 0" title="sandbox neuve : 76 s"></span><span style="flex:91 0 0" title="reconstruction : 91 s"></span><span style="flex:10 0 0" title="restauration : 10 s"></span><span style="flex:22 0 0" title="redémarrage : 22 s"></span><span style="flex:1 0 0" title="test métier : 1 s"></span><span style="flex:24 0 0" title="collecte : 24 s"></span></div><div class="tl-legend"><span><span>sandbox neuve</span><span class="num">76 s</span></span><span><span>reconstruction</span><span class="num">91 s</span></span><span><span>restauration</span><span class="num">10 s</span></span><span><span>redémarrage</span><span class="num">22 s</span></span><span><span>test métier</span><span class="num">1 s</span></span><span><span>collecte</span><span class="num">24 s</span></span><span><span>comparaison</span><span class="num">0 s</span></span></div>
-<p class="note">Test métier sur la copie isolée : vert en 0,6 s.</p><ul class="checks"><li><span class="ok">✓</span><span><b>Logiciel et base</b> : HTTP 200, 60 commandes en base</span></li><li><span class="ok">✓</span><span><b>Création de commande</b> : HTTP 201, commande n° 68 (BST-8F87487B), statut mail en échec</span></li><li><span class="ok">✓</span><span><b>Relecture de la commande</b> : statut mail en échec (attendu : la sandbox bloque SMTP)</span></li><li><span class="ok">✓</span><span><b>Nettoyage de la commande de test</b> : commande BST-8F87487B supprimée, stock rendu</span></li></ul>
-<p class="note">Comparaison avec l'original : 36 écarts, <b>0 non justifiés</b>, 36 justifiés par règle ou décision.</p>
-<p class="note">Données restaurées : instantané restic <code>f7f62229</code> du 2026-11-03 12:43:30, âgé de <b class="num">1,0 h</b> au moment de la vérification : c'est ce qui serait perdu en basculant à cet instant.</p>
-<p class="note">Rapport de CI du 2026-11-03 13:41, heure de la forge (bloc JSON de la CI).</p>
-</div>
-</div>
-<div class="grid"><div><h3>Bascule en production (répétition)</h3><p class="note">Coupure mesurée de l'arrêt de l'original jusqu'au test métier complet vert (proxy, DNS, mail réel).</p><div class="tbl"><table><thead><tr><th>Date</th><th>Coupure</th><th>Test métier</th><th>Geste manuel</th><th>Mesure</th></tr></thead><tbody><tr><td class="num">2026-11-02 22:25</td><td class="num">28 s</td><td>vert</td><td>non</td><td><code>banc/resultats/bascule-20261102-2225.json</code></td></tr><tr><td class="num">2026-11-03 09:23</td><td class="num">27 s</td><td>vert</td><td>non</td><td><code>banc/resultats/bascule-20261103-0923.json</code></td></tr><tr><td class="num">2026-11-03 09:32</td><td class="num">29 s</td><td>vert</td><td>non</td><td><code>banc/resultats/bascule-20261103-0932.json</code></td></tr><tr><td class="num">2026-11-03 12:33</td><td class="num">28 s</td><td>vert</td><td>non</td><td><code>banc/resultats/bascule-20261103-1233.json</code></td></tr></tbody></table></div></div></div>
-<div class="grid"><div><h3>Décisions prises</h3><div class="tbl"><table><thead><tr><th>Élément</th><th>Décision</th><th>Par</th><th>Raison</th></tr></thead><tbody><tr><td><code>file:/etc/sudoers.d/prestataire</code></td><td class="dec ne">ne pas reproduire</td><td>Théo</td><td>accès sudo d&#x27;un tiers ajouté hors procédure, retiré à la reconstruction ; le compte reste sans sudo</td></tr><tr><td><code>file:/opt/etiquettes/bin/zpl-print</code></td><td class="dec reproduire">reproduire</td><td>Théo</td><td>pilote d&#x27;étiqueteuse fourni par l&#x27;éditeur, appelé par export-edi ; origine à documenter</td></tr><tr><td><code>listen:tcp:0.0.0.0:9100</code></td><td class="dec ne">ne pas reproduire</td><td>Théo</td><td>relais HTTP lancé à la main pour le transporteur ; s&#x27;il est utile, en faire un service systemd</td></tr><tr><td><code>process:/usr/bin/python3.13@root@session.scope</code></td><td class="dec ne">ne pas reproduire</td><td>Théo</td><td>processus du relais :9100 lancé à la main (même décision que le port)</td></tr><tr><td><code>sysctl:vm.swappiness</code></td><td class="dec reproduire">reproduire</td><td>Théo</td><td>réglage voulu (10), désormais persisté dans /etc/sysctl.d</td></tr></tbody></table></div></div><div class="warnbox"><h3>Ce que la sauvegarde ne couvrait pas</h3><p class="note">Trous de la sauvegarde d'origine, comblés par la restauration générée :</p><ul><li><code>data:/root/.ssh</code> : la clé d'accès au dépôt restic n'existe que sur la VM, hors sauvegarde : reprise depuis le coffre</li><li><code>data:/var/lib/postgresql</code> : pg_dump ne contient pas les rôles PostgreSQL : recréés depuis la chaîne de connexion</li></ul></div><div><h3>Dépendances écrites en dur</h3><p class="note">Adresses d'autres machines dans la configuration : à changer si une machine change d'adresse.</p><div class="tbl"><table><thead><tr><th>Fichier</th><th>Ligne</th><th>IP</th></tr></thead><tbody><tr><td><code>/etc/hosts</code></td><td class="num">8</td><td class="mono">192.168.103.202</td></tr><tr><td><code>/etc/logistique/logistique.conf</code></td><td class="num">5</td><td class="mono">192.168.103.201</td></tr><tr><td><code>/etc/restic/logistique.env</code></td><td class="num">1</td><td class="mono">192.168.103.203</td></tr></tbody></table></div></div></div>
-</section><section class="vm" id="bs-mail">
-<div class="vm-head"><div><h2>bs-mail</h2><div class="note">Messagerie interne (Postfix, Dovecot)</div></div><div><span class="ip">192.168.103.201</span> <span class="pill prouvee">Reconstruction prouvée</span></div></div>
-<div class="grid">
-<div><h3>Points à risque trouvés à l'audit</h3><div class="score"><span class="big">5</span><span class="of num">0 en attente de décision · 3 risques acceptés</span></div><div class="legend"><div><i class="dot"></i><span>inconnus, à trancher par un humain</span><b>0</b></div><div><i class="dot"></i><span>trous de la sauvegarde d&#x27;origine</span><b>4</b></div><div><i class="dot"></i><span>IP d&#x27;autres machines écrites en dur</span><b>1</b></div></div><p class="note">Ce que l'audit a trouvé et qu'une reprise doit traiter : décider, sauvegarder, ou savoir quoi changer si une adresse change. Détail plus bas.</p>
-<h3 class="sub">Couverture du code</h3><div class="score"><span class="mid">100,0 %</span><span class="of num">91 éléments traités sur 91</span></div><div class="bar" role="img" aria-label="Répartition des 91 éléments par statut"><span style="width:91.209%;background:var(--s-compris)" title="reproduit par le code : 83"></span><span style="width:2.198%;background:var(--s-donnee)" title="donnée restaurée : 2"></span><span style="width:3.297%;background:var(--s-secret)" title="secret au coffre : 3"></span><span style="width:3.297%;background:var(--s-tranche)" title="tranché par un humain : 3"></span></div><div class="legend"><div><i style="background:var(--s-compris)"></i><span>reproduit par le code</span><b>83</b></div><div><i style="background:var(--s-donnee)"></i><span>donnée restaurée</span><b>2</b></div><div><i style="background:var(--s-secret)"></i><span>secret au coffre</span><b>3</b></div><div><i style="background:var(--s-tranche)"></i><span>tranché par un humain</span><b>3</b></div><div><i style="background:var(--s-attente)"></i><span>décision en attente</span><b>0</b></div></div><p class="note">À l'audit : aucun élément inconnu.</p><p class="note">5 éléments ignorés par règle (journaux, caches, identité de la machine) ne sont pas comptés.</p></div>
-<div><h3>Preuve par reconstruction</h3>
-<p><a href="http://192.168.103.203:3000/pme/infra/pulls/9">Merge request n° 9</a> (fusionnée), commit <code>9d015e1</code>, CI : <b>success</b>.</p>
-<div class="score"><span class="big">3 min 26 s</span><span class="of">de la VM vide au service vérifié, en sandbox isolée</span></div><div class="timeline" role="img" aria-label="Durée de chaque étape, 206 s au total"><span style="flex:74 0 0" title="sandbox neuve : 74 s"></span><span style="flex:80 0 0" title="reconstruction : 80 s"></span><span style="flex:10 0 0" title="restauration : 10 s"></span><span style="flex:22 0 0" title="redémarrage : 22 s"></span><span style="flex:19 0 0" title="collecte : 19 s"></span><span style="flex:1 0 0" title="comparaison : 1 s"></span></div><div class="tl-legend"><span><span>sandbox neuve</span><span class="num">74 s</span></span><span><span>reconstruction</span><span class="num">80 s</span></span><span><span>restauration</span><span class="num">10 s</span></span><span><span>redémarrage</span><span class="num">22 s</span></span><span><span>test métier</span><span class="num">0 s</span></span><span><span>collecte</span><span class="num">19 s</span></span><span><span>comparaison</span><span class="num">1 s</span></span></div>
-<p class="note">Test métier sur la copie isolée : vert en 0,5 s.</p><ul class="checks"><li><span class="ok">✓</span><span><b>Réception SMTP</b> : mail pour commandes@pme.test accepté (mail.pme.test)</span></li><li><span class="ok">✓</span><span><b>Distribution dans la boîte</b> : distribué dans /var/mail/commandes</span></li><li><span class="ok">✓</span><span><b>Serveur IMAPS</b> : IMAPS répond : * OK [CAPABILITY IMAP4rev1 LOGIN-REFERRALS ID ENABLE IDLE SA</span></li></ul>
-<p class="note">Comparaison avec l'original : 26 écarts, <b>0 non justifiés</b>, 26 justifiés par règle ou décision.</p>
-<p class="note">Données restaurées : instantané restic <code>d207bba3</code> du 2026-11-03 13:23:16, âgé de <b class="num">0,2 h</b> au moment de la vérification : c'est ce qui serait perdu en basculant à cet instant.</p>
-<p class="note">Rapport de CI du 2026-11-03 13:38, heure de la forge (bloc JSON de la CI).</p>
-</div>
-</div>
-<div class="grid"><div><h3>Décisions prises</h3><div class="tbl"><table><thead><tr><th>Élément</th><th>Décision</th><th>Par</th><th>Raison</th></tr></thead><tbody><tr><td><code>data:/var/lib/dovecot</code></td><td class="dec accepter">accepter</td><td>Théo</td><td>état interne de Dovecot (instances, paramètres TLS), régénéré au démarrage</td></tr><tr><td><code>data:/var/lib/postfix</code></td><td class="dec accepter">accepter</td><td>Théo</td><td>état interne de Postfix (verrous, graine aléatoire), régénéré au démarrage</td></tr><tr><td><code>data:/var/spool/postfix</code></td><td class="dec accepter">accepter</td><td>Théo</td><td>files d&#x27;attente de Postfix, vides en temps normal ; seuls les mails en transit au moment de la panne seraient perdus</td></tr></tbody></table></div></div><div class="warnbox"><h3>Ce que la sauvegarde ne couvrait pas</h3><p class="note">Trous de la sauvegarde d'origine, comblés par la restauration générée :</p><ul><li><code>data:/root/.ssh</code> : la clé d'accès au dépôt restic n'existe que sur la VM, hors sauvegarde : reprise depuis le coffre</li></ul><p class="note">Risques acceptés, avec une action à mener :</p><ul><li><code>data:/var/lib/dovecot</code> : état interne de Dovecot (instances, paramètres TLS), régénéré au démarrage</li><li><code>data:/var/lib/postfix</code> : état interne de Postfix (verrous, graine aléatoire), régénéré au démarrage</li><li><code>data:/var/spool/postfix</code> : files d&#x27;attente de Postfix, vides en temps normal ; seuls les mails en transit au moment de la panne seraient perdus</li></ul></div><div><h3>Dépendances écrites en dur</h3><p class="note">Adresses d'autres machines dans la configuration : à changer si une machine change d'adresse.</p><div class="tbl"><table><thead><tr><th>Fichier</th><th>Ligne</th><th>IP</th></tr></thead><tbody><tr><td><code>/etc/postfix/main.cf</code></td><td class="num">28</td><td class="mono">192.168.103.200</td></tr></tbody></table></div></div></div>
-</section><section class="vm" id="bs-proxy">
-<div class="vm-head"><div><h2>bs-proxy</h2><div class="note">Proxy web (Nginx) et DNS interne (Unbound)</div></div><div><span class="ip">192.168.103.202</span> <span class="pill prouvee">Reconstruction prouvée</span></div></div>
-<div class="grid">
-<div><h3>Points à risque trouvés à l'audit</h3><div class="score"><span class="big">8</span><span class="of num">0 en attente de décision · 3 risques acceptés</span></div><div class="legend"><div><i class="dot"></i><span>inconnus, à trancher par un humain</span><b>0</b></div><div><i class="dot"></i><span>trous de la sauvegarde d&#x27;origine</span><b>3</b></div><div><i class="dot"></i><span>IP d&#x27;autres machines écrites en dur</span><b>5</b></div></div><p class="note">Ce que l'audit a trouvé et qu'une reprise doit traiter : décider, sauvegarder, ou savoir quoi changer si une adresse change. Détail plus bas.</p>
-<h3 class="sub">Couverture du code</h3><div class="score"><span class="mid">100,0 %</span><span class="of num">41 éléments traités sur 41</span></div><div class="bar" role="img" aria-label="Répartition des 41 éléments par statut"><span style="width:87.805%;background:var(--s-compris)" title="reproduit par le code : 36"></span><span style="width:4.878%;background:var(--s-secret)" title="secret au coffre : 2"></span><span style="width:7.317%;background:var(--s-tranche)" title="tranché par un humain : 3"></span></div><div class="legend"><div><i style="background:var(--s-compris)"></i><span>reproduit par le code</span><b>36</b></div><div><i style="background:var(--s-donnee)"></i><span>donnée restaurée</span><b>0</b></div><div><i style="background:var(--s-secret)"></i><span>secret au coffre</span><b>2</b></div><div><i style="background:var(--s-tranche)"></i><span>tranché par un humain</span><b>3</b></div><div><i style="background:var(--s-attente)"></i><span>décision en attente</span><b>0</b></div></div><p class="note">À l'audit : aucun élément inconnu.</p><p class="note">16 éléments ignorés par règle (journaux, caches, identité de la machine) ne sont pas comptés.</p></div>
-<div><h3>Preuve par reconstruction</h3>
-<p><a href="http://192.168.103.203:3000/pme/infra/pulls/10">Merge request n° 10</a> (fusionnée), commit <code>6538aaf</code>, CI : <b>success</b>.</p>
-<div class="score"><span class="big">2 min 24 s</span><span class="of">de la VM vide au service vérifié, en sandbox isolée</span></div><div class="timeline" role="img" aria-label="Durée de chaque étape, 144 s au total"><span style="flex:72 0 0" title="sandbox neuve : 72 s"></span><span style="flex:31 0 0" title="reconstruction : 31 s"></span><span style="flex:21 0 0" title="redémarrage : 21 s"></span><span style="flex:20 0 0" title="collecte : 20 s"></span></div><div class="tl-legend"><span><span>sandbox neuve</span><span class="num">72 s</span></span><span><span>reconstruction</span><span class="num">31 s</span></span><span><span>restauration</span><span class="num">0 s</span></span><span><span>redémarrage</span><span class="num">21 s</span></span><span><span>test métier</span><span class="num">0 s</span></span><span><span>collecte</span><span class="num">20 s</span></span><span><span>comparaison</span><span class="num">0 s</span></span></div>
-<p class="note">Test métier sur la copie isolée : vert en 0,5 s.</p><ul class="checks"><li><span class="ok">✓</span><span><b>DNS interne</b> : logistique.pme.test -&gt; 192.168.103.202</span></li><li><span class="ok">✓</span><span><b>Proxy web</b> : HTTP 502 par nginx (attendu : la sandbox coupe l&#x27;accès au logiciel)</span></li><li><span class="ok">✓</span><span><b>Configuration valide</b> : nginx -t et unbound-checkconf sans erreur</span></li></ul>
-<p class="note">Comparaison avec l'original : 23 écarts, <b>0 non justifiés</b>, 23 justifiés par règle ou décision.</p>
-<p class="note">Rapport de CI du 2026-11-03 13:27, heure de la forge (bloc JSON de la CI).</p>
-</div>
-</div>
-<div class="grid"><div><h3>Décisions prises</h3><div class="tbl"><table><thead><tr><th>Élément</th><th>Décision</th><th>Par</th><th>Raison</th></tr></thead><tbody><tr><td><code>data:/var/lib/nginx</code></td><td class="dec accepter">accepter</td><td>Théo</td><td>dossiers de travail de nginx (caches et tampons vides), recréés par le paquet</td></tr><tr><td><code>data:/var/lib/unbound</code></td><td class="dec accepter">accepter</td><td>Théo</td><td>clé racine DNSSEC (root.key), recréée et mise à jour par unbound-anchor</td></tr><tr><td><code>data:/var/www/html</code></td><td class="dec accepter">accepter</td><td>Théo</td><td>page d&#x27;accueil par défaut de nginx, sans contenu propre à la PME</td></tr></tbody></table></div></div><div class="warnbox"><h3>Ce que la sauvegarde ne couvrait pas</h3><p class="note">Risques acceptés, avec une action à mener :</p><ul><li><code>data:/var/lib/nginx</code> : dossiers de travail de nginx (caches et tampons vides), recréés par le paquet</li><li><code>data:/var/lib/unbound</code> : clé racine DNSSEC (root.key), recréée et mise à jour par unbound-anchor</li><li><code>data:/var/www/html</code> : page d&#x27;accueil par défaut de nginx, sans contenu propre à la PME</li></ul></div><div><h3>Dépendances écrites en dur</h3><p class="note">Adresses d'autres machines dans la configuration : à changer si une machine change d'adresse.</p><div class="tbl"><table><thead><tr><th>Fichier</th><th>Ligne</th><th>IP</th></tr></thead><tbody><tr><td><code>/etc/nginx/sites-available/logistique</code></td><td class="num">7</td><td class="mono">192.168.103.200</td></tr><tr><td><code>/etc/unbound/unbound.conf.d/pme.conf</code></td><td class="num">7</td><td class="mono">192.168.103.201</td></tr><tr><td><code>/etc/unbound/unbound.conf.d/pme.conf</code></td><td class="num">10</td><td class="mono">192.168.103.200</td></tr><tr><td><code>/etc/unbound/unbound.conf.d/pme.conf</code></td><td class="num">13</td><td class="mono">192.168.103.54</td></tr><tr><td><code>/etc/unbound/unbound.conf.d/pme.conf</code></td><td class="num">14</td><td class="mono">192.168.103.55</td></tr></tbody></table></div></div></div>
-</section>
-<footer><p>Données perdues au plus : âge, au moment de la vérification, de l'instantané de sauvegarde restauré dans la copie.
-Une sauvegarde est dite en retard si l'instantané est plus vieux que le dernier passage prévu de la tâche planifiée qui la lance.</p>
-<p>Points à risque : éléments inconnus (décision humaine obligatoire), trous de la sauvegarde d'origine et adresses
-d'autres machines écrites en dur, trouvés par l'audit. Couverture du code : part des éléments, hors éléments ignorés par règle,
-dont la reprise est codée (Ansible, données restaurées, secrets au coffre) ou tranchée par un humain ; tous les éléments pèsent pareil.</p>
-<p>Sources : inventaires de <code>bs-collect</code>, classement <code>bs-classify</code>, décisions du dépôt <code>pme/infra</code>,
-rapports de la CI de <a href="http://192.168.103.203:3000">la forge</a>, mesures de <code>infra/bascule.py</code>. Aucune valeur n'est estimée.</p></footer>
+<header><div class="eyebrow">Black Start · rapport de reprise · PME fictive du banc (domaine pme.test) · généré le 04/11/2026 à 10:58</div>
+<h1>bs-logistique : logiciel de logistique, PostgreSQL</h1>
+<p class="lead">Peut-on redémarrer cette machine, et en combien de temps ? Réponse mesurée en la reconstruisant, pas estimée.</p></header>
+<div class="cards"><div class="card"><h2 class="lbl">verdict</h2><div class="verdict prouvee">Reconstruction prouvée</div><ul class="checks"><li><span class="ok">✓</span><span>Machine reconstruite sur une VM neuve, isolée du réseau</span></li><li><span class="ok">✓</span><span>Données restaurées depuis la sauvegarde existante</span></li><li><span class="ok">✓</span><span>Test métier vert : logiciel et base · création de commande · relecture de la commande · nettoyage de la commande de test</span></li><li><span class="ok">✓</span><span>Aucun écart non justifié avec l&#x27;original (36 écarts, tous expliqués)</span></li></ul></div><div class="card"><h2 class="lbl">chrono</h2><div class="big">3 min 36 s<small>de la VM vide au service vérifié</small></div><div class="phases" role="img" aria-label="Durée par étape"><span style="flex:72 0 0;background:var(--p1)" title="VM neuve : 72 s"></span><span style="flex:90 0 0;background:var(--p2)" title="reconstruction : 90 s"></span><span style="flex:10 0 0;background:var(--p3)" title="données restaurées : 10 s"></span><span style="flex:44 0 0;background:var(--p4)" title="vérification : 44 s"></span></div><div class="leg"><div><i style="background:var(--p1)"></i><span>VM neuve</span><b class="num">72 s</b></div><div><i style="background:var(--p2)"></i><span>reconstruction</span><b class="num">90 s</b></div><div><i style="background:var(--p3)"></i><span>données restaurées</span><b class="num">10 s</b></div><div><i style="background:var(--p4)"></i><span>vérification</span><b class="num">44 s</b></div></div><div class="coupure"><b>28 s</b><span>de coupure à la bascule en production, sans geste manuel</span></div><p class="note">Dernière de 8 répétitions, de 27 s à 29 s.</p></div><div class="card"><h2 class="lbl">risques</h2><div class="big">11<small>points que la reprise doit traiter</small></div><div class="risk"><div><b>5</b><span>éléments inconnus<small>tranchés par l&#x27;admin</small></span></div><div><b>3</b><span>trous dans la sauvegarde<small>comblés par la restauration générée, dont 1 risque accepté</small></span></div><div><b>3</b><span>adresses IP écrites en dur<small>à changer si une machine change d&#x27;adresse</small></span></div></div></div><div class="card"><h2 class="lbl">preuve</h2><div class="big mr"><a href="http://192.168.103.203:3000/pme/infra/pulls/12">Merge request n° 12</a><small>CI verte</small></div><ul class="checks"><li><span class="ok">✓</span><span>Code de la machine (Ansible) proposé en merge request, relu par l'admin</span></li><li><span class="ok">✓</span><span>Vérifié par la CI le 3 nov. à 15:49</span></li><li><span class="ok">✓</span><span>Bascule en production refusée tant que la CI n'est pas verte</span></li></ul><p class="note">Données de l'instantané restic du 3 nov. à 12:43, âgé de 3,1 h : c'est ce qui serait perdu en basculant à cet instant.</p><p class="note">Depuis, la <a href="http://192.168.103.203:3000/pme/infra/pulls/13">merge request n° 13</a> attend 5 décisions.</p></div></div>
+<div class="parc"><table><thead><tr><th>Parc</th><th>Verdict</th><th>Chrono</th><th>Risques</th><th>Preuve</th></tr></thead>
+<tbody><tr><td><b>bs-logistique</b><small>Logiciel de logistique, PostgreSQL</small></td><td><span class="pill prouvee">Reconstruction prouvée</span></td><td class="num">3 min 36 s</td><td class="num">11 points</td><td><a href="http://192.168.103.203:3000/pme/infra/pulls/12">MR n° 12</a></td></tr><tr><td><b>bs-mail</b><small>Messagerie interne (Postfix, Dovecot)</small></td><td><span class="pill prouvee">Reconstruction prouvée</span></td><td class="num">3 min 26 s</td><td class="num">5 points</td><td><a href="http://192.168.103.203:3000/pme/infra/pulls/9">MR n° 9</a></td></tr><tr><td><b>bs-proxy</b><small>Proxy web (Nginx) et DNS interne (Unbound)</small></td><td><span class="pill prouvee">Reconstruction prouvée</span></td><td class="num">2 min 24 s</td><td class="num">8 points</td><td><a href="http://192.168.103.203:3000/pme/infra/pulls/10">MR n° 10</a></td></tr></tbody></table></div>
+<footer>Sources : collecte en lecture seule (<code>bs-collect</code>), classement (<code>bs-classify</code>), rapports de la CI
+de <a href="http://192.168.103.203:3000">la forge</a>, mesures de bascule (<code>infra/bascule.py</code>). Aucune valeur n'est estimée.</footer>
 </div>
 </body></html>

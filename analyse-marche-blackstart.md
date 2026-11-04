@@ -236,8 +236,8 @@ xychart-beta
 | **Commercial / marketing** | 20 k€ | 50 k€ | 80 k€ | 100 k€ | 130 k€ | 160 k€ |
 | **Divers (juridique, compta, déplacements)** | 15 k€ | 25 k€ | 35 k€ | 45 k€ | 55 k€ | 60 k€ |
 | **Total charges** | **165 k€** | **295 k€** | **490 k€** | **675 k€** | **870 k€** | **1 100 k€** |
-| **Résultat** | -(-39 k€) | **+235 k€** | **+395 k€** | **+531 k€** | **+710 k€** | **+960 k€** |
-| **Marge nette** | — | 44 % | 45 % | 44 % | 45 % | 47 % |
+| **Résultat** | **+39 k€** | **+235 k€** | **+395 k€** | **+531 k€** | **+710 k€** | **+960 k€** |
+| **Marge nette** | 19 % | 44 % | 45 % | 44 % | 45 % | 47 % |
 
 ### 5.4 Effectifs prévisionnels
 

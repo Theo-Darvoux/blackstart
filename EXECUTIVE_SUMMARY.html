@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Executive Summary · Black Start (équipe n° 16)</title>
+<meta name="description" content="Executive summary de Black Start, Challenge Projets d’Entreprendre 2026 : la preuve de reprise automatisée pour les ETI.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--noir:#07090A;--encre:#18211e;--gris:#47524e;--gris-l:#b4beb9;--ligne:#dfe4df;--papier:#EEF3EF;--surface:#F5F8F6;--blanc:#fff;--vert:#0E9F55;--vert-vif:#14C267;--vert-bg:#e4f3ea;--rouge:#b3261e;--rouge-bg:#f8e6e4;--orange:#a3620a;--orange-bg:#fbf1e1;--filet:rgba(255,255,255,.09);
+--sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;--mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+--gutter:clamp(16px,4.5vw,64px);--max:1240px;--r:12px;--y:clamp(56px,8vw,96px);
+--ombre:0 1px 2px rgba(7,9,10,.04),0 4px 16px rgba(7,9,10,.04)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:17px;scroll-behavior:smooth;scroll-padding-top:72px}
+body{font-family:var(--sans);line-height:1.65;color:var(--encre);background:var(--blanc);-webkit-font-smoothing:antialiased}
+::selection{background:var(--vert-vif);color:var(--noir)}
+a{color:var(--vert);text-decoration:none}a:hover{color:var(--vert-vif)}
+:focus-visible{outline:2px solid var(--vert-vif);outline-offset:3px;border-radius:4px}
+h1,h2,h3{text-wrap:balance}p{text-wrap:pretty}
+.wrap{max-width:var(--max);margin:0 auto;padding-inline:var(--gutter)}
+.section{padding-block:var(--y)}
+.alt{background:var(--surface)}
+.src{font-family:var(--mono);font-size:.78rem;color:var(--gris)}
+.logo{height:24px;width:auto}
+
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(7,9,10,.88);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--filet);padding:0 var(--gutter)}
+.nav-inner{max-width:var(--max);margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:64px}
+.nav ul{display:flex;gap:26px;list-style:none}
+.nav ul a{color:var(--gris-l);font-size:.92rem;font-weight:500}.nav ul a:hover{color:var(--papier)}
+@media(max-width:900px){.nav ul{display:none}}
+
+.eyebrow{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:.82rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--vert);margin-bottom:14px}
+.eyebrow::before{content:"";width:18px;height:2px;background:currentColor;border-radius:2px}
+h2{font-size:clamp(1.7rem,3vw,2.5rem);font-weight:700;letter-spacing:-.022em;line-height:1.15;margin-bottom:14px}
+.lead{color:var(--gris);font-size:1.08rem;max-width:44em}
+.head{margin-bottom:40px}
+
+.hero{position:relative;background:var(--noir);color:var(--papier);overflow:hidden;padding:clamp(110px,14vw,170px) 0 clamp(56px,8vw,88px)}
+.hero::before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);background-size:56px 56px;-webkit-mask-image:radial-gradient(75% 70% at 70% 30%,#000 0%,transparent 75%);mask-image:radial-gradient(75% 70% at 70% 30%,#000 0%,transparent 75%)}
+.hero::after{content:"";position:absolute;inset:0;background:radial-gradient(50% 60% at 80% 15%,rgba(20,194,103,.16),transparent 70%),radial-gradient(40% 50% at 10% 90%,rgba(14,159,85,.08),transparent 60%)}
+.hero .wrap{position:relative;z-index:1}
+.hero .eyebrow{color:var(--vert-vif);margin-bottom:24px}
+.hero h1{font-size:clamp(2.1rem,5.4vw,3.9rem);font-weight:700;line-height:1.06;letter-spacing:-.035em;max-width:17em;margin-bottom:24px}
+.hero h1 .vert{background:linear-gradient(90deg,var(--vert-vif),#7df0b0);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero-sub{font-size:clamp(1.02rem,1.7vw,1.2rem);color:var(--gris-l);max-width:44em}
+.equipe{margin-top:28px;font-family:var(--mono);font-size:.84rem;color:var(--gris-l);line-height:1.8}
+.equipe b{color:var(--papier);font-weight:600}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);margin-top:clamp(40px,6vw,64px);border:1px solid var(--filet);border-radius:var(--r);background:rgba(7,9,10,.5)}
+.stat{padding:22px 22px 20px;border-left:1px solid var(--filet)}.stat:first-child{border-left:0}
+.stat .big{font-size:clamp(1.5rem,2.8vw,2.1rem);font-weight:700;letter-spacing:-.02em;line-height:1;color:var(--blanc);font-variant-numeric:tabular-nums}
+.stat .label{font-family:var(--mono);font-size:.8rem;color:var(--gris-l);margin-top:10px;line-height:1.5}
+@media(max-width:760px){.stats{grid-template-columns:1fr 1fr}.stat:nth-child(3){border-left:0}.stat:nth-child(n+3){border-top:1px solid var(--filet)}}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px}
+.card{background:var(--blanc);border:1px solid var(--ligne);border-radius:var(--r);padding:26px 26px;box-shadow:var(--ombre)}
+.card h3{font-size:1.1rem;font-weight:600;letter-spacing:-.01em;margin-bottom:8px}
+.card p,.card li{color:var(--gris);font-size:.98rem}
+.card ul{padding-left:18px}
+.fig{font-size:2.1rem;font-weight:700;letter-spacing:-.025em;line-height:1;color:var(--rouge);margin-bottom:10px;font-variant-numeric:tabular-nums}
+.card .src{display:block;margin-top:8px}
+.callout{margin-top:28px;padding:22px 26px;border-radius:var(--r);background:var(--vert-bg);border-left:4px solid var(--vert);color:var(--encre)}
+.callout strong{font-weight:600}
+
+.tbl-wrap{overflow-x:auto;border:1px solid var(--ligne);border-radius:var(--r);background:var(--blanc);box-shadow:var(--ombre)}
+table{width:100%;border-collapse:collapse;font-size:.95rem}
+th,td{text-align:left;vertical-align:top;padding:12px 18px;border-bottom:1px solid var(--ligne)}
+tr:last-child td{border-bottom:0}
+th{font-family:var(--mono);font-size:.76rem;letter-spacing:.08em;text-transform:uppercase;color:var(--gris);background:var(--surface);font-weight:600}
+td.n{font-family:var(--mono);font-weight:600;color:var(--vert);white-space:nowrap}
+td.s{font-family:var(--mono);font-size:.78rem;color:var(--gris)}
+
+.etapes{display:grid;grid-template-columns:repeat(6,1fr);gap:16px}
+.etape-num{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;border:2px solid var(--vert);color:var(--vert);font-family:var(--mono);font-weight:600;margin-bottom:14px}
+.etape:last-child .etape-num{background:var(--vert);color:var(--blanc)}
+.etape h3{font-size:1rem;font-weight:600;margin-bottom:4px}
+.etape p{font-size:.9rem;color:var(--gris);line-height:1.5}
+@media(max-width:1000px){.etapes{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:600px){.etapes{grid-template-columns:1fr 1fr}}
+
+.garanties{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:28px}
+.g{display:flex;gap:12px;align-items:flex-start;padding:16px 18px;border:1px solid var(--ligne);border-radius:var(--r);background:var(--blanc);font-size:.95rem}
+.g svg{flex:none;width:22px;height:22px;color:var(--vert);fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;margin-top:2px}
+
+.offre .prix{font-family:var(--mono);font-weight:600;color:var(--vert);font-size:1rem;margin-bottom:10px}
+.note{display:flex;gap:12px;margin-top:24px;padding:16px 20px;border-radius:var(--r);background:var(--orange-bg);border-left:4px solid var(--orange);color:#5c3a06;font-size:.95rem}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:28px}
+@media(max-width:860px){.two{grid-template-columns:1fr}}
+.two h3{font-size:1.1rem;margin-bottom:8px}
+.two ul{padding-left:18px;color:var(--gris)}.two li{margin-bottom:4px}.two p{color:var(--gris)}
+
+.dark{background:var(--noir);color:var(--papier)}
+.dark .eyebrow{color:var(--vert-vif)}.dark .lead{color:var(--gris-l)}
+.cta{margin-top:32px;padding:28px 30px;border:1px solid var(--filet);border-radius:var(--r);background:rgba(255,255,255,.035);font-size:1.2rem;font-weight:600;letter-spacing:-.01em;line-height:1.4}
+.cta span{color:var(--vert-vif)}
+footer{background:var(--noir);color:var(--gris-l);border-top:1px solid var(--filet);padding:28px 0;font-family:var(--mono);font-size:.8rem}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:center}
+footer .logo{height:20px}
+
+@page{size:A4;margin:12mm}
+@media print{
+ html{font-size:11px}.nav{display:none}
+ .section{padding-block:22px}.hero{padding:30px 0 24px}
+ .hero,.dark,footer{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+ .card,.g,.tbl-wrap,.stats{break-inside:avoid}
+ .alt{background:var(--surface);-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+<nav class="nav"><div class="nav-inner">
+  <a href="#top" aria-label="Black Start"><svg class="logo" viewBox="0 0 880.3 90.7" role="img" aria-label="Black Start">
+        <g transform="translate(0 90.72)">
+          <path d="M64.41 -70.53 A35.51 35.51 0 0 1 71.86 -22.50" fill="none" stroke="#0E9F55" stroke-width="14.07"/>
+          <path d="M69.09 -18.95 A35.51 35.51 0 1 1 20.68 -70.53" fill="none" stroke="#E8F2EC" stroke-width="14.07"/>
+          <rect x="35.51" y="-90.72" width="14.07" height="48.17" fill="#E8F2EC"/>
+          <path d="M161.13 0.0H116.23V-67.0H158.83Q180.53 -67.0 180.53 -50.8Q180.53 -36.3 163.83 -35.6V-34.6Q173.63 -34.2 178.63 -30.0Q183.63 -25.8 183.63 -18.6Q183.63 0.0 161.13 0.0ZM134.93 -50.1V-41.6H156.83Q159.63 -41.6 160.68 -42.5Q161.73 -43.4 161.73 -45.8Q161.73 -48.1 160.48 -49.1Q159.23 -50.1 156.33 -50.1ZM134.93 -26.2V-16.9H158.73Q162.13 -16.9 163.38 -17.85Q164.63 -18.8 164.63 -21.6Q164.63 -24.4 163.43 -25.3Q162.23 -26.2 158.73 -26.2ZM247.13 0.0H189.63V-67.0H208.43V-16.9H247.13ZM271.23 0.0H250.13L279.03 -67.0H305.93L334.93 0.0H313.33L308.23 -12.4H276.43ZM287.43 -38.7 283.53 -29.3H301.33L297.43 -38.7L293.03 -50.0H291.73ZM374.93 1.0Q357.63 1.0 347.78 -8.35Q337.93 -17.7 337.93 -33.5Q337.93 -49.3 347.78 -58.65Q357.63 -68.0 374.93 -68.0Q391.83 -68.0 401.38 -60.4Q410.93 -52.8 410.93 -39.4V-37.7H389.93V-39.4Q389.93 -45.2 386.68 -47.6Q383.43 -50.0 375.23 -50.0Q364.93 -50.0 361.43 -46.7Q357.93 -43.4 357.93 -33.5Q357.93 -23.6 361.43 -20.3Q364.93 -17.0 375.23 -17.0Q383.43 -17.0 386.68 -19.4Q389.93 -21.8 389.93 -27.6V-29.3H410.93V-27.6Q410.93 -14.2 401.38 -6.6Q391.83 1.0 374.93 1.0ZM436.73 0.0H417.93V-67.0H436.73V-42.1H450.23L466.53 -67.0H489.03L465.83 -34.1L488.53 0.0H466.03L450.43 -23.8H436.73Z" fill="#E8F2EC"/>
+          <path d="M547.53 1.0Q514.53 1.0 514.53 -23.3V-23.9H533.33V-21.8Q533.33 -18.3 535.83 -17.2Q538.33 -16.1 547.53 -16.1Q555.73 -16.1 557.93 -16.85Q560.13 -17.6 560.13 -20.0Q560.13 -21.8 558.73 -22.7Q557.33 -23.6 553.33 -24.1L532.33 -26.9Q513.53 -29.5 513.53 -46.1Q513.53 -55.2 521.38 -61.6Q529.23 -68.0 546.03 -68.0Q561.63 -68.0 569.58 -61.6Q577.53 -55.2 577.53 -43.7V-43.1H558.73V-44.6Q558.73 -48.4 555.93 -49.7Q553.13 -51.0 544.03 -51.0Q537.13 -51.0 534.73 -50.05Q532.33 -49.1 532.33 -46.8Q532.33 -45.2 533.38 -44.4Q534.43 -43.6 537.13 -43.2L558.13 -40.1Q578.93 -37.1 578.93 -20.7Q578.93 -11.3 571.18 -5.15Q563.43 1.0 547.53 1.0ZM626.43 0.0H607.63V-50.1H583.93V-67.0H650.03V-50.1H626.43ZM673.63 0.0H652.53L681.43 -67.0H708.33L737.33 0.0H715.73L710.63 -12.4H678.83ZM689.83 -38.7 685.93 -29.3H703.73L699.83 -38.7L695.43 -50.0H694.13ZM760.13 0.0H741.33V-67.0H780.43Q793.63 -67.0 800.53 -61.7Q807.43 -56.4 807.43 -46.5Q807.43 -38.4 803.08 -33.8Q798.73 -29.2 789.33 -28.0V-27.0Q794.13 -25.8 796.48 -23.5Q798.83 -21.2 800.93 -16.8L809.23 0.0H787.53L779.53 -16.4Q777.73 -20.2 775.48 -21.5Q773.23 -22.8 767.83 -22.8H760.13ZM760.13 -50.1V-36.8H780.23Q784.53 -36.8 786.13 -38.1Q787.73 -39.4 787.73 -43.5Q787.73 -47.4 786.08 -48.75Q784.43 -50.1 780.23 -50.1ZM855.23 0.0H836.43V-50.1H812.73V-67.0H878.83V-50.1H855.23Z" fill="#0E9F55"/>
+        </g>
+      </svg></a>
+  <ul>
+    <li><a href="#probleme">Problème</a></li>
+    <li><a href="#solution">Solution</a></li>
+    <li><a href="#preuve">Résultats</a></li>
+    <li><a href="#offre">Offre</a></li>
+    <li><a href="#plan">Plan 5 ans</a></li>
+    <li><a href="#finance">Finance</a></li>
+    <li><a href="#rse">RSE</a></li>
+  </ul>
+</div></nav>
+
+<header class="hero" id="top"><div class="wrap">
+  <div class="eyebrow">Executive summary · Challenge Projets d’Entreprendre 2026</div>
+  <h1>Quand tout s’arrête, Black Start prouve que votre entreprise <span class="vert">sait repartir.</span></h1>
+  <p class="hero-sub">Vos sauvegardes existent. Nous prouvons que votre activité peut réellement repartir, et nous corrigeons ce qui l’en empêche.</p>
+  <p class="equipe"><b>Équipe n° 16</b> · IMT-BS / Télécom SudParis / ENSIIE<br>
+  Théo, Titouan, Benjamin, Maxime, Glenn (manager) · Coaching : rue Étoile<br>
+  Démo : VM sur luna.minet.lan (Proxmox) · Forge : Forgejo sur bs-gitlab</p>
+  <div class="stats">
+    <div class="stat"><div class="big">233–258 s</div><div class="label">reconstruction vérifiée d’une VM</div></div>
+    <div class="stat"><div class="big">27–29 s</div><div class="label">coupure de service à la bascule</div></div>
+    <div class="stat"><div class="big">10 / 10</div><div class="label">pièges du banc détectés</div></div>
+    <div class="stat"><div class="big">0</div><div class="label">secret transmis au modèle ou à Git (testé)</div></div>
+  </div>
+</div></header>
+
+<section class="section alt" id="probleme"><div class="wrap">
+  <div class="head"><div class="eyebrow">Le problème</div>
+  <h2>Les sauvegardes existent, la reprise non.</h2>
+  <p class="lead">Beaucoup d’ETI industrielles et logistiques dépendent de serveurs configurés à la main, peu documentés, que plus personne n’ose toucher. Elles ont des sauvegardes, mais aucune preuve qu’elles sauraient redémarrer après une panne, un rançongiciel ou le départ de l’administrateur.</p></div>
+  <div class="cards">
+    <div class="card"><div class="fig">13 M€</div><h3>Coût moyen déclaré d’une cyberattaque pour une ETI</h3><span class="src">Enquête ANSSI/CLUSIF citée par le Sénat, 2024</span></div>
+    <div class="card"><div class="fig">6 800</div><h3>ETI en France</h3><p>Dont une part en logistique et industrie, avec un parc on-premise ou hybride.</p><span class="src">Ministère de l’Économie, 2022</span></div>
+    <div class="card"><div class="fig">~15 000</div><h3>Entités concernées par NIS2 / loi Résilience</h3><p>Conformité complète visée fin 2028. La directive ne garantit pas la capacité technique de reprise.</p><span class="src">ANSSI</span></div>
+  </div>
+  <div class="callout"><strong>Ce que le marché vend aujourd’hui :</strong> la sauvegarde vérifiée (Veeam, Rubrik) ne teste pas le processus métier ; l’infrastructure as code depuis l’existant (Firefly, ControlMonkey, formae) cible le cloud et Kubernetes, pas l’intérieur des VM on-premise ; les cabinets de PRA et les ESN sont humains, non répétables et coûteux. <strong>Notre différence : la preuve de bout en bout.</strong> Repartir des sauvegardes existantes, reconstruire ce qui doit l’être, vérifier que le métier fonctionne (commande logistique, envoi de mail, résolution DNS).</div>
+</div></section>
+
+<section class="section" id="solution"><div class="wrap">
+  <div class="head"><div class="eyebrow">La solution</div>
+  <h2>La preuve de reprise, automatisée.</h2>
+  <p class="lead">Pour chaque VM, un parcours déterministe : le modèle interprète et propose, il ne décide jamais seul. Démo du scénario B.</p></div>
+  <div class="etapes">
+    <div class="etape"><div class="etape-num">1</div><h3>Collecter</h3><p>Lecture seule, secrets masqués avant tout envoi.</p></div>
+    <div class="etape"><div class="etape-num">2</div><h3>Classer</h3><p>Compris, donnée, secret, ignoré ou inconnu, avec une preuve par élément.</p></div>
+    <div class="etape"><div class="etape-num">3</div><h3>Décider</h3><p>Validation humaine des inconnus.</p></div>
+    <div class="etape"><div class="etape-num">4</div><h3>Reconstruire</h3><p>Ansible et CI dans une sandbox isolée.</p></div>
+    <div class="etape"><div class="etape-num">5</div><h3>Vérifier</h3><p>Même collecte, comparaison, test métier.</p></div>
+    <div class="etape"><div class="etape-num">6</div><h3>Basculer</h3><p>Après relecture de la merge request. Moins de 30 s, retour en ~31 s.</p></div>
+  </div>
+  <div class="garanties">
+    <div class="g"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="m9 12 2 2 4-4"/></svg><span>Aucun secret n’atteint le modèle ni Git (testé).</span></div>
+    <div class="g"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="m9 12 2 2 4-4"/></svg><span>La bascule est refusée si la CI n’est pas verte (vu en démo).</span></div>
+    <div class="g"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="m9 12 2 2 4-4"/></svg><span>Un « inconnu » n’est jamais appliqué sans décision humaine.</span></div>
+  </div>
+  <div class="two">
+    <div><h3>Quatre niveaux d’offre</h3><ul>
+      <li><strong>Prouver :</strong> restauration en sandbox, test métier, chrono.</li>
+      <li><strong>Combler :</strong> dépendances, secrets, étapes manuelles.</li>
+      <li><strong>Reconstruire :</strong> VM critiques recréées depuis le code.</li>
+      <li><strong>Maintenir :</strong> test régulier et détection de dérive.</li></ul></div>
+    <div><h3>Notre différenciation</h3><p>Aucun acteur cité ne combine reconstruction à l’intérieur des VM, test métier et bascule vérifiée. C’est ce que le prototype démontre, avec des mesures réelles.</p></div>
+  </div>
+</div></section>
+
+<section class="section alt" id="preuve"><div class="wrap">
+  <div class="head"><div class="eyebrow">Le prototype fonctionne</div>
+  <h2>Des mesures réelles, pas des promesses.</h2>
+  <p class="lead">Laboratoire MiNET, 3 novembre 2026.</p></div>
+  <div class="tbl-wrap"><table>
+    <tr><th>Indicateur</th><th>Résultat</th><th>Source</th></tr>
+    <tr><td>Reconstruction vérifiée : VM neuve, code, données, redémarrage, test métier, comparaison</td><td class="n">233–258 s</td><td class="s">CI Forgejo, MR n° 2–5</td></tr>
+    <tr><td>Coupure de service à la bascule vers la copie vérifiée</td><td class="n">27–29 s</td><td class="s">3 mesures, banc/resultats/bascule-*.json</td></tr>
+    <tr><td>Pièges du banc détectés : crons oubliés, config modifiée, binaire dans /opt, IP en dur, sauvegarde mensuelle…</td><td class="n">10 / 10</td><td class="s">mesure-20261103-1015.json</td></tr>
+    <tr><td>Classement de bs-logistique : 175 écarts, dont 139 compris, 19 ignorés, 7 secrets, 4 données</td><td class="n">6 inconnus (5 réels)</td><td class="s">classement/bs-classify</td></tr>
+    <tr><td>Modèle local (Qwen 3.6 35B, Ollama, 10 cœurs, 24 Go, sans GPU) : proposition sur les 5 inconnus</td><td class="n">78–91 s</td><td class="s">Journal du prototype</td></tr>
+    <tr><td>Accord entre le modèle et la décision humaine : le modèle formule la question, il ne décide pas</td><td class="n">0 / 5</td><td class="s">Journal du prototype</td></tr>
+  </table></div>
+</div></section>
+
+<section class="section" id="offre"><div class="wrap">
+  <div class="head"><div class="eyebrow">Business model</div>
+  <h2>Un cabinet de conseil équipé de son propre outil.</h2>
+  <p class="lead">Cible : les ETI françaises industrielles et logistiques, avec un petit service IT et un parc on-premise ou hybride. Acheteur : DSI ou RSSI, avec un dirigeant sponsor. Canal secondaire : les infogérants.</p></div>
+  <div class="cards offre">
+    <div class="card"><h3>Audit</h3><div class="prix">~15–25 k€</div><p>1 semaine en lecture seule : cartographie et score de reconstructibilité sur 5 à 10 applications critiques.</p></div>
+    <div class="card"><h3>Migration</h3><div class="prix">~30–60 k€ / VM</div><p>Reconstruction des VM critiques au forfait : code, tests, bascule.</p></div>
+    <div class="card"><h3>Abonnement</h3><div class="prix">~2–5 k€ / mois / app</div><p>Détection de dérive, test de reconstruction mensuel, rapport de reprise.</p></div>
+  </div>
+  <div class="note"><span><strong>Hypothèses à valider.</strong> Aucun entretien client n’a encore été mené : les tarifs, le marché et les déclencheurs d’achat (audit client, renouvellement de cyberassurance, incident récent, test de reprise imposé) restent à confirmer. NIS2 est un argument secondaire.</span></div>
+  <div class="two">
+    <div><h3>Concurrence</h3><ul>
+      <li><strong>Firefly</strong> (23 M$ levés en 2024) : ne couvre pas l’intérieur des VM on-premise.</li>
+      <li><strong>ControlMonkey</strong> (7 M$ en seed, 2025) : orienté cloud et IaC, pas de preuve métier.</li>
+      <li><strong>formae</strong> (IaC open source) : ni sandbox, ni test métier, ni bascule.</li>
+      <li><em>Indirects :</em> Veeam et Rubrik (restauration seule), ESN et cabinets de PRA, agents de code généralistes (accès SSH, aucune garantie).</li></ul></div>
+    <div><h3>Marché et objectif</h3>
+      <p><strong>Hypothèse SAM :</strong> 6 200 ETI × 25 % de secteurs pertinents × 40 k€/an ≈ <strong>62 M€/an</strong>, à affiner après les entretiens.</p>
+      <p style="margin-top:10px"><strong>Objectif :</strong> 700–800 k€ de CA en année 5, soit environ 20 clients à 40 k€/an.</p></div>
+  </div>
+</div></section>
+
+<section class="section alt" id="plan"><div class="wrap">
+  <div class="head"><div class="eyebrow">Go-to-market</div>
+  <h2>Planning sur 5 ans.</h2>
+  <p class="lead">Prospection ciblée des DSI et RSSI d’ETI logistiques et industrielles, webinaires « test de reprise réel », contenu technique (blog, démo), partenariats infogérants. Coût d’acquisition visé : moins de 6 mois de marge.</p></div>
+  <div class="tbl-wrap"><table>
+    <tr><th>Année</th><th>Focus</th><th>Effectif</th><th>Jalons</th></tr>
+    <tr><td class="n">1 (2027)</td><td>Produit et premiers clients</td><td>3 consultants + 2 ingénieurs</td><td>3 audits payants, 1 migration, MVP abonnement</td></tr>
+    <tr><td class="n">2</td><td>Répétabilité, partenariats infogérants</td><td>+2 consultants</td><td>10 clients en abonnement, CA ~300 k€</td></tr>
+    <tr><td class="n">3</td><td>Industrialisation : Windows/AD, observation longue eBPF</td><td>+3 consultants, +1 ingénieur</td><td>CA ~500 k€</td></tr>
+    <tr><td class="n">4</td><td>Scale commercial, offre packagée</td><td>+5 consultants</td><td>CA ~650 k€</td></tr>
+    <tr><td class="n">5</td><td>Objectif atteint</td><td>~15 personnes</td><td>CA 700–800 k€, rentabilité, levée possible</td></tr>
+  </table></div>
+</div></section>
+
+<section class="section" id="finance"><div class="wrap">
+  <div class="head"><div class="eyebrow">Finance et besoins</div>
+  <h2>500 à 600 k€ de trésorerie sur 18 à 24 mois.</h2>
+  <p class="lead">Revenus récurrents (abonnement) et projets (audit, migration). Marge brute visée : plus de 70 % sur l’abonnement, plus de 50 % sur les projets.</p></div>
+  <div class="tbl-wrap"><table>
+    <tr><th>Poste (années 1–2, estimation)</th><th>Montant</th></tr>
+    <tr><td>Salaires (5 puis 7–8 personnes)</td><td class="n">400–600 k€ / an</td></tr>
+    <tr><td>Infra : labo, CI cloud, GPU éventuel</td><td class="n">~30 k€ / an</td></tr>
+    <tr><td>Commercial et marketing</td><td class="n">~50 k€ / an</td></tr>
+    <tr><td><strong>Besoin de trésorerie</strong></td><td class="n">500–600 k€ sur 18–24 mois</td></tr>
+  </table></div>
+  <p class="lead" style="margin-top:20px">Financement envisagé : amorçage (business angels, BPI French Tech Grant), puis levée seed en année 2–3 si la traction est là. L’outil réduit le coût de livraison, pas le besoin d’expertise.</p>
+</div></section>
+
+<section class="section alt" id="rse"><div class="wrap">
+  <div class="head"><div class="eyebrow">Enjeux RSE</div>
+  <h2>Un impact mesurable.</h2></div>
+  <div class="cards">
+    <div class="card"><h3>Résilience économique</h3><p>Moins d’arrêts prolongés après une cyberattaque.</p></div>
+    <div class="card"><h3>Transmission du savoir</h3><p>Code versionné, décisions tracées, moins de dépendance aux personnes.</p></div>
+    <div class="card"><h3>Souveraineté</h3><p>Modèle local interchangeable (option Devstral testée), pas de cloud obligatoire.</p></div>
+    <div class="card"><h3>Emploi qualifié</h3><p>Consultants et ingénieurs en France.</p></div>
+    <div class="card"><h3>Électricité</h3><p>Modèle local d’environ 200 W en inférence, sandbox éphémère.</p></div>
+    <div class="card"><h3>Matériel et données</h3><p>Démo sur serveur existant (Dell R630), aucun achat neuf. Secrets masqués avant le modèle, coffre sur forge isolée.</p></div>
+  </div>
+  <p class="lead" style="margin-top:20px"><strong>Indicateurs suivis :</strong> kWh par reconstruction (mesuré sur le labo) et part de VM reconstruites sans intervention manuelle non documentée.</p>
+</div></section>
+
+<section class="section dark"><div class="wrap">
+  <div class="eyebrow">Vision</div>
+  <h2>La référence de la preuve de reprise pour les ETI françaises.</h2>
+  <p class="lead">Passer de « on a des backups » à « on a testé, ça repart en 4 minutes, et on le refait tous les mois ». Étendre ensuite à Windows/AD, aux équipements réseau et à l’observation longue. Sans jamais promettre 100 % : tout ce qui n’est pas expliqué vous est signalé, et ce qui a été reconstruit a été testé.</p>
+  <div class="cta">Vendredi 6 novembre, démo vivante au bâtiment F : <span>jugez la preuve, pas la promesse.</span></div>
+</div></section>
+
+<footer><div class="wrap">
+  <a href="#top" aria-label="Black Start"><svg class="logo" viewBox="0 0 880.3 90.7" role="img" aria-label="Black Start">
+        <g transform="translate(0 90.72)">
+          <path d="M64.41 -70.53 A35.51 35.51 0 0 1 71.86 -22.50" fill="none" stroke="#0E9F55" stroke-width="14.07"/>
+          <path d="M69.09 -18.95 A35.51 35.51 0 1 1 20.68 -70.53" fill="none" stroke="#E8F2EC" stroke-width="14.07"/>
+          <rect x="35.51" y="-90.72" width="14.07" height="48.17" fill="#E8F2EC"/>
+          <path d="M161.13 0.0H116.23V-67.0H158.83Q180.53 -67.0 180.53 -50.8Q180.53 -36.3 163.83 -35.6V-34.6Q173.63 -34.2 178.63 -30.0Q183.63 -25.8 183.63 -18.6Q183.63 0.0 161.13 0.0ZM134.93 -50.1V-41.6H156.83Q159.63 -41.6 160.68 -42.5Q161.73 -43.4 161.73 -45.8Q161.73 -48.1 160.48 -49.1Q159.23 -50.1 156.33 -50.1ZM134.93 -26.2V-16.9H158.73Q162.13 -16.9 163.38 -17.85Q164.63 -18.8 164.63 -21.6Q164.63 -24.4 163.43 -25.3Q162.23 -26.2 158.73 -26.2ZM247.13 0.0H189.63V-67.0H208.43V-16.9H247.13ZM271.23 0.0H250.13L279.03 -67.0H305.93L334.93 0.0H313.33L308.23 -12.4H276.43ZM287.43 -38.7 283.53 -29.3H301.33L297.43 -38.7L293.03 -50.0H291.73ZM374.93 1.0Q357.63 1.0 347.78 -8.35Q337.93 -17.7 337.93 -33.5Q337.93 -49.3 347.78 -58.65Q357.63 -68.0 374.93 -68.0Q391.83 -68.0 401.38 -60.4Q410.93 -52.8 410.93 -39.4V-37.7H389.93V-39.4Q389.93 -45.2 386.68 -47.6Q383.43 -50.0 375.23 -50.0Q364.93 -50.0 361.43 -46.7Q357.93 -43.4 357.93 -33.5Q357.93 -23.6 361.43 -20.3Q364.93 -17.0 375.23 -17.0Q383.43 -17.0 386.68 -19.4Q389.93 -21.8 389.93 -27.6V-29.3H410.93V-27.6Q410.93 -14.2 401.38 -6.6Q391.83 1.0 374.93 1.0ZM436.73 0.0H417.93V-67.0H436.73V-42.1H450.23L466.53 -67.0H489.03L465.83 -34.1L488.53 0.0H466.03L450.43 -23.8H436.73Z" fill="#E8F2EC"/>
+          <path d="M547.53 1.0Q514.53 1.0 514.53 -23.3V-23.9H533.33V-21.8Q533.33 -18.3 535.83 -17.2Q538.33 -16.1 547.53 -16.1Q555.73 -16.1 557.93 -16.85Q560.13 -17.6 560.13 -20.0Q560.13 -21.8 558.73 -22.7Q557.33 -23.6 553.33 -24.1L532.33 -26.9Q513.53 -29.5 513.53 -46.1Q513.53 -55.2 521.38 -61.6Q529.23 -68.0 546.03 -68.0Q561.63 -68.0 569.58 -61.6Q577.53 -55.2 577.53 -43.7V-43.1H558.73V-44.6Q558.73 -48.4 555.93 -49.7Q553.13 -51.0 544.03 -51.0Q537.13 -51.0 534.73 -50.05Q532.33 -49.1 532.33 -46.8Q532.33 -45.2 533.38 -44.4Q534.43 -43.6 537.13 -43.2L558.13 -40.1Q578.93 -37.1 578.93 -20.7Q578.93 -11.3 571.18 -5.15Q563.43 1.0 547.53 1.0ZM626.43 0.0H607.63V-50.1H583.93V-67.0H650.03V-50.1H626.43ZM673.63 0.0H652.53L681.43 -67.0H708.33L737.33 0.0H715.73L710.63 -12.4H678.83ZM689.83 -38.7 685.93 -29.3H703.73L699.83 -38.7L695.43 -50.0H694.13ZM760.13 0.0H741.33V-67.0H780.43Q793.63 -67.0 800.53 -61.7Q807.43 -56.4 807.43 -46.5Q807.43 -38.4 803.08 -33.8Q798.73 -29.2 789.33 -28.0V-27.0Q794.13 -25.8 796.48 -23.5Q798.83 -21.2 800.93 -16.8L809.23 0.0H787.53L779.53 -16.4Q777.73 -20.2 775.48 -21.5Q773.23 -22.8 767.83 -22.8H760.13ZM760.13 -50.1V-36.8H780.23Q784.53 -36.8 786.13 -38.1Q787.73 -39.4 787.73 -43.5Q787.73 -47.4 786.08 -48.75Q784.43 -50.1 780.23 -50.1ZM855.23 0.0H836.43V-50.1H812.73V-67.0H878.83V-50.1H855.23Z" fill="#0E9F55"/>
+        </g>
+      </svg></a>
+  <span>Équipe n° 16 · Prototype gelé le jeudi 5 novembre à midi · vidéo de secours enregistrée</span>
+</div></footer>
+
+</body>
+</html>

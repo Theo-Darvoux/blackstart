@@ -30,4 +30,25 @@ newaliases
 
 systemctl enable --quiet postfix dovecot
 systemctl restart postfix dovecot
+
+# --- sauvegarde des boîtes (ajoutée le 3 novembre) ------------------------------
+# Même serveur et même compte SFTP que la logistique, dépôt restic séparé.
+# L'état de Postfix et Dovecot (files d'attente, verrous) n'est pas sauvegardé :
+# il se régénère, et le restaurer sur une installation neuve casserait les services.
+apt-get -qq install -y restic >/dev/null
+install -d -m 0700 /root/.ssh /etc/restic
+install -m 0600 "$d/secrets/sauvegarde_ed25519" /root/.ssh/id_sauvegarde
+grep -q "$SAUVEGARDE_IP" /root/.ssh/known_hosts 2>/dev/null || \
+    ssh-keyscan -q -t ed25519 "$SAUVEGARDE_IP" >> /root/.ssh/known_hosts
+printf 'Host %s\n    User sauvegarde\n    IdentityFile /root/.ssh/id_sauvegarde\n    IdentitiesOnly yes\n' \
+    "$SAUVEGARDE_IP" > /root/.ssh/config
+printf '%s\n' "$RESTIC_MAIL_PASSWORD" > /etc/restic/mail.pass
+chmod 0600 /etc/restic/mail.pass
+printf 'RESTIC_REPOSITORY=sftp:%s:/srv/sauvegardes/mail\nRESTIC_PASSWORD_FILE=/etc/restic/mail.pass\n' \
+    "$SAUVEGARDE_IP" > /etc/restic/mail.env
+install -m 0755 "$d/mail/sauvegarde-mail" /usr/local/sbin/sauvegarde-mail
+echo "45 2 * * * root /usr/local/sbin/sauvegarde-mail" > /etc/cron.d/sauvegarde-mail
+set -a; . /etc/restic/mail.env; set +a
+restic cat config >/dev/null 2>&1 || restic init --quiet
+/usr/local/sbin/sauvegarde-mail
 echo "mail : OK"

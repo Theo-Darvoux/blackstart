@@ -23,13 +23,14 @@
         directory_mode: "0700"
       no_log: true
 
-    - name: Dernier instantané restic restauré
+    # Tout l'instantané est restauré : dumps PostgreSQL et dossiers de données sauvegardés (/srv/edi depuis le 3 nov.).
+    - name: Dernier instantané restic restauré (dumps et dossiers de données)
       ansible.builtin.shell: |
         set -eu
         for env in /etc/restic/*.env; do
           set -a; . "$env"; set +a
-          restic restore latest --target / --include /var/backups
-          restic snapshots --latest 1 --compact | sed -n 3p
+          restic restore latest --target /
+          restic snapshots latest --compact | sed -n 3p   # même instantané que « restore latest »
         done
       register: restic_out
       changed_when: true

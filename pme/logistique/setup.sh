@@ -83,7 +83,9 @@ PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin  # cron ne don
 set -a; . /etc/restic/logistique.env; set +a
 mkdir -p /var/backups/logistique
 runuser -u postgres -- pg_dump -Fc logistique > /var/backups/logistique/logistique.dump
-restic backup --quiet --tag logistique /var/backups/logistique
+# /srv/edi : exports EDI vers le transporteur (créés par les pièges), sauvegardés depuis le 3 nov.
+paths=/var/backups/logistique; [ -d /srv/edi ] && paths="$paths /srv/edi"
+restic backup --quiet --tag logistique $paths
 restic forget --quiet --keep-daily 7 --keep-weekly 4 --prune
 EOF
 chmod 0755 /usr/local/sbin/sauvegarde-logistique

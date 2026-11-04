@@ -25,16 +25,26 @@ def render(d):
     test = load(os.path.join(d, "test-metier.json"))
     cmp_ = load(os.path.join(d, "comparaison.json"))
     echec = load(os.path.join(d, "echec.json"))
+    attente = load(os.path.join(d, "attente.json")) or []
     lines = []
     if echec:
         lines.append(f"## ❌ Vérification interrompue : {echec['etape_en_echec']}\n")
-    elif cmp_ and cmp_["summary"]["unjustified"] == 0:
+    elif cmp_ and cmp_["summary"]["unjustified"] == 0 and not attente:
         lines.append("## ✅ Reconstruction vérifiée : aucun écart non justifié\n")
     elif cmp_:
-        lines.append(f"## ⛔ Merge bloqué : {cmp_['summary']['unjustified']} écart(s) non justifié(s)\n")
+        motifs = ([f"{len(attente)} décision(s) humaine(s) en attente"] if attente else []) + \
+                 ([f"{cmp_['summary']['unjustified']} écart(s) non justifié(s)"] if cmp_["summary"]["unjustified"] else [])
+        lines.append(f"## ⛔ Merge bloqué : {', '.join(motifs)}\n")
+    elif attente:
+        lines.append(f"## ⛔ Merge bloqué : {len(attente)} décision(s) humaine(s) en attente\n")
+        lines.append("Reconstruction non lancée : elle n'est vérifiée qu'une fois chaque décision prise.\n")
+    if attente:
+        lines.append("| Décision en attente | Pourquoi |\n| --- | --- |")
+        lines += [f"| `{a['cle']}` | {a['raison']} |" for a in attente]
+        lines.append("\nÀ trancher dans `decisions/<vm>.json` (`reproduire`, `ne pas reproduire` ou `accepter`, avec une raison et un nom).\n")
     if chronos:
         lines.append(f"Sandbox `{chronos.get('sandbox')}` ({chronos.get('ip')}), parcours complet en **{chronos.get('total_s')} s** "
-                     f"(sandbox {chronos.get('sandbox_s')} s, reconstruction {chronos.get('reconstruction_s')} s, "
+                     f"(sandbox {chronos.get('sandbox_s')} s{' (préchauffée : clone neuf du template prêt avant la CI)' if chronos.get('sandbox_prechauffee') else ''}, reconstruction {chronos.get('reconstruction_s')} s, "
                      f"restauration {chronos.get('restauration_s')} s, redémarrage {chronos.get('redemarrage_s')} s, test métier {chronos.get('test_metier_s')} s, "
                      f"collecte {chronos.get('collecte_s')} s).\n")
     if test:
@@ -66,7 +76,7 @@ def render(d):
                      if sauv.get("dernier_passage_prevu") else f"la période attendue ({sauv['max_h']:g} h)")
             lines.append(f"> ⚠️ Sauvegarde en retard : l'instantané est plus vieux que {quand}. La sauvegarde planifiée "
                          "de l'original n'a pas tourné ; à la bascule, tout ce qui a été écrit depuis serait perdu.\n")
-    brut = {"chronos": chronos, "test_metier": test, "echec": echec, "sauvegarde": sauv,
+    brut = {"chronos": chronos, "test_metier": test, "echec": echec, "sauvegarde": sauv, "attente": [a["cle"] for a in attente],
             "comparaison": cmp_ and {"summary": cmp_["summary"],
                                      "bloquants": [x["key"] for x in cmp_["differences"] if not x["justified"]]}}
     lines.append("<!-- bs-verif " + json.dumps(brut, ensure_ascii=False).replace("--", "\\u002d\\u002d") + " -->")

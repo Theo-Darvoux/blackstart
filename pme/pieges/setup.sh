@@ -11,6 +11,7 @@ install -d -m 0755 /opt/logistique/bin /srv/edi/sortant
 cat > /opt/logistique/bin/export-edi <<'EOF'
 #!/bin/sh
 # Export EDI des commandes confirmées vers le transporteur (prestataire, 2023)
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin  # cron ne donne que /usr/bin:/bin ; runuser est dans /usr/sbin
 out=/srv/edi/sortant/$(date +%Y%m%d%H%M).csv
 runuser -u postgres -- psql -At -F';' logistique -c \
   "SELECT ref, client, sku, quantite FROM commandes WHERE statut = 'confirmée' AND cree_le > now() - interval '10 minutes'" > "$out"

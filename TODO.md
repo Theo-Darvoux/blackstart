@@ -2,7 +2,7 @@
 
 État au lundi 2 novembre 2026 à 17h14. La version vivante est la to-do list partagée de l'équipe, à laquelle Claude Code n'a pas accès : se fier à ce que dit Théo si les deux divergent.
 
-Mise à jour du mardi 3 novembre vers 10h30 par Claude Code : seules les tâches du prototype sont cochées, d'après le travail fait et mesuré (détail dans le journal du prototype). Les autres tâches n'ont pas été vérifiées.
+Mise à jour du mardi 3 novembre vers 13h par Claude Code : seules les tâches du prototype sont cochées, d'après le travail fait et mesuré (détail dans le journal du prototype). Les autres tâches n'ont pas été vérifiées.
 
 ## Lundi 2 novembre, soir (cochées par l'équipe)
 
@@ -32,17 +32,22 @@ Mise à jour du mardi 3 novembre vers 10h30 par Claude Code : seules les tâches
 ## Prototype : reste à faire avant le gel (jeudi midi)
 
 - [ ] Vérifier que la sauvegarde de 02h30 a bien tourné par cron dans la nuit du 3 au 4 novembre (nouvel instantané restic) — Claude Code
-- [ ] Script de démo chronométré du scénario B (~10 min en direct : audit + propositions 1,5 min, deux CI de ~4 min, décision, bascule 27 à 29 s) — Théo + Claude Code
-- [ ] Fiche des chiffres mesurés, avec leur source, pour l'executive summary — Claude Code
-- [ ] Afficher l'âge de la sauvegarde sur la page de rapport et republier l'artifact — Claude Code
-- [ ] Optionnel : MR de reconstruction pour `bs-mail` et `bs-proxy` ; ajouter `/srv/edi` à la sauvegarde restic — Claude Code
-- [ ] Avant chaque démo : `pme/deploy.sh pieges` si `bs-logistique` a redémarré ; modèle chargé sur `bs-ia` (3 à 5 min) ; supprimer `decisions/bs-logistique.propositions.json` pour un appel en direct — Théo
+- [x] Script de démo chronométré du scénario B — Théo + Claude Code (`infra/demo-scenario-b.sh`, répété le 3 nov. : ≈ 11 min)
+- [x] Démo accélérée et visuelle pour l'oral — Claude Code (salle de contrôle `infra/salle/serveur.py --par Théo`, http://localhost:8080 ; 3 min 19 s de bout en bout le 3 nov. à 16h20, contre 9 min 43 s)
+- [ ] Répéter la démo dans la salle de contrôle en cliquant soi-même les 5 décisions, au vidéoprojecteur — Théo
+- [x] Fiche des chiffres mesurés, avec leur source, pour l'executive summary — Claude Code (`docs/05-mesures.md`)
+- [x] Afficher l'âge de la sauvegarde sur la page de rapport et republier l'artifact — Claude Code
+- [x] MR de reconstruction pour `bs-mail` (n° 9) et `bs-proxy` (n° 10) ; `/srv/edi` dans la sauvegarde restic (MR n° 8) — Claude Code
+- [x] Données de `bs-proxy` : perte acceptée (régénérables) ; boîtes de `bs-mail` : sauvegarde restic ajoutée — Théo + Claude Code
+- [x] Trancher l'état de Postfix et Dovecot sur `bs-mail` (`/var/lib/postfix`, `/var/lib/dovecot`, `/var/spool/postfix`) et `/home/prestataire` sur `bs-logistique` (clé SSH du prestataire, hors sauvegarde) — Théo (acceptés le 3 nov. ; MR n° 9 et 11 vertes)
+- [ ] Avant chaque démo : bouton « Préparer » de la salle de contrôle, 10 min avant (pièges, modèle, sandbox préchauffée, propositions du modèle) ; après : « Remettre en état » — Théo
 - [ ] Pièges à l'aveugle — MiNET 2
 - [ ] `git init` puis commit de `blackstart-context` (Claude Code ne commite pas hors forge) — Théo
-- [ ] Signaler à MiNET la clé d'hôte du template partagée avec `swarm-blueblood` — Théo
-- [ ] Faire vérifier la barrette A2 de luna par MiNET (erreurs UEFI0058/UEFI0107 du 3 nov.) ; pas de forte charge d'ici là — Théo
+- [ ] Signaler à MiNET la clé d'hôte du template partagée avec `swarm-blueblood` — Théo (pris en charge, 3 nov.)
+- [x] Faire vérifier la barrette A2 de luna par MiNET — Théo (luna relancée avec 128 Go le 3 nov. ; `bs-ia` passé à 48 Go)
+- [x] Comprendre l'arrêt des 5 VM du 3 nov. vers 11h11 — Théo (arrêt pour l'ajout de RAM sur luna)
 
-À dire au jury : le modèle formule la question à poser pour chaque inconnu ; il ne classe pas. Sur des preuves stables, ses propositions ne rejoignent les décisions humaines sur aucun des 5 inconnus de `bs-logistique` (4 « à vérifier », 1 contradiction).
+À dire au jury : le modèle formule la question à poser pour chaque inconnu ; il ne classe pas. Sur des preuves stables, `qwen3.6:35b` rejoint la décision humaine sur 1 des 5 inconnus de `bs-logistique`, répond « à vérifier » pour les 4 autres, sans contradiction ; `gemma4:26b` fait 2 contradictions.
 
 ## Mercredi 4 novembre
 

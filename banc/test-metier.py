@@ -29,6 +29,7 @@ import struct
 import subprocess
 import sys
 import time
+import urllib.error
 import urllib.request
 import uuid
 
@@ -86,6 +87,99 @@ def http(method, url, host, body=None, timeout=10):
         return resp.status, json.loads(resp.read().decode())
 
 
+def test_role(args):
+    """Test métier d'une copie isolée de bs-mail ou bs-proxy. Les dépendances
+    vers les autres machines sont coupées par le pare-feu de la sandbox : on
+    vérifie le service lui-même, pas le parcours complet."""
+    ip, ref = args.cible, f"BST-{uuid.uuid4().hex[:8].upper()}"
+    key = os.path.expanduser(os.environ.get("BS_ADMIN_KEY", "~/.ssh/id_blackstart_admin"))
+    steps, t0 = [], time.monotonic()
+
+    def ssh(cmd):
+        return subprocess.run(["ssh", "-o", "BatchMode=yes", "-o", "IdentitiesOnly=yes", "-o", "ConnectTimeout=5",
+                               "-o", "StrictHostKeyChecking=accept-new", "-i", key, f"claude@{ip}", cmd],
+                              capture_output=True, text=True, timeout=30)
+
+    def step(name, fn):
+        t = time.monotonic()
+        try:
+            detail, ok = fn(), True
+        except Exception as exc:
+            detail, ok = f"{type(exc).__name__}: {exc}", False
+        steps.append({"etape": name, "ok": ok, "duree_s": round(time.monotonic() - t, 2), "detail": detail})
+        print(f"  {'OK   ' if ok else 'ÉCHEC'} {name} ({steps[-1]['duree_s']} s) : {detail}")
+        return ok
+
+    def s_smtp():
+        import smtplib
+        from email.message import EmailMessage
+        msg = EmailMessage()
+        msg["From"], msg["To"], msg["Subject"] = f"test@{args.domain}", f"commandes@{args.domain}", f"Test Black Start {ref}"
+        msg.set_content("Message de test de la reconstruction (Black Start).")
+        with smtplib.SMTP(ip, 25, timeout=10) as smtp:
+            banner = smtp.ehlo()[1].decode(errors="replace").splitlines()[0]
+            smtp.send_message(msg)
+        return f"mail pour commandes@{args.domain} accepté ({banner})"
+
+    def s_boite():
+        deadline = time.monotonic() + args.mail_timeout
+        while True:
+            r = ssh(f"sudo grep -rl 'Subject: Test Black Start {ref}' /var/mail/commandes /home/commandes/mail /home/commandes/Maildir 2>/dev/null")
+            if r.stdout.strip():
+                return f"distribué dans {r.stdout.split()[0]}"
+            if time.monotonic() > deadline:
+                raise AssertionError(f"mail {ref} absent de la boîte de commandes après {args.mail_timeout} s")
+            time.sleep(1)
+
+    def s_imap():
+        with socket.create_connection((ip, 993), timeout=10) as raw:
+            tls = ssl.create_default_context()
+            tls.check_hostname, tls.verify_mode = False, ssl.CERT_NONE  # certificat auto-signé du labo
+            with tls.wrap_socket(raw) as c:
+                greet = c.recv(200).decode(errors="replace").strip()
+        if not greet.startswith("* OK"):
+            raise AssertionError(greet)
+        return f"IMAPS répond : {greet[:60]}"
+
+    def s_dns_role():
+        host = f"logistique.{args.domain}"
+        ips = dns_a(ip, host)
+        if not ips:
+            raise AssertionError(f"pas de réponse pour {host}")
+        return f"{host} -> {', '.join(ips)}"
+
+    def s_web():
+        req = urllib.request.Request(f"http://{ip}/", headers={"Host": f"logistique.{args.domain}"})
+        try:
+            with urllib.request.urlopen(req, timeout=10) as r:
+                status, server = r.status, r.headers.get("Server", "")
+        except urllib.error.HTTPError as e:
+            status, server = e.code, e.headers.get("Server", "")
+        if "nginx" not in server.lower():
+            raise AssertionError(f"HTTP {status}, serveur « {server} »")
+        if status not in (200, 502, 504):
+            raise AssertionError(f"HTTP {status}")
+        return (f"HTTP {status} par {server}" + (" (attendu : la sandbox coupe l'accès au logiciel)" if status != 200 else ""))
+
+    def s_conf():
+        r = ssh("sudo nginx -t 2>&1; sudo unbound-checkconf 2>&1")
+        if r.returncode != 0:
+            raise AssertionError(r.stdout.strip()[-200:])
+        return "nginx -t et unbound-checkconf sans erreur"
+
+    plan = ([("Réception SMTP", s_smtp), ("Distribution dans la boîte", s_boite), ("Serveur IMAPS", s_imap)]
+            if args.role == "mail" else
+            [("DNS interne", s_dns_role), ("Proxy web", s_web), ("Configuration valide", s_conf)])
+    print(f"Test métier : copie de bs-{args.role} {ip} (sandbox isolée)")
+    ok = all([step(n, f) for n, f in plan])
+    total = round(time.monotonic() - t0, 2)
+    print(("TOUT VERT" if ok else "ÉCHEC") + f" en {total} s")
+    if args.json:
+        with open(args.json, "w", encoding="utf-8") as fh:
+            json.dump({"ok": ok, "duree_s": total, "ref": ref, "etapes": steps}, fh, indent=2, ensure_ascii=False)
+    return 0 if ok else 1
+
+
 def main():
     env = read_env(os.path.join(PME, "pme.env"))
     secrets = read_env(os.path.join(PME, "secrets", "secrets.env"))
@@ -101,7 +195,12 @@ def main():
     ap.add_argument("--json", help="écrire le résultat dans ce fichier")
     ap.add_argument("--nettoyer", metavar="COMPTE@IP",
                     help="supprimer ensuite la commande de test sur la VM du logiciel (SSH + psql)")
+    ap.add_argument("--role", choices=("logistique", "mail", "proxy"), default="logistique",
+                    help="machine testée : logistique (défaut, parcours complet), mail ou proxy (copie isolée, --cible)")
+    ap.add_argument("--cible", metavar="IP", help="IP de la copie de bs-mail ou bs-proxy (avec --role)")
     args = ap.parse_args()
+    if args.role != "logistique":
+        sys.exit(test_role(args))
 
     host = f"logistique.{args.domain}"
     base = f"http://{args.app or args.proxy}"

@@ -20,7 +20,7 @@ import sys
 
 ROOT = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..")
 REPO = os.path.join(ROOT, "forge", "pme-infra")
-CHOIX = {"r": "reproduire", "n": "ne pas reproduire"}
+CHOIX = {"r": "reproduire", "n": "ne pas reproduire", "a": "accepter"}
 STATUT = {"reproduire": "reproduire", "ne_pas_reproduire": "ne pas reproduire", "donnee": "donnée",
           "a_verifier": "à vérifier"}
 
@@ -49,15 +49,25 @@ def main():
         sys.exit(f"le dépôt {REPO} n'est pas sur {branche} : lancer d'abord infra/bs-mr.sh {vm}")
     subprocess.run(["git", "-C", REPO, "pull", "-q", "--ff-only"], check=True)
     ref = json.load(open(os.path.join(ROOT, "inventaires", f"{vm}-vierge.json"), encoding="utf-8"))
-    cur = json.load(open(os.path.join(ROOT, "inventaires", f"{vm}-pieges.content.json"), encoding="utf-8"))
+    cur_path = os.path.join(ROOT, "inventaires", f"{vm}-pieges.content.json")
+    if not os.path.exists(cur_path):
+        cur_path = os.path.join(ROOT, "inventaires", f"{vm}-services.content.json")
+    cur = json.load(open(cur_path, encoding="utf-8"))
     items, _ = charger_classify().run(ref, cur)
     chemin = os.path.join(REPO, "decisions", f"{vm}.json")
     decided = json.load(open(chemin, encoding="utf-8")) if os.path.exists(chemin) else {}
     pp = os.path.join(REPO, "decisions", f"{vm}.propositions.json")
     props = json.load(open(pp, encoding="utf-8")).get("propositions", {}) if os.path.exists(pp) else {}
     ecrites = json.load(open(args.depuis, encoding="utf-8")) if args.depuis else {}
-    attente = [i for i in items if i["statut"] == "inconnu" and i["key"] not in decided
-               and (i["key"] in props or not props)]
+    # Décisions en attente : celles que bs-generate a listées (inconnus, données sans sauvegarde),
+    # sinon les inconnus du classement.
+    att_path = os.path.join(REPO, vm, "attente.json")
+    if os.path.exists(att_path):
+        raisons = {a["cle"]: a["raison"] for a in json.load(open(att_path, encoding="utf-8"))}
+        attente = [{"key": k, "raison": r} for k, r in raisons.items() if k not in decided]
+    else:
+        attente = [i for i in items if i["statut"] == "inconnu" and i["key"] not in decided
+                   and (i["key"] in props or not props)]
     if not attente:
         sys.exit("aucun inconnu en attente de décision")
     print(f"{vm} : {len(attente)} élément(s) à trancher. Le modèle propose ; vous décidez.\n")
@@ -78,8 +88,8 @@ def main():
             print(f"  décision: {choix} ({raison})\n")
         else:
             rep = ""
-            while rep not in ("r", "n", "p"):
-                rep = input("  décision [r]eproduire / [n]e pas reproduire / [p]asser : ").strip().lower()[:1]
+            while rep not in ("r", "n", "a", "p"):
+                rep = input("  décision [r]eproduire / [n]e pas reproduire / [a]ccepter (données) / [p]asser : ").strip().lower()[:1]
             if rep == "p":
                 print()
                 continue

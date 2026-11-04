@@ -24,9 +24,9 @@
     "par": "Théo",
     "raison": "réglage voulu (10), désormais persisté dans /etc/sysctl.d"
   },
-  "data:/srv/edi": {
+  "data:/home/prestataire": {
     "decision": "accepter",
     "par": "Théo",
-    "raison": "exports EDI régénérés toutes les 10 min ; action : ajouter /srv/edi à la sauvegarde restic"
+    "raison": "dossier du compte prestataire, hors sauvegarde : son accès SSH (authorized_keys) n'est volontairement pas recréé, comme son sudo"
   }
 }

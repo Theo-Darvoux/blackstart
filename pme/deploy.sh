@@ -12,7 +12,7 @@ source ./pme.env
 
 role="${1:?usage: deploy.sh mail|proxy|sauvegarde|logistique|pieges}"
 case "$role" in
-    mail)       ip=$MAIL_IP;       needs="IMAP_PASSWORD"; keys=() ;;
+    mail)       ip=$MAIL_IP;       needs="IMAP_PASSWORD RESTIC_MAIL_PASSWORD"; keys=(sauvegarde_ed25519) ;;
     proxy)      ip=$PROXY_IP;      needs="";              keys=() ;;
     sauvegarde) ip=$SAUVEGARDE_IP; needs="";              keys=(sauvegarde_ed25519.pub) ;;
     logistique) ip=$LOGISTIQUE_IP; needs="DB_PASSWORD RESTIC_PASSWORD"; keys=(sauvegarde_ed25519) ;;

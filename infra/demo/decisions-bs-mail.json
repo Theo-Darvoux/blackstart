@@ -1,0 +1,17 @@
+{
+  "data:/var/lib/postfix": {
+    "decision": "accepter",
+    "par": "Théo",
+    "raison": "état interne de Postfix (verrous, graine aléatoire), régénéré au démarrage"
+  },
+  "data:/var/lib/dovecot": {
+    "decision": "accepter",
+    "par": "Théo",
+    "raison": "état interne de Dovecot (instances, paramètres TLS), régénéré au démarrage"
+  },
+  "data:/var/spool/postfix": {
+    "decision": "accepter",
+    "par": "Théo",
+    "raison": "files d'attente de Postfix, vides en temps normal ; seuls les mails en transit au moment de la panne seraient perdus"
+  }
+}

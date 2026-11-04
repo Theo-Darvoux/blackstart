@@ -68,6 +68,62 @@
     {
       "match": "process:/usr/lib/openssh/sshd-session@*@session.scope",
       "reason": "session SSH d'administration ouverte pendant la collecte (Ansible garde sa connexion 60 s)"
+    },
+    {
+      "match": "process:/usr/lib/postfix/sbin/smtpd@*@postfix.service",
+      "reason": "processus de travail de Postfix lancé à la demande : présent ou non selon le trafic au moment de la collecte"
+    },
+    {
+      "match": "process:/usr/lib/postfix/sbin/anvil@*@postfix.service",
+      "reason": "processus de travail de Postfix lancé à la demande : présent ou non selon le trafic au moment de la collecte"
+    },
+    {
+      "match": "process:/usr/lib/postfix/sbin/proxymap@*@postfix.service",
+      "reason": "processus de travail de Postfix lancé à la demande : présent ou non selon le trafic au moment de la collecte"
+    },
+    {
+      "match": "process:/usr/lib/postfix/sbin/cleanup@*@postfix.service",
+      "reason": "processus de travail de Postfix lancé à la demande : présent ou non selon le trafic au moment de la collecte"
+    },
+    {
+      "match": "process:/usr/lib/postfix/sbin/local@*@postfix.service",
+      "reason": "processus de travail de Postfix lancé à la demande : présent ou non selon le trafic au moment de la collecte"
+    },
+    {
+      "match": "process:/usr/lib/postfix/sbin/trivial-rewrite@*@postfix.service",
+      "reason": "processus de travail de Postfix lancé à la demande : présent ou non selon le trafic au moment de la collecte"
+    },
+    {
+      "match": "process:/usr/lib/postfix/sbin/tlsmgr@*@postfix.service",
+      "reason": "processus de travail de Postfix lancé à la demande : présent ou non selon le trafic au moment de la collecte"
+    },
+    {
+      "match": "process:/usr/lib/postfix/sbin/smtp@*@postfix.service",
+      "reason": "processus de travail de Postfix lancé à la demande : présent ou non selon le trafic au moment de la collecte"
+    },
+    {
+      "match": "process:/usr/lib/postfix/sbin/bounce@*@postfix.service",
+      "reason": "processus de travail de Postfix lancé à la demande : présent ou non selon le trafic au moment de la collecte"
+    },
+    {
+      "match": "process:/usr/lib/dovecot/stats@*@dovecot.service",
+      "reason": "processus de travail de Dovecot lancé à la demande : présent ou non selon le trafic au moment de la collecte"
+    },
+    {
+      "match": "process:/usr/lib/dovecot/auth@*@dovecot.service",
+      "reason": "processus de travail de Dovecot lancé à la demande : présent ou non selon le trafic au moment de la collecte"
+    },
+    {
+      "match": "process:/usr/lib/dovecot/imap-login@*@dovecot.service",
+      "reason": "processus de travail de Dovecot lancé à la demande : présent ou non selon le trafic au moment de la collecte"
+    },
+    {
+      "match": "process:/usr/lib/dovecot/imap@*@dovecot.service",
+      "reason": "processus de travail de Dovecot lancé à la demande : présent ou non selon le trafic au moment de la collecte"
+    },
+    {
+      "match": "data:*/.cache",
+      "reason": "cache (restic, pip, etc.) : régénéré à l'usage, inutile à sauvegarder"
     }
   ]
 }

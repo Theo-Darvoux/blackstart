@@ -192,7 +192,9 @@ def risques(v):
 
 
 def preuve(v):
-    n = v["score"]["comptes"]["attente"]
+    # Décisions en attente : inconnus du classement, ou celles que la CI a relevées (données sans sauvegarde).
+    ver_ = ((v["forge"] or {}).get("verif") or {}) if v["forge"] and "erreur" not in v["forge"] else {}
+    n = max(v["score"]["comptes"]["attente"], len(ver_.get("attente") or []))
     if n:
         return "echec", f"Bloquée : {n} décision{'s' if n > 1 else ''} en attente"
     f = v["forge"]
@@ -371,6 +373,16 @@ def render_vm(v):
             sm = c["summary"]
             blk.append(f'<p class="note">Comparaison avec l\'original : {sm["differences"]} écarts, '
                        f'<b>{sm["unjustified"]} non justifiés</b>, {sm["justified"]} justifiés par règle ou décision.</p>')
+        sv = ver.get("sauvegarde")
+        if sv:
+            blk.append(f'<p class="note">Données restaurées : instantané restic <code>{esc(sv["instantane"])}</code> du '
+                       f'{esc(sv["date"])}, âgé de <b class="num">{fmt_pct(sv["age_h"])} h</b> au moment de la vérification : '
+                       'c\'est ce qui serait perdu en basculant à cet instant.</p>')
+            if sv.get("trop_vieux"):
+                quand = (f'le passage prévu du {esc(sv["dernier_passage_prevu"])}' if sv.get("dernier_passage_prevu")
+                         else f'la période attendue ({sv["max_h"]:g} h)')
+                blk.append(f'<p class="note"><b>Sauvegarde en retard</b> : l\'instantané est plus vieux que {quand}. '
+                           'La sauvegarde planifiée de l\'original n\'a pas tourné.</p>')
         if ver.get("echec"):
             blk.append(f'<p class="note">Arrêt à l\'étape : {esc(ver["echec"]["etape_en_echec"])}</p>')
         if f.get("verif_date"):
@@ -429,11 +441,14 @@ def render(cfg, vms, fragment):
         f = v["forge"] or {}
         ch = ((f.get("verif") or {}).get("chronos") or {})
         bas = v["bascules"][-1]["coupure_s"] if v["bascules"] else None
+        sv = (f.get("verif") or {}).get("sauvegarde")
         r = risques(v)
         rows.append(f'<tr><td><a href="#{esc(v["vm"])}"><b>{esc(v["vm"])}</b></a><div class="note">{esc(v["role"])}</div></td>'
                     f'<td><span class="pill {cls}">{lib}</span></td>'
                     f'<td class="num">{fmt_s(ch.get("total_s"))}<div class="note">{"reconstruction" if ch.get("total_s") else "pas encore mesurée"}</div></td>'
                     f'<td class="num">{fmt_s(bas)}<div class="note">{"coupure à la bascule" if bas is not None else "pas de bascule"}</div></td>'
+                    f'<td class="num">{(fmt_pct(sv["age_h"]) + " h") if sv else "—"}<div class="note">'
+                    f'{("données perdues au plus" + (" · <b>sauvegarde en retard</b>" if sv.get("trop_vieux") else "")) if sv else "âge des données inconnu"}</div></td>'
                     f'<td class="num"><b>{r["total"]}</b> trouvé{"s" if r["total"] > 1 else ""}<div class="note">{r["attente"]} en attente · {r["acceptes"]} accepté{"s" if r["acceptes"] > 1 else ""}</div></td>'
                     f'<td>{f"<a href=\"{esc(f["url"])}\">n° {f["numero"]}</a>" if f.get("url") else "—"}</td></tr>')
     body = f"""<div class="wrap">
@@ -441,10 +456,12 @@ def render(cfg, vms, fragment):
 <h1>{esc(cfg["entreprise"])}</h1>
 <p class="lead">Chaque machine est auditée en lecture seule, puis reconstruite depuis le code et la sauvegarde dans une sandbox isolée.
 Une reconstruction n'est dite prouvée que si le service répond, que le test métier passe et qu'aucun écart avec l'original ne reste sans justification.</p></header>
-<div class="synth"><table><thead><tr><th>Machine</th><th>Verdict</th><th colspan="2">Reprise mesurée</th><th>Points à risque</th><th>Merge request</th></tr></thead>
+<div class="synth"><table><thead><tr><th>Machine</th><th>Verdict</th><th colspan="3">Reprise mesurée</th><th>Points à risque</th><th>Merge request</th></tr></thead>
 <tbody>{"".join(rows)}</tbody></table></div>
 {"".join(render_vm(v) for v in vms)}
-<footer><p>Points à risque : éléments inconnus (décision humaine obligatoire), trous de la sauvegarde d'origine et adresses
+<footer><p>Données perdues au plus : âge, au moment de la vérification, de l'instantané de sauvegarde restauré dans la copie.
+Une sauvegarde est dite en retard si l'instantané est plus vieux que le dernier passage prévu de la tâche planifiée qui la lance.</p>
+<p>Points à risque : éléments inconnus (décision humaine obligatoire), trous de la sauvegarde d'origine et adresses
 d'autres machines écrites en dur, trouvés par l'audit. Couverture du code : part des éléments, hors éléments ignorés par règle,
 dont la reprise est codée (Ansible, données restaurées, secrets au coffre) ou tranchée par un humain ; tous les éléments pèsent pareil.</p>
 <p>Sources : inventaires de <code>bs-collect</code>, classement <code>bs-classify</code>, décisions du dépôt <code>{esc(cfg["depot"])}</code>,

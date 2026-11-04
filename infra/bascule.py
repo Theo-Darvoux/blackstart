@@ -81,6 +81,9 @@ def vers_copie(force):
     if state != "success" and not force:
         sys.exit("refusé : la reconstruction n'est pas vérifiée (CI non verte)")
     pve = PVE()
+    # Sandbox préchauffée pas encore prise par la CI : clone vierge, pas la copie vérifiée.
+    if sandbox.NEUVE in pve.get(f"/nodes/{pve.node}/qemu/{COPY_VMID}/config").get("description", ""):
+        sys.exit("refusé : la sandbox est un clone neuf que la CI n'a pas encore reconstruit")
     log(f"original {ORIG_NAME} ({ORIG_VMID}) éteint, gardé pour le retour arrière")
     t_coupure = time.monotonic()
     power(pve, ORIG_VMID, "stop")

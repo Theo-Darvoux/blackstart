@@ -48,7 +48,12 @@ from forge import Forge
 f, sha, t0 = Forge(), sys.argv[1], time.time()
 st = None
 while time.time() - t0 < 1200:
-    st = f.call("GET", f"/repos/pme/infra/commits/{sha}/status").get("state")
+    try:
+        st = f.call("GET", f"/repos/pme/infra/commits/{sha}/status").get("state")
+    except Exception as exc:  # coupure du VPN ou forge lente : on réessaie, la CI continue sans nous
+        print(f"\r   forge injoignable ({type(exc).__name__}), nouvel essai...", end="", file=sys.stderr, flush=True)
+        time.sleep(10)
+        continue
     if st in ("success", "failure", "error"):
         break
     print(f"\r   CI {sha[:7]} : {st or 'en file'} ({time.time() - t0:.0f} s)", end="", file=sys.stderr, flush=True)

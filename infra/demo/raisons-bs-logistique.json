@@ -1,0 +1,30 @@
+{
+  "_lisez-moi": "Raisons préparées pour la console (infra/salle) : une par choix possible, pour que le décideur ait le choix pendant la démo. Le texte du choix de Théo est repris de decisions-bs-logistique.json. Clés : reproduire = « Garder », ne pas reproduire = « Retirer », accepter = « Accepter la perte ».",
+  "file:/etc/sudoers.d/prestataire": {
+    "reproduire": "accès sudo du prestataire confirmé par la direction, nécessaire à la maintenance du logiciel ; à revoir à la fin du contrat",
+    "ne pas reproduire": "accès sudo d'un tiers ajouté hors procédure, retiré à la reconstruction ; le compte reste sans sudo"
+  },
+  "file:/opt/etiquettes/bin/zpl-print": {
+    "reproduire": "pilote d'étiqueteuse fourni par l'éditeur, appelé par export-edi ; origine à documenter",
+    "ne pas reproduire": "binaire sans origine connue ni licence : retiré ; export-edi l'appelle avec « || true », l'export continue sans lui"
+  },
+  "listen:tcp:0.0.0.0:9100": {
+    "reproduire": "le transporteur récupère les fichiers EDI sortants sur ce port ; gardé, à transformer en service systemd",
+    "ne pas reproduire": "relais HTTP lancé à la main pour le transporteur ; s'il est utile, en faire un service systemd"
+  },
+  "process:/usr/bin/python3.13@root@session.scope": {
+    "reproduire": "processus du relais :9100, gardé avec lui (même décision que le port)",
+    "ne pas reproduire": "processus du relais :9100 lancé à la main (même décision que le port)"
+  },
+  "sysctl:vm.swappiness": {
+    "reproduire": "réglage voulu (10), désormais persisté dans /etc/sysctl.d",
+    "ne pas reproduire": "réglage fait à chaud sans trace ni raison connue : on revient à la valeur Debian (60)"
+  },
+  "file:/etc/postgresql/17/main/conf.d": {
+    "reproduire": "dossier de configuration de PostgreSQL : gardé pour que la copie ait la même arborescence",
+    "ne pas reproduire": "dossier absent de l'inventaire courant, rien à y recréer ; le paquet PostgreSQL gère sa configuration"
+  },
+  "data:/home/prestataire": {
+    "accepter": "dossier du compte prestataire, hors sauvegarde : son accès SSH (authorized_keys) n'est volontairement pas recréé, comme son sudo"
+  }
+}

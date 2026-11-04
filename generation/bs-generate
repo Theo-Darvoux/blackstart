@@ -16,6 +16,7 @@ import importlib.machinery
 import importlib.util
 import json
 import os
+import re
 import shutil
 import sys
 
@@ -133,7 +134,16 @@ def generate(ref, cur, out, decided=None, props=None):
             w.task(f"Groupe {gid_name[u['gid']]}", "ansible.builtin.group",
                    {"name": gid_name[u["gid"]], "gid": u["gid"], "system": u["gid"] < 1000},
                    comment=f"groupe principal de {name}")
-        w.task(f"Compte {name}", "ansible.builtin.user", args, comment=i["key"])
+        humain = u.get("human") or (u["uid"] >= 1000 and u.get("interactive"))
+        if humain:
+            # Le mot de passe (empreinte) vient du /etc/shadow du coffre, lu sur la machine de la CI :
+            # sans lui, le compte existe mais personne ne peut s'y connecter (ex. boîte IMAP de bs-mail).
+            args["password"] = ("{{ lookup('ansible.builtin.pipe', 'grep ^" + name + ": ' ~ coffre ~ "
+                                "'/etc/shadow | cut -d: -f2') }}")
+            args["update_password"] = "always"
+            coffre_paths.append("/etc/shadow")
+        w.task(f"Compte {name}", "ansible.builtin.user", args, comment=i["key"],
+               extra={"no_log": True} if humain else None)
     open(os.path.join(out, "tasks", "20-comptes.yml"), "w").write(w.text())
 
     # 30 : fichiers (dossiers d'abord, par profondeur)
@@ -141,6 +151,7 @@ def generate(ref, cur, out, decided=None, props=None):
     file_items = [i for i in items if i["key"].startswith(("file:", "pkgfile-modified:")) and i["ecart"] != "absent-de-B"]
     file_items.sort(key=lambda i: (files_by_path.get(i["key"].split(":", 1)[1], {}).get("type") != "dir",
                                    i["key"].split(":", 1)[1].count("/"), i["key"]))
+    regen = []
     for i in file_items:
         path = i["key"].split(":", 1)[1]
         f = files_by_path.get(path)
@@ -187,6 +198,9 @@ def generate(ref, cur, out, decided=None, props=None):
             w.task("Fichier /etc/hosts (identité de la machine cible)", "ansible.builtin.template",
                    {"src": "files/etc/hosts.j2", "dest": path, **owner},
                    comment=i["raison"] + " ; IP et nom de l'original remplacés par ceux de la cible")
+        elif i["raison"].startswith("base générée depuis"):
+            src = path[:-3]
+            regen.append((path, "newaliases" if src == "/etc/aliases" else f"postmap {src}", i["raison"]))
         elif "content" in f:
             local = os.path.join(out, "files", path.lstrip("/"))
             os.makedirs(os.path.dirname(local), exist_ok=True)
@@ -196,6 +210,10 @@ def generate(ref, cur, out, decided=None, props=None):
                    {"src": "files/" + path.lstrip("/"), "dest": path, **owner}, comment=i["raison"])
         else:
             decisions.append((i["key"], "contenu non collecté (trop gros ou binaire)"))
+    # Bases générées (aliases.db, tables postmap) : régénérées après la copie de leur source.
+    for path, cmd, raison in regen:
+        w.task(f"Régénérer {path}", "ansible.builtin.command", {"cmd": cmd}, comment=raison,
+               extra={"changed_when": "true"})
     open(os.path.join(out, "tasks", "30-fichiers.yml"), "w").write(w.text())
 
     # 40 : crontabs des utilisateurs (hors /etc)
@@ -248,6 +266,8 @@ def generate(ref, cur, out, decided=None, props=None):
     # Décisions « ne pas reproduire » / « accepter » : justifications pour la comparaison
     just = [{"match": k, "reason": f"décision humaine ({d['decision']}, par {d.get('par', '?')}) : {d.get('raison', '')}"}
             for k, d in sorted(decided.items()) if d["decision"] != "reproduire"]
+    just += [{"match": f"file:{p}", "reason": f"base régénérée par « {c} » sur la cible : contenu binaire différent attendu"}
+             for p, c, _ in regen]
     if sysctl_keep:
         just.append({"match": "file:/etc/sysctl.d/90-blackstart.conf",
                      "reason": "ajouté volontairement : persistance des réglages noyau décidée par "
@@ -277,12 +297,34 @@ def generate(ref, cur, out, decided=None, props=None):
     # Restauration des données : PostgreSQL sauvegardé par restic
     has_pg = any(i["key"] == "data:/var/lib/postgresql" for i in items)
     restic_env = [p for p in files_by_path if p.startswith("/etc/restic/") and p.endswith(".env")]
-    if has_pg and restic_env:
+    if restic_env:
+        # Restauration du dernier instantané restic ; les tâches PostgreSQL ne font rien sans base.
         shutil.copy(os.path.join(HERE, "modeles", "restauration-restic-postgresql.yml"),
                     os.path.join(out, "restauration.yml"))
         coffre_paths.append("/root/.ssh")
         notes.append(("data:/root/.ssh", "la clé d'accès au dépôt restic n'existe que sur la VM, hors sauvegarde : reprise depuis le coffre"))
-        notes.append(("data:/var/lib/postgresql", "pg_dump ne contient pas les rôles PostgreSQL : recréés depuis la chaîne de connexion"))
+        if has_pg:
+            notes.append(("data:/var/lib/postgresql", "pg_dump ne contient pas les rôles PostgreSQL : recréés depuis la chaîne de connexion"))
+    # Données que rien ne sauvegarde : perdues à la reconstruction, décision humaine obligatoire.
+    # Couvert = un chemin absolu cité dans un script qui lance « restic backup » est un préfixe du
+    # dossier (ou pg_dump pour PostgreSQL). Heuristique : elle lit les scripts, pas le dépôt restic.
+    scripts = [f.get("content") or "" for f in files_by_path.values() if "restic backup" in (f.get("content") or "")]
+    chemins = {t for sc in scripts for t in re.findall(r"/[\w./-]+", sc.replace(":", " "))}
+
+    def couvert(path):
+        if path.startswith("/var/lib/postgresql") and any("pg_dump" in sc for sc in scripts):
+            return True
+        return any(path == c.rstrip("/") or path.startswith(c.rstrip("/") + "/") for c in chemins if c.count("/") > 1)
+    for i in items:
+        if i["statut"] == "donnee" and i["key"] not in decided:
+            path = i["key"].split(":", 1)[1]
+            if path == "/root/.ssh" and restic_env:
+                continue  # clé d'accès au dépôt : reprise depuis le coffre (voir notes)
+            if not couvert(path):
+                decisions.append((i["key"], "données sans sauvegarde connue : perdues à la reconstruction "
+                                            "(accepter la perte, ou mettre en place une sauvegarde)"))
+    with open(os.path.join(out, "attente.json"), "w", encoding="utf-8") as fh:
+        json.dump([{"cle": k, "raison": r} for k, r in decisions], fh, indent=2, ensure_ascii=False)
     with open(os.path.join(out, "coffre.txt"), "w") as fh:
         fh.write("# Chemins à copier dans le coffre (jamais dans Git)\n" + "\n".join(sorted(set(coffre_paths))) + "\n")
     with open(os.path.join(out, "DECISIONS.md"), "w") as fh:

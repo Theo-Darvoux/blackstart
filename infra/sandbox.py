@@ -112,7 +112,9 @@ def firewall(pve, vmid):
         dict(type="out", action="ACCEPT", dest=GITLAB_IP, comment="Git, restic/SFTP"),
         dict(type="out", action="ACCEPT", dest=",".join(DNS), proto="udp", dport="53", comment="DNS"),
         dict(type="out", action="ACCEPT", dest=",".join(DNS), proto="tcp", dport="53", comment="DNS"),
-        dict(type="out", action="DROP", dest=LAN, comment="isolation : rien vers la PME"),
+        # REJECT plutôt que DROP : même isolation, mais la copie apprend tout de suite que
+        # la machine est injoignable (nginx répond 502 au lieu d'attendre 60 s).
+        dict(type="out", action="REJECT", dest=LAN, comment="isolation : rien vers la PME"),
     ]
     # Proxmox insère chaque nouvelle règle en tête : on les crée à l'envers.
     for r in reversed(rules):
@@ -147,7 +149,10 @@ echo bootstrap-ok
 """
 
 
-def create(pve, name, vmid, ip):
+NEUVE = "[neuve]"  # sandbox préchauffée : clone neuf du template, jamais utilisé
+
+
+def create(pve, name, vmid, ip, neuve=False):
     check_guard(pve, vmid, name, ip)
     if any(v.get("vmid") == vmid for v in pve.get("/cluster/resources", type="vm")):
         sys.exit(f"VMID {vmid} déjà utilisée : infra/sandbox.py destroy {vmid} d'abord")
@@ -155,7 +160,7 @@ def create(pve, name, vmid, ip):
     log(f"clonage du template {tpl} -> {vmid} {name}")
     upid = pve.post(f"/nodes/{pve.node}/qemu/{tpl}/clone", newid=vmid, name=name, full=1,
                     storage=pve.env["PVE_STORAGE"], pool="blackstart",
-                    description="Sandbox Black Start, jetable (infra/sandbox.py)")
+                    description="Sandbox Black Start, jetable (infra/sandbox.py)" + (f" {NEUVE}" if neuve else ""))
     pve.wait_task(upid, timeout=900)
     log("interface coupée, pare-feu d'isolation")
     pve.put(f"{vm_path(pve, vmid)}/config", net0=f"virtio,bridge={pve.env['PVE_BRIDGE']},firewall=1,link_down=1")
@@ -174,6 +179,30 @@ def create(pve, name, vmid, ip):
     subprocess.run(["ssh-keygen", "-R", ip], capture_output=True)
     wait_ssh(ip)
     log(f"prête : ssh -i {ADMIN_KEY} claude@{ip}")
+
+
+def prendre(pve, name, vmid, ip):
+    """Prend la sandbox préchauffée si elle est neuve (clone du template jamais utilisé,
+    marqué [neuve] à la création), en retirant la marque : elle ne sert qu'une fois.
+    Code 1 sinon : l'appelant la recrée."""
+    check_guard(pve, vmid, name, ip)
+    vm = next((v for v in pve.get("/cluster/resources", type="vm") if v.get("vmid") == vmid), None)
+    if not vm or vm.get("name") != name or vm.get("status") != "running":
+        log(f"pas de sandbox préchauffée {name} ({vmid}) en marche")
+        return 1
+    desc = pve.get(f"{vm_path(pve, vmid)}/config").get("description", "")
+    if NEUVE not in desc:
+        log(f"{name} ({vmid}) déjà utilisée : pas de réemploi")
+        return 1
+    subprocess.run(["ssh-keygen", "-R", ip], capture_output=True)  # clés d'hôte neuves depuis la dernière sandbox
+    try:
+        wait_ssh(ip, timeout=15)
+    except TimeoutError:
+        log(f"{name} ({vmid}) injoignable en SSH")
+        return 1
+    pve.put(f"{vm_path(pve, vmid)}/config", description=desc.replace(f" {NEUVE}", "").replace(NEUVE, ""))
+    log(f"sandbox préchauffée prise : {name} ({vmid}), clone neuf du template")
+    return 0
 
 
 def destroy(pve, vmid):
@@ -204,13 +233,20 @@ def main():
     c.add_argument("name")
     c.add_argument("vmid", type=int)
     c.add_argument("ip")
+    c.add_argument("--neuve", action="store_true", help="préchauffée : marquée pour un seul réemploi par la CI")
+    p = sub.add_parser("prendre", help="réemployer la sandbox préchauffée (code 1 si absente ou déjà utilisée)")
+    p.add_argument("name")
+    p.add_argument("vmid", type=int)
+    p.add_argument("ip")
     d = sub.add_parser("destroy")
     d.add_argument("vmid", type=int)
     sub.add_parser("status")
     args = ap.parse_args()
     pve = PVE()
     if args.cmd == "create":
-        create(pve, args.name, args.vmid, args.ip)
+        create(pve, args.name, args.vmid, args.ip, args.neuve)
+    elif args.cmd == "prendre":
+        sys.exit(prendre(pve, args.name, args.vmid, args.ip))
     elif args.cmd == "destroy":
         destroy(pve, args.vmid)
     else:

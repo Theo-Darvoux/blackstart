@@ -1,0 +1,808 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Black Start · console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Console Black Start : thème sombre unique, voulu (vidéoprojecteur). */
+:root {
+  color-scheme: dark;
+  /* Identité Black Start (identite/) : noir #07090A, vert #3DFF8A, blanc cassé #E8F2EC. */
+  --fond: #07090A; --barre: #090c0b; --panneau: #0d1110; --panneau2: #121816; --survol: #161d1a;
+  --trait: #1a2220; --trait2: #26302d;
+  --texte: #E8F2EC; --doux: #96a59e; --pale: #5e6b66;
+  --ambre: #f2b443; --ambre-fond: rgba(242,180,67,.12); --vert: #3DFF8A; --vert-fond: rgba(61,255,138,.10);
+  --rouge: #ff6b63; --rouge-fond: rgba(255,107,99,.12); --bleu: #6cb4ff; --bleu-fond: rgba(108,180,255,.12);
+  --violet: #b9a1ff; --violet-fond: rgba(185,161,255,.08); --compris: #7f938a; --ignore: #3d4945;
+  --accent: #3DFF8A;
+  --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --r: 10px;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { background: var(--fond); color: var(--texte); font: 400 15px/1.55 var(--sans); overflow: hidden;
+  -webkit-font-smoothing: antialiased; font-feature-settings: "tnum"; }
+button { font: inherit; color: inherit; cursor: pointer; }
+a { color: var(--texte); text-decoration: underline; text-decoration-color: var(--trait2); text-underline-offset: 3px; }
+a:hover { text-decoration-color: var(--doux); }
+.mono { font-family: var(--mono); font-size: .92em; }
+.doux { color: var(--doux); } .pale { color: var(--pale); }
+.app { display: grid; grid-template-rows: 56px 1fr; height: 100vh; }
+svg.i { width: 16px; height: 16px; flex: none; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ---------- barre du haut ---------- */
+.haut { display: flex; align-items: center; gap: 18px; padding: 0 24px; background: var(--barre); border-bottom: 1px solid var(--trait); }
+.marque { display: flex; align-items: center; padding-right: 18px; border-right: 1px solid var(--trait); height: 24px; }
+.marque .logo { height: 18px; width: auto; display: block; }
+.fil { display: flex; align-items: center; gap: 8px; color: var(--doux); font-size: 14px; }
+.fil b { color: var(--texte); font-weight: 500; }
+.fil .sep { color: var(--pale); }
+.fil .env { font-size: 12px; color: var(--doux); border: 1px solid var(--trait2); border-radius: 6px; padding: 1px 7px; margin-left: 6px; }
+.haut .droite { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.pastille { display: inline-flex; align-items: center; gap: 8px; height: 30px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--trait); background: var(--panneau); font-size: 13px; color: var(--doux); white-space: nowrap; }
+.pastille i { width: 7px; height: 7px; border-radius: 50%; background: var(--pale); }
+.pastille.ok i { background: var(--vert); } .pastille.attention i { background: var(--ambre); } .pastille.ko i { background: var(--rouge); }
+.pastille.en_cours i { background: var(--ambre); animation: battre 1.2s infinite; }
+.pastille b { color: var(--texte); font-weight: 600; }
+.utilisateur { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--doux); padding-left: 10px; margin-left: 4px; border-left: 1px solid var(--trait); }
+.utilisateur span { width: 28px; height: 28px; border-radius: 50%; background: var(--panneau2); border: 1px solid var(--trait2); color: var(--texte); display: grid; place-items: center; font-weight: 600; font-size: 13px; }
+.utilisateur small { display: block; color: var(--pale); font-size: 12px; line-height: 1.2; }
+.utilisateur div { line-height: 1.25; color: var(--texte); }
+@keyframes battre { 50% { opacity: .35; } }
+
+/* ---------- corps ---------- */
+.corps { display: grid; grid-template-columns: 232px minmax(0, 1fr) 360px; min-height: 0; }
+nav { background: var(--barre); border-right: 1px solid var(--trait); padding: 20px 12px; display: flex; flex-direction: column; gap: 2px; overflow: auto; }
+nav .titre-nav { font-size: 12px; font-weight: 500; color: var(--pale); padding: 18px 12px 6px; }
+nav .titre-nav:first-child { padding-top: 0; }
+nav button { display: flex; align-items: center; gap: 11px; width: 100%; height: 36px; padding: 0 12px; border: 0; border-radius: 8px; background: none; color: var(--doux); text-align: left; font-size: 14px; font-weight: 500; }
+nav button svg { width: 16px; height: 16px; flex: none; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+nav button:hover { background: var(--survol); color: var(--texte); }
+nav button.actif { background: var(--panneau2); color: var(--texte); }
+nav button.actif svg { color: var(--vert); }
+nav .badge { white-space: nowrap; margin-left: auto; font-size: 12px; font-weight: 500; min-width: 20px; height: 20px; padding: 0 7px; border-radius: 6px; background: var(--panneau2); color: var(--doux); display: inline-grid; place-items: center; }
+nav .badge.ambre { background: var(--ambre-fond); color: var(--ambre); } nav .badge.vert { background: var(--vert-fond); color: var(--vert); }
+nav .badge.rouge { background: var(--rouge-fond); color: var(--rouge); }
+nav .badge svg.i { width: 12px; height: 12px; stroke-width: 2.6; }
+nav .bas { margin-top: auto; padding-top: 12px; border-top: 1px solid var(--trait); }
+
+main { overflow: auto; min-width: 0; }
+.vue { padding: 36px 48px 72px; display: flex; flex-direction: column; gap: 28px; max-width: 1100px; }
+.entete .fil-page { font-size: 13px; color: var(--pale); margin-bottom: 8px; }
+.entete h1 { font-size: 24px; font-weight: 600; margin: 0; letter-spacing: -.015em; }
+.entete p { margin: 6px 0 0; color: var(--doux); font-size: 15px; max-width: 72ch; }
+.entete .meta { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.tag { font-size: 12px; padding: 2px 8px; border-radius: 6px; background: var(--panneau2); border: 1px solid var(--trait); color: var(--doux); }
+h2 { font-size: 15px; font-weight: 600; margin: 0; }
+.bloc { background: var(--panneau); border: 1px solid var(--trait); border-radius: var(--r); }
+.bloc > .tete { display: flex; align-items: center; gap: 14px; min-height: 56px; padding: 12px 22px; border-bottom: 1px solid var(--trait); }
+.bloc > .tete .droite { margin-left: auto; display: flex; gap: 12px; align-items: center; font-size: 13px; }
+.bloc > .contenu { padding: 20px 22px; }
+.vide { padding: 40px 22px; text-align: center; color: var(--doux); font-size: 14px; }
+.alerte { background: var(--rouge-fond); border: 1px solid rgba(255,107,99,.35); color: #ffd7d6; padding: 12px 16px; border-radius: var(--r); font-size: 14px; }
+
+.bouton { border: 1px solid transparent; border-radius: 8px; height: 38px; padding: 0 16px; font-weight: 500; font-size: 14px; background: var(--accent); color: #03140a; display: inline-flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap; transition: filter .15s; }
+.bouton:hover:not(:disabled) { filter: brightness(1.08); }
+.bouton.vert { background: var(--vert); color: #03140a; }
+.bouton.rouge { background: var(--rouge); color: #1d0405; }
+.bouton.second { background: var(--panneau2); color: var(--texte); border-color: var(--trait2); }
+.bouton.second:hover:not(:disabled) { background: var(--survol); filter: none; }
+.bouton:disabled { background: var(--panneau2); color: var(--pale); border-color: var(--trait); cursor: not-allowed; }
+.bouton.grand { height: 44px; padding: 0 22px; font-size: 15px; font-weight: 600; }
+
+/* prochaine étape */
+.prochaine { border-radius: var(--r); padding: 28px 30px; background: var(--panneau); border: 1px solid var(--trait); box-shadow: inset 3px 0 0 var(--vert);
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 32px; align-items: center; }
+.prochaine.en_cours { box-shadow: inset 3px 0 0 var(--ambre); }
+.prochaine .sur { grid-column: 1; font-size: 13px; font-weight: 500; color: var(--doux); display: flex; align-items: center; gap: 8px; }
+.prochaine .sur .ico { width: 14px; height: 14px; border-width: 2px; }
+.prochaine h2 { grid-column: 1; font-size: 20px; font-weight: 600; letter-spacing: -.01em; line-height: 1.3; }
+.prochaine p { grid-column: 1; margin: 0; color: var(--doux); font-size: 15px; max-width: 64ch; }
+.prochaine .actions { grid-column: 2; grid-row: 1 / span 3; display: flex; flex-direction: column; gap: 10px; align-items: flex-end; }
+.prochaine .note { grid-column: 1; font-size: 13px; color: var(--pale); margin-top: 4px; }
+
+/* plan de reprise : stepper relié */
+.fileplan { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); padding: 6px; }
+.fileplan .e { all: unset; box-sizing: border-box; padding: 18px 18px 18px; border-radius: 8px; display: grid; gap: 4px; align-content: start; position: relative; cursor: default; }
+.fileplan .e[data-vers] { cursor: pointer; } .fileplan .e[data-vers]:hover { background: var(--survol); }
+.fileplan .e .rang { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.fileplan .e .rang::after { content: ""; flex: 1; height: 1px; background: var(--trait2); }
+.fileplan .e:last-child .rang::after { display: none; }
+.fileplan .e.fait .rang::after { background: rgba(61,255,138,.4); }
+.fileplan .e .num { font-size: 12px; color: var(--pale); }
+.fileplan .e .t { font-weight: 600; font-size: 15px; }
+.fileplan .e .c { font-size: 13px; color: var(--doux); }
+.fileplan .e.courante .t { color: var(--texte); }
+.fileplan .e.courante::before { content: ""; position: absolute; left: 18px; right: 18px; bottom: 0; height: 2px; background: var(--vert); border-radius: 2px; }
+
+/* badges d'état */
+.etat { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; height: 22px; padding: 0 8px; border-radius: 6px; white-space: nowrap; }
+.etat::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.etat.ok { background: var(--vert-fond); color: var(--vert); } .etat.ko { background: var(--rouge-fond); color: var(--rouge); }
+.etat.bloque { background: var(--rouge-fond); color: var(--rouge); } .etat.attention { background: var(--ambre-fond); color: var(--ambre); }
+.etat.en_cours { background: var(--ambre-fond); color: var(--ambre); } .etat.avenir { background: var(--panneau2); color: var(--pale); }
+.etat.saute { background: var(--panneau2); color: var(--doux); }
+
+/* icônes d'état */
+.ico { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; flex: none; border: 1.5px solid var(--trait2); color: transparent; }
+.ico svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.ico.ok { background: var(--vert); border-color: var(--vert); color: #03140a; }
+.ico.ko { background: var(--rouge); border-color: var(--rouge); color: #1d0405; }
+.ico.bloque { background: var(--rouge-fond); border-color: var(--rouge); color: var(--rouge); }
+.ico.attention { background: var(--ambre-fond); border-color: var(--ambre); color: var(--ambre); }
+.ico.saute { border-style: dashed; color: var(--pale); }
+.ico.en_cours { border: 2px solid var(--ambre); border-right-color: transparent; animation: tourner .9s linear infinite; }
+@keyframes tourner { to { transform: rotate(360deg); } }
+
+/* chiffres */
+.chiffres { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0; background: var(--panneau); border: 1px solid var(--trait); border-radius: var(--r); }
+.chiffre { padding: 20px 22px; border-left: 1px solid var(--trait); }
+.chiffre:first-child { border-left: 0; }
+.chiffre .l { font-size: 13px; color: var(--doux); }
+.chiffre .v { font-size: 28px; font-weight: 600; line-height: 1.2; margin-top: 6px; letter-spacing: -.01em; }
+.chiffre .s { font-size: 12px; color: var(--pale); margin-top: 4px; }
+
+/* répartition */
+.repart { display: flex; height: 8px; border-radius: 4px; overflow: hidden; background: var(--trait); gap: 2px; }
+.repart i { display: block; height: 100%; }
+.legende { display: flex; gap: 8px 22px; flex-wrap: wrap; margin-top: 14px; font-size: 13px; }
+.legende span { display: inline-flex; align-items: center; gap: 7px; color: var(--doux); }
+.legende b { color: var(--texte); font-weight: 600; }
+.pt { width: 8px; height: 8px; border-radius: 2px; display: inline-block; flex: none; }
+.c-inconnu { background: var(--ambre); } .c-secret { background: var(--violet); } .c-donnee { background: var(--bleu); }
+.c-compris { background: var(--compris); } .c-ignore { background: var(--ignore); }
+
+/* parc */
+.zones { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; }
+.machine { display: grid; grid-template-columns: 8px minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 14px 22px; border-top: 1px solid var(--trait); }
+.machine:first-of-type { border-top: 0; }
+.machine .n { font-weight: 500; } .machine .r { font-size: 13px; color: var(--doux); }
+.machine .ip { font: 400 12.5px var(--mono); color: var(--pale); text-align: right; }
+.machine .ip small { display: block; font-family: var(--sans); font-size: 12px; }
+.point { width: 8px; height: 8px; border-radius: 50%; background: var(--pale); }
+.point.ok { background: var(--vert); } .point.ko { background: var(--rouge); }
+.point.actif { background: var(--ambre); animation: battre .9s infinite; } .point.eteint { background: var(--trait2); }
+.machine.surbrillance { background: rgba(242,180,67,.05); }
+
+/* tableaux */
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th { text-align: left; font-weight: 500; font-size: 12px; color: var(--pale); padding: 10px 22px; border-bottom: 1px solid var(--trait); position: sticky; top: 0; background: var(--panneau); }
+td { padding: 12px 22px; border-bottom: 1px solid var(--trait); vertical-align: top; }
+tbody tr:last-child td { border-bottom: 0; }
+tr.el { cursor: pointer; } tr.el:hover td { background: var(--survol); }
+tr.detail td { background: var(--panneau2); padding-top: 16px; padding-bottom: 18px; }
+td.cle { font-family: var(--mono); font-size: 12.5px; word-break: break-all; }
+.statut { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; white-space: nowrap; }
+.filtres { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; background: var(--fond); border: 1px solid var(--trait); border-radius: 8px; padding: 3px; }
+.filtre { border: 0; background: none; border-radius: 6px; height: 28px; padding: 0 10px; font-size: 13px; color: var(--doux); display: inline-flex; gap: 7px; align-items: center; }
+.filtre:hover { color: var(--texte); }
+.filtre.on { color: var(--texte); background: var(--panneau2); }
+.filtre b { color: var(--pale); font-weight: 500; } .filtre.on b { color: var(--doux); }
+input[type=search] { background: var(--fond); border: 1px solid var(--trait); border-radius: 8px; color: var(--texte); height: 34px; padding: 0 12px; font: 13px var(--sans); width: 260px; margin-left: auto; outline: none; }
+input[type=search]:focus, .dec textarea:focus { border-color: var(--trait2); box-shadow: 0 0 0 3px rgba(61,255,138,.12); }
+
+/* propositions du modèle */
+.propo { border: 1px solid rgba(185,161,255,.22); background: var(--violet-fond); padding: 12px 14px; border-radius: 8px; font-size: 14px; }
+.propo .q { color: var(--doux); margin-top: 6px; font-size: 13px; }
+.propo .t { color: var(--violet); font-weight: 500; font-size: 12px; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+
+/* décisions */
+.decisions { display: grid; gap: 16px; }
+.dec { padding: 22px 24px; display: grid; gap: 14px; }
+.dec.prise { border-color: rgba(61,255,138,.3); }
+.dec .haut-dec { display: flex; gap: 12px; align-items: baseline; }
+.dec .cle { font: 500 14px var(--mono); color: var(--texte); word-break: break-all; }
+.dec .n { font-size: 12px; color: var(--pale); margin-left: auto; }
+.dec .constat { color: var(--doux); font-size: 14px; }
+.choix { display: inline-flex; gap: 4px; background: var(--fond); border: 1px solid var(--trait); border-radius: 8px; padding: 3px; justify-self: start; }
+.choix button { border: 0; background: none; border-radius: 6px; height: 32px; padding: 0 16px; font-weight: 500; font-size: 14px; color: var(--doux); }
+.choix button:hover { color: var(--texte); background: var(--survol); }
+.choix button.on.reproduire { background: var(--vert); color: #03140a; }
+.choix button.on.non { background: var(--rouge); color: #1d0405; }
+.choix button.on.accepter { background: var(--bleu); color: #04101f; }
+.dec textarea { width: 100%; background: var(--fond); color: var(--texte); border: 1px solid var(--trait); border-radius: 8px; padding: 9px 12px; font: 14px/1.5 var(--sans); resize: vertical; min-height: 42px; height: 42px; outline: none; }
+.pied { position: sticky; bottom: -72px; padding: 16px 0 72px; background: linear-gradient(transparent, var(--fond) 30%); display: flex; gap: 16px; align-items: center; font-size: 13px; }
+
+/* pipeline CI */
+.pipeline { display: grid; }
+.pas-ci { display: grid; grid-template-columns: 20px minmax(0, 1fr) 90px; gap: 14px; padding: 14px 22px; border-top: 1px solid var(--trait); align-items: start; }
+.pas-ci:first-child { border-top: 0; }
+.pas-ci .t { font-weight: 500; } .pas-ci .x { font-size: 13px; color: var(--doux); margin-top: 2px; }
+.pas-ci .r { font-size: 13px; color: var(--vert); margin-top: 4px; } .pas-ci.ko .r { color: var(--rouge); }
+.pas-ci .duree { font-size: 13px; text-align: right; color: var(--doux); }
+.pas-ci.avenir .t, .pas-ci.avenir .x { color: var(--pale); }
+.pas-ci.en_cours { background: rgba(242,180,67,.04); }
+
+/* bascule */
+.compteur { text-align: center; padding: 30px 26px; }
+.compteur .l { color: var(--doux); font-size: 14px; }
+.compteur .v { font-size: 76px; font-weight: 600; line-height: 1.1; letter-spacing: -.03em; margin: 6px 0 2px; }
+.compteur.coupe .v { color: var(--rouge); } .compteur.retabli .v { color: var(--vert); }
+.conditions { display: grid; }
+.conditions div { display: flex; gap: 14px; align-items: center; padding: 14px 22px; border-top: 1px solid var(--trait); font-size: 14px; }
+.conditions div:first-child { border-top: 0; }
+.test { display: grid; grid-template-columns: 20px minmax(0, 1fr) auto; gap: 12px; align-items: start; padding: 12px 22px; border-top: 1px solid var(--trait); font-size: 14px; }
+.test small { display: block; color: var(--doux); font-size: 13px; }
+.deux { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; }
+
+/* ---------- panneau d'activité ---------- */
+aside { background: var(--barre); border-left: 1px solid var(--trait); display: flex; flex-direction: column; min-height: 0; }
+aside .tete-a { height: 56px; padding: 0 22px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--trait); }
+aside .tete-a h2 { font-size: 14px; font-weight: 600; }
+aside .defile { overflow: auto; flex: 1; min-height: 0; }
+.op { padding: 20px 22px 24px; }
+.op .titre-op { font-weight: 600; font-size: 15px; line-height: 1.35; }
+.op .sous { display: flex; gap: 10px; align-items: center; margin: 8px 0 22px; font-size: 12px; color: var(--pale); }
+.pas { display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 12px; position: relative; padding-bottom: 18px; }
+.pas::before { content: ""; position: absolute; left: 9.5px; top: 24px; bottom: 4px; width: 1px; background: var(--trait2); }
+.pas:last-child::before { display: none; }
+.pas.ok::before { background: rgba(61,255,138,.35); }
+.pas .t { font-weight: 500; font-size: 14px; display: flex; gap: 8px; align-items: baseline; line-height: 1.4; padding-top: 1px; }
+.pas .t .duree { margin-left: auto; font-size: 12px; font-weight: 400; color: var(--pale); white-space: nowrap; }
+.pas .m { font: 400 11.5px var(--mono); color: var(--pale); margin-top: 3px; }
+.pas .x { font-size: 13px; color: var(--doux); margin-top: 6px; }
+.pas .r { font-size: 13px; margin-top: 3px; color: var(--doux); }
+.pas.ko .r, .pas.bloque .r { color: #ff9b95; }
+.pas.avenir .t { color: var(--pale); }
+.pas.en_cours .t { color: var(--texte); font-weight: 600; }
+.pas.en_cours .x { color: var(--texte); }
+.historique { border-top: 1px solid var(--trait); padding: 14px 12px 16px; }
+.historique .titre-nav { font-size: 12px; font-weight: 500; color: var(--pale); padding: 2px 10px 8px; }
+.historique button { display: grid; grid-template-columns: 8px minmax(0, 1fr) auto; gap: 10px; align-items: center; width: 100%; text-align: left; border: 0; background: none; padding: 7px 10px; border-radius: 6px; font-size: 13px; color: var(--doux); }
+.historique button:hover, .historique button.on { background: var(--panneau2); color: var(--texte); }
+.historique .mono { font-size: 11.5px; color: var(--pale); }
+.sortie { border-top: 1px solid var(--trait); }
+.sortie summary { padding: 13px 22px; cursor: pointer; font-size: 13px; color: var(--doux); list-style: none; display: flex; align-items: center; gap: 8px; }
+.sortie summary::-webkit-details-marker { display: none; }
+.sortie summary::before { content: ""; width: 6px; height: 6px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(-45deg); transition: transform .15s; }
+.sortie[open] summary::before { transform: rotate(45deg); }
+.sortie pre { margin: 0; padding: 0 22px 14px; max-height: 240px; overflow: auto; font: 11.5px/1.55 var(--mono); color: var(--pale); white-space: pre-wrap; word-break: break-all; }
+
+@media (max-width: 1400px) { .corps { grid-template-columns: 212px minmax(0, 1fr) 330px; } .vue { padding: 32px 36px 64px; } }
+@media (max-width: 1100px) {
+  .fileplan { grid-template-columns: 1fr 1fr; } .prochaine { grid-template-columns: 1fr; padding: 22px; }
+  .prochaine .actions { grid-column: 1; grid-row: auto; align-items: flex-start; }
+  body { overflow: auto; } .app { height: auto; } .corps { grid-template-columns: 1fr; }
+  nav { flex-direction: row; flex-wrap: wrap; } nav button { width: auto; } nav .titre-nav, nav .bas { display: none; }
+  aside { border-left: 0; border-top: 1px solid var(--trait); } .zones, .deux { grid-template-columns: 1fr; }
+  .vue { padding: 24px 16px; } .fil { display: none; } .marque { border: 0; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="haut">
+    <div class="marque"><svg class="logo" viewBox="0 0 880.3 90.7" role="img" aria-label="Black Start"><title>Black Start</title><g transform="translate(0 90.72)"><path d="M64.41 -70.53 A35.51 35.51 0 0 1 71.86 -22.50" fill="none" stroke="#3DFF8A" stroke-width="14.07"/><path d="M69.09 -18.95 A35.51 35.51 0 1 1 20.68 -70.53" fill="none" stroke="#E8F2EC" stroke-width="14.07"/><rect x="35.51" y="-90.72" width="14.07" height="48.17" fill="#E8F2EC"/><path d="M161.13 0.0H116.23V-67.0H158.83Q180.53 -67.0 180.53 -50.800000000000004Q180.53 -36.300000000000004 163.83 -35.6V-34.6Q173.63 -34.2 178.63 -30.0Q183.63 -25.8 183.63 -18.6Q183.63 0.0 161.13 0.0ZM134.93 -50.1V-41.6H156.83Q159.63 -41.6 160.68 -42.5Q161.73000000000002 -43.400000000000006 161.73000000000002 -45.800000000000004Q161.73000000000002 -48.1 160.48000000000002 -49.1Q159.23000000000002 -50.1 156.33 -50.1ZM134.93 -26.200000000000003V-16.900000000000002H158.73000000000002Q162.13 -16.900000000000002 163.38 -17.85Q164.63 -18.8 164.63 -21.6Q164.63 -24.400000000000002 163.43 -25.300000000000004Q162.23000000000002 -26.200000000000003 158.73000000000002 -26.200000000000003ZM247.13 0.0H189.63V-67.0H208.43V-16.900000000000002H247.13ZM271.23 0.0H250.13L279.03 -67.0H305.93L334.93 0.0H313.33L308.23 -12.4H276.43ZM287.43 -38.7 283.53 -29.3H301.33L297.43 -38.7L293.03 -50.0H291.73ZM374.93 1.0Q357.63 1.0 347.78 -8.35Q337.93 -17.7 337.93 -33.5Q337.93 -49.300000000000004 347.78 -58.650000000000006Q357.63 -68.0 374.93 -68.0Q391.83000000000004 -68.0 401.38 -60.400000000000006Q410.93 -52.800000000000004 410.93 -39.400000000000006V-37.7H389.93V-39.400000000000006Q389.93 -45.2 386.68 -47.6Q383.43 -50.0 375.23 -50.0Q364.93 -50.0 361.43 -46.7Q357.93 -43.400000000000006 357.93 -33.5Q357.93 -23.6 361.43 -20.3Q364.93 -17.0 375.23 -17.0Q383.43 -17.0 386.68 -19.4Q389.93 -21.8 389.93 -27.6V-29.3H410.93V-27.6Q410.93 -14.200000000000001 401.38 -6.6000000000000005Q391.83000000000004 1.0 374.93 1.0ZM436.73 0.0H417.93V-67.0H436.73V-42.1H450.23L466.53000000000003 -67.0H489.03000000000003L465.83000000000004 -34.1L488.53000000000003 0.0H466.03000000000003L450.43 -23.8H436.73Z" fill="#E8F2EC"/><path d="M547.53 1.0Q514.53 1.0 514.53 -23.3V-23.900000000000002H533.3299999999999V-21.8Q533.3299999999999 -18.3 535.8299999999999 -17.200000000000003Q538.3299999999999 -16.1 547.53 -16.1Q555.73 -16.1 557.9300000000001 -16.85Q560.13 -17.6 560.13 -20.0Q560.13 -21.8 558.73 -22.700000000000003Q557.3299999999999 -23.6 553.3299999999999 -24.1L532.3299999999999 -26.900000000000002Q513.53 -29.5 513.53 -46.1Q513.53 -55.2 521.38 -61.6Q529.23 -68.0 546.03 -68.0Q561.63 -68.0 569.5799999999999 -61.6Q577.53 -55.2 577.53 -43.7V-43.1H558.73V-44.6Q558.73 -48.400000000000006 555.9300000000001 -49.7Q553.13 -51.0 544.03 -51.0Q537.13 -51.0 534.73 -50.05Q532.3299999999999 -49.1 532.3299999999999 -46.800000000000004Q532.3299999999999 -45.2 533.3799999999999 -44.400000000000006Q534.43 -43.6 537.13 -43.2L558.13 -40.1Q578.93 -37.1 578.93 -20.700000000000003Q578.93 -11.3 571.18 -5.15Q563.43 1.0 547.53 1.0ZM626.43 0.0H607.63V-50.1H583.93V-67.0H650.03V-50.1H626.43ZM673.63 0.0H652.53L681.43 -67.0H708.3299999999999L737.3299999999999 0.0H715.73L710.63 -12.4H678.8299999999999ZM689.8299999999999 -38.7 685.93 -29.3H703.73L699.8299999999999 -38.7L695.43 -50.0H694.13ZM760.1299999999999 0.0H741.3299999999999V-67.0H780.43Q793.6299999999999 -67.0 800.53 -61.7Q807.43 -56.400000000000006 807.43 -46.5Q807.43 -38.400000000000006 803.0799999999999 -33.800000000000004Q798.7299999999999 -29.200000000000003 789.3299999999999 -28.0V-27.0Q794.1299999999999 -25.8 796.4799999999999 -23.5Q798.8299999999999 -21.200000000000003 800.93 -16.8L809.2299999999999 0.0H787.53L779.53 -16.400000000000002Q777.7299999999999 -20.200000000000003 775.4799999999999 -21.5Q773.2299999999999 -22.8 767.8299999999999 -22.8H760.1299999999999ZM760.1299999999999 -50.1V-36.800000000000004H780.2299999999999Q784.53 -36.800000000000004 786.1299999999999 -38.10000000000001Q787.7299999999999 -39.400000000000006 787.7299999999999 -43.5Q787.7299999999999 -47.400000000000006 786.0799999999999 -48.75Q784.43 -50.1 780.2299999999999 -50.1ZM855.2299999999999 0.0H836.43V-50.1H812.7299999999999V-67.0H878.8299999999999V-50.1H855.2299999999999Z" fill="#3DFF8A"/></g></svg></div>
+    <div class="fil" id="fil"></div>
+    <div class="droite" id="haut-droite"></div>
+  </header>
+  <div class="corps">
+    <nav id="nav"></nav>
+    <main><div class="vue" id="vue"></div></main>
+    <aside>
+      <div class="tete-a"><h2>Activité</h2><span id="activite-etat" class="droite" style="margin-left:auto"></span></div>
+      <div class="defile" id="activite"></div>
+      <details class="sortie" id="sortie"><summary>Sortie technique des scripts</summary><pre id="journal"></pre></details>
+    </aside>
+  </div>
+</div>
+<script>
+"use strict";
+const $ = (s) => document.querySelector(s);
+const esc = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const fr = (x, d = 1) => Number(x).toLocaleString("fr-FR", { minimumFractionDigits: d, maximumFractionDigits: d });
+const mmss = (s) => { s = Math.max(0, Math.floor(s)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; };
+const duree = (s) => s == null ? "" : s < 10 ? `${fr(s, 1)} s` : s < 60 ? `${Math.round(s)} s` : `${Math.floor(s / 60)} min ${String(Math.round(s % 60)).padStart(2, "0")} s`;
+const heure = (t) => new Date(t * 1000).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+const CAPTURE = location.hash.startsWith("#capture");
+let E = null, decalage = 0, signature = "", opChoisie = null, ouverts = new Set();
+let vue = (location.hash.replace(/^#(capture-?)?/, "") || "ensemble");
+let filtre = "tous", recherche = "";
+const choix = {};           // décisions en cours de saisie : cle -> {decision, raison}
+const maintenant = () => Date.now() / 1000 + decalage;
+
+const STATUTS = {
+  inconnu: ["Inconnu", "un humain doit trancher"], secret: ["Secret", "va au coffre, jamais dans Git ni au modèle"],
+  donnee: ["Donnée", "sauvegardée puis restaurée"], compris: ["Compris", "reproduit par le code"], ignore: ["Bruit", "ignoré, avec la règle qui le justifie"],
+};
+const ORDRE = ["inconnu", "secret", "donnee", "compris", "ignore"];
+const CATEGORIES = { pkg: "paquet", "pkg-manual": "paquet installé à la main", file: "fichier", "unit-file": "unité systemd", unit: "service",
+  cron: "tâche planifiée", data: "dossier de données", process: "processus", listen: "port ouvert", user: "compte", group: "groupe",
+  alternative: "alternative Debian", mount: "point de montage", sysctl: "réglage du noyau", timer: "minuterie systemd", "pkgfile-modified": "fichier de paquet modifié" };
+const ECARTS = { "ajouté-dans-B": "ajouté", "différent": "modifié", "absent-de-B": "retiré" };
+const LIB_PROPO = { reproduire: "garder", ne_pas_reproduire: "retirer", donnee: "donnée à sauvegarder", a_verifier: "à vérifier" };
+// Libellés affichés des décisions ; les valeurs envoyées restent celles de bs-decider.py.
+const LIB_DECISION = { reproduire: "Garder", "ne pas reproduire": "Retirer", accepter: "Accepter la perte" };
+const SVG = (d) => `<svg viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
+const COCHE = SVG('<path d="M5 12.5l4.5 4.5L19 7.5"/>');
+const ICO = { ok: COCHE, ko: SVG('<path d="M7 7l10 10M17 7L7 17"/>'), bloque: SVG('<path d="M12 7v6M12 17h.01"/>'),
+  attention: SVG('<path d="M12 7v6M12 17h.01"/>'), saute: SVG('<path d="M7 12h10"/>'), en_cours: "", avenir: "" };
+
+const ICONES = {
+  ensemble: '<path d="M3 12l9-8 9 8"/><path d="M5 10v10h14V10"/>',
+  parc: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/><path d="M7 7h.01M7 17h.01"/>',
+  inventaire: '<path d="M8 6h13M8 12h13M8 18h13"/><path d="M3 6h.01M3 12h.01M3 18h.01"/>',
+  decisions: '<path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/>',
+  ci: '<circle cx="6" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="12" r="2.5"/><path d="M6 8.5v7M8.3 7l7.4 3.8"/>',
+  bascule: '<path d="M7 7h11l-3-3M17 17H6l3 3"/>',
+  labo: '<path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3l-5-9V3"/>',
+};
+
+// ---------------------------------------------------------------- état dérivé
+const ops = () => E.operations || [];
+const derniereOp = (cle) => [...ops()].reverse().find((o) => !cle || o.cle === cle);
+const opEnCours = () => ops().find((o) => o.etat === "en_cours");
+const ciFinie = (c) => c && ["success", "failure", "error"].includes(c.etat);
+const prouve = () => E.ci2?.etat === "success";
+const basculeFaite = () => E.phase === "fini" && E.bascule?.ok;
+const nbCartes = () => E.decisions?.cartes?.length || 0;
+
+function plan() {
+  // Une ligne par étape du plan de reprise : état, résumé court (pastille), et ce que la carte
+  // « Prochaine étape » dit quand c'est son tour (titre, explication, action).
+  const opA = derniereOp("audit"), auditEnCours = opA && opA.etat === "en_cours";
+  const prepOk = E.preparation?.etat === "ok";
+  const c1 = E.ci1, c2 = E.ci2, b = E.bascule, n = nbCartes();
+  const r = [];
+  // 1. Audit
+  if (auditEnCours) r.push({ titre: "Audit", etat: "en_cours", court: "en cours…", vers: E.audit ? "inventaire" : null });
+  else if (E.audit) r.push({ titre: "Audit", etat: "ok", vers: "inventaire",
+    court: `${E.audit.total} écarts, dont ${E.audit.comptes.inconnu || 0} inconnus` });
+  else r.push({ titre: "Audit", etat: "attention", court: "à lancer",
+    grand: "Auditer la machine",
+    texte: "Black Start se connecte en lecture seule, relève tout ce qui distingue ce serveur d'une Debian neuve et le classe. Rien n'est modifié.",
+    action: { nom: "audit", lib: "Lancer l'audit", ok: prepOk && !E.occupe },
+    note: prepOk ? "Environ 10 secondes." : "Le laboratoire n'est pas prêt : Laboratoire → Préparer." });
+  // 2. Décisions
+  if (E.decisions?.prises) r.push({ titre: "Décisions", etat: "ok", vers: "decisions",
+    court: `${Object.keys(E.decisions.prises).length} signées ${E.par}` });
+  else if (n && !auditEnCours) r.push({ titre: "Décisions", etat: "attention", vers: "decisions", court: `${n} en attente`,
+    grand: `Trancher les ${n} éléments inconnus`,
+    texte: "Personne n'a documenté ces éléments. Le modèle local propose une réponse pour chacun ; vous décidez, avec une raison.",
+    action: { vers: "decisions", lib: "Prendre les décisions", ok: true },
+    note: "Tant qu'ils ne sont pas tranchés, la CI refuse de reconstruire la machine." });
+  else r.push({ titre: "Décisions", etat: "avenir", court: "après l'audit" });
+  // 3. Preuve
+  if (prouve()) r.push({ titre: "Preuve", etat: "ok", vers: "ci", court: `CI verte en ${duree(c2.duree)}` });
+  else if (c2 && ciFinie(c2)) r.push({ titre: "Preuve", etat: "ko", vers: "ci", court: "CI rouge",
+    grand: "La reconstruction n'est pas prouvée", texte: c2.echec ? `La CI a échoué : ${c2.echec}.` : "La CI a échoué : voir le détail.",
+    action: { vers: "ci", lib: "Voir la CI", ok: true } });
+  else if (c2) {
+    const k = (c2.etapes || []).filter((x) => x.debut).length;
+    r.push({ titre: "Preuve", etat: "en_cours", vers: "ci", court: k ? `étape ${k} sur 7` : "la CI démarre…" });
+  } else if (c1 && ciFinie(c1) && c1.etat !== "success") r.push({ titre: "Preuve", etat: "bloque", vers: "ci", court: "bloquée : décisions en attente" });
+  else if (c1) r.push({ titre: "Preuve", etat: "en_cours", vers: "ci", court: "contrôle CI…" });
+  else r.push({ titre: "Preuve", etat: "avenir", court: "reconstruction sur une copie isolée" });
+  // 4. Bascule
+  if (basculeFaite()) r.push({ titre: "Bascule", etat: "ok", vers: "bascule", court: `coupure de ${fr(b.coupure, 1)} s` });
+  else if (E.phase === "fini") r.push({ titre: "Bascule", etat: "ko", vers: "bascule", court: "test métier rouge",
+    grand: "Revenir à l'original", texte: "Le test métier est rouge après la bascule. L'original est intact : on peut y revenir.",
+    action: { vers: "labo", lib: "Ouvrir le laboratoire", ok: true } });
+  else if (b) r.push({ titre: "Bascule", etat: "en_cours", vers: "bascule", court: "en cours…" });
+  else if (prouve()) r.push({ titre: "Bascule", etat: "attention", vers: "bascule", court: "prête",
+    grand: "Basculer la production sur la copie prouvée",
+    texte: "La copie reconstruite depuis le code a passé la CI. L'original sera éteint, pas détruit : retour arrière possible.",
+    action: { nom: "basculer", lib: "Basculer la production", ok: !E.occupe, rouge: true, vers: "bascule" },
+    note: "La coupure de service est chronométrée." });
+  else if (E.refus) r.push({ titre: "Bascule", etat: "bloque", vers: "bascule", court: "refusée sans preuve" });
+  else r.push({ titre: "Bascule", etat: "avenir", court: "interdite sans preuve" });
+  return r;
+}
+
+// ---------------------------------------------------------------- morceaux communs
+const ico = (etat) => `<span class="ico ${etat}">${ICO[etat] ?? ""}</span>`;
+const LIB_ETAT = { ok: "Fait", ko: "Erreur", bloque: "Bloqué", attention: "À faire", en_cours: "En cours", avenir: "À venir", saute: "Sauté" };
+const etiquetteEtat = (etat, lib) => `<span class="etat ${etat}">${lib || LIB_ETAT[etat]}</span>`;
+const statut = (s) => `<span class="statut"><i class="pt c-${s}"></i>${STATUTS[s]?.[0] || s}</span>`;
+function bouton(a, principal = true) {
+  const cls = (a.rouge ? "rouge" : a.vert ? "vert" : "") + (a.grand ? " grand" : "");
+  return `<button class="bouton ${cls}" ${a.nom ? `data-action="${a.nom}"` : ""} ${a.vers ? `data-vers="${a.vers}"` : ""} ${principal ? "data-principal" : ""} ${a.ok ? "" : "disabled"}>${esc(a.lib)}</button>`;
+}
+function repartition(a) {
+  const n = a.total || 1;
+  return `<div class="repart">${ORDRE.map((s) => `<i class="c-${s}" style="width:${(a.comptes[s] || 0) / n * 100}%"></i>`).join("")}</div>
+    <div class="legende">${ORDRE.map((s) => `<span><i class="pt c-${s}"></i><b>${a.comptes[s] || 0}</b>${STATUTS[s][0].toLowerCase()} · ${STATUTS[s][1]}</span>`).join("")}</div>`;
+}
+function proposition(p) {
+  if (!p) return "";
+  return `<div class="propo"><div class="t">Proposition du modèle local · ${esc(LIB_PROPO[p.statut] || p.statut)} · risque ${esc(p.risque === "eleve" ? "élevé" : p.risque)}</div>${esc(p.raison)}<div class="q">Question à l'administrateur : ${esc(p.question)}</div></div>`;
+}
+
+// ---------------------------------------------------------------- vues
+function prochaine(etapes) {
+  // Carte du haut : ce qui se passe maintenant, ou la seule chose à faire ensuite.
+  const cour = opEnCours();
+  if (cour) {
+    const p = cour.pas.find((x) => x.etat === "en_cours");
+    const fait = cour.pas.filter((x) => x.etat !== "avenir" && x.etat !== "en_cours").length;
+    const vers = { audit: "inventaire", decider: "ci", basculer: "bascule", preparer: "labo", remettre: "labo" }[cour.cle];
+    return `<div class="prochaine en_cours"><div class="sur"><span class="ico en_cours"></span>${esc(cour.titre)} · pas ${fait + 1} sur ${cour.pas.length}</div>
+      <h2>${esc(p ? p.titre : cour.titre)}</h2>
+      <p>${esc(p ? p.explication : "")}</p>
+      <div class="note">Démarré à ${heure(cour.debut)} · <span data-depuis="${cour.debut}"></span> · détail de chaque pas dans le panneau Activité</div>
+      <div class="actions">${vers ? `<button class="bouton second" data-vers="${vers}">Voir le détail</button>` : ""}</div></div>`;
+  }
+  const e = etapes.find((x) => x.grand);
+  if (!e) {
+    if (basculeFaite()) return `<div class="prochaine"><div class="sur">Reprise terminée</div>
+      <h2>bs-logistique tourne sur la copie reconstruite depuis le code</h2>
+      <p>Coupure de ${fr(E.bascule.coupure, 1)} s, de l'arrêt de l'original au test métier vert, sans geste manuel. Parcours complet en ${mmss(E.t_fin - E.t0)}.</p>
+      <div class="actions"><button class="bouton second" data-vers="bascule">Voir la bascule</button></div></div>`;
+    return "";
+  }
+  return `<div class="prochaine"><div class="sur">Prochaine étape</div><h2>${esc(e.grand)}</h2><p>${esc(e.texte)}</p>
+    ${e.note ? `<div class="note">${esc(e.note)}</div>` : ""}
+    <div class="actions">${bouton({ ...e.action, grand: true })}</div></div>`;
+}
+
+function vueEnsemble() {
+  const etapes = plan();
+  const courante = etapes.find((x) => x.etat !== "ok");
+  const a = E.audit, s = E.ci2?.rapport?.sauvegarde;
+  const file = etapes.map((x, i) => `<button class="e ${x === courante ? "courante" : ""} ${x.etat === "ok" ? "fait" : ""}" ${x.vers && x.etat !== "avenir" ? `data-vers="${x.vers}"` : ""}>
+      <div class="rang">${ico(x.etat)}<span class="num">Étape ${i + 1}</span></div><div class="t">${esc(x.titre)}</div><div class="c">${esc(x.court)}</div></button>`).join("");
+  const chiffres = a ? `<div class="chiffres">
+      <div class="chiffre"><div class="l">Écarts relevés</div><div class="v">${a.total}</div><div class="s">en ${duree(a.duree)}, en lecture seule</div></div>
+      <div class="chiffre"><div class="l">Inconnus</div><div class="v" style="color:var(--ambre)">${a.comptes.inconnu || 0}</div><div class="s">${E.decisions?.prises ? "tous tranchés" : "à trancher"}</div></div>
+      <div class="chiffre"><div class="l">Perte de données max</div><div class="v">${s ? fr(s.age_h, 1) + " h" : "–"}</div><div class="s">${s ? "âge de la dernière sauvegarde" : "connue après la preuve"}</div></div>
+      <div class="chiffre"><div class="l">Coupure mesurée</div><div class="v" style="${E.bascule?.coupure ? "color:var(--vert)" : ""}">${E.bascule?.coupure ? fr(E.bascule.coupure, 1) + " s" : "–"}</div><div class="s">${E.bascule?.coupure ? "arrêt → test métier vert" : "après la bascule"}</div></div>
+    </div>` : "";
+  return `<div class="entete"><h1>bs-logistique</h1>
+      <p>Le serveur du logiciel de logistique et de sa base PostgreSQL. Aucune documentation : sait-on le reconstruire s'il disparaît demain ?</p></div>
+    ${prochaine(etapes)}
+    <div class="bloc"><div class="fileplan">${file}</div></div>
+    ${chiffres}`;
+}
+
+function vueParc() {
+  const pc = E.parc || {}, j = pc.joignable || {}, ph = E.phase, b = E.bascule || {};
+  const coupe = ph === "bascule" && b.coupure_debut && !b.retabli, promue = !!b.retabli && ph !== "remise";
+  const ciActive = (ph === "ci1" && E.ci1 && !E.ci1.fin) || ph === "ci2";
+  const opA = opEnCours();
+  const pasM = (opA?.pas || []).filter((p) => p.etat === "en_cours").map((p) => p.machine).join(" ");
+  const etatJ = (ip) => (ip in j ? (j[ip] ? "ok" : "ko") : "");
+  const actif = (ip) => pasM.includes(ip);
+  const m = (nom, role, ip, point, sous = "") => `<div class="machine ${point === "actif" ? "surbrillance" : ""}"><span class="point ${point}"></span>
+      <div><div class="n">${esc(nom)}</div><div class="r">${esc(role)}</div></div><div class="ip">${esc(ip)}${sous ? `<small>${esc(sous)}</small>` : ""}</div></div>`;
+  const logi = promue ? ["Copie reconstruite par Black Start, en production", "ok", "VM 1650"]
+    : coupe ? ["Original éteint, gardé pour le retour arrière", "eteint", "coupé"]
+    : [actif("103.200") ? "Audit en lecture seule en cours…" : "Logiciel de logistique + PostgreSQL", actif("103.200") ? "actif" : etatJ("192.168.103.200"), ""];
+  const sbx = promue ? ["Promue en production (IP .200)", "ok"] : ph === "ci2" ? ["Reconstruction en cours, isolée", "actif"]
+    : prouve() ? ["Copie prouvée, prête à basculer", "ok"] : [E.preparation?.etat === "ok" ? "Clone neuf, isolé, prêt pour la CI" : "Isolée de l'entreprise par pare-feu", ""];
+  const deps = E.audit?.ip_en_dur || [];
+  const noms = { "192.168.103.201": "bs-mail", "192.168.103.202": "bs-proxy", "192.168.103.203": "bs-gitlab (sauvegardes)" };
+  return `<div class="entete"><h1>Parc</h1><p>Les machines de l'entreprise et le laboratoire Black Start. ${pc.date ? `Joignabilité vérifiée à ${heure(pc.date)}.` : "Joignabilité vérifiée à la préparation."}</p></div>
+    <div class="zones">
+      <div class="bloc"><div class="tete"><h2>Entreprise · production</h2></div>
+        ${m("bs-logistique", logi[0], "192.168.103.200", logi[1], logi[2])}
+        ${m("bs-mail", "Postfix + Dovecot", "192.168.103.201", etatJ("192.168.103.201"))}
+        ${m("bs-proxy", "Proxy web Nginx + DNS", "192.168.103.202", etatJ("192.168.103.202"))}
+      </div>
+      <div class="bloc"><div class="tete"><h2>Laboratoire Black Start</h2></div>
+        ${m("bs-ia", E.phase === "ia" || actif("103.204") ? "Le modèle lit les preuves masquées…" : "Modèle local qwen3.6:35b, sans GPU", "192.168.103.204", actif("103.204") ? "actif" : etatJ("192.168.103.204"))}
+        ${m("bs-gitlab", ciActive ? "Vérifie la merge request…" : "Forge Forgejo, merge requests, CI, coffre", "192.168.103.203", ciActive || actif("103.203") ? "actif" : etatJ("192.168.103.203"))}
+        ${m("sbx-logistique", sbx[0], promue ? "→ 192.168.103.200" : "192.168.103.210", sbx[1])}
+      </div>
+    </div>
+    <div class="bloc"><div class="tete"><h2>Dépendances découvertes à l'audit</h2><span class="droite doux" style="font-size:14px">adresses IP d'autres machines écrites en dur dans des fichiers modifiés</span></div>
+      ${deps.length ? `<table><thead><tr><th>Fichier</th><th>Ligne</th><th>Vers</th></tr></thead><tbody>${deps.map((d) =>
+        `<tr><td class="cle">${esc(d.fichier)}</td><td class="mono">${d.ligne ?? ""}</td><td><span class="mono">${esc(d.ip)}</span> <span class="doux">${esc(noms[d.ip] || "")}</span></td></tr>`).join("")}</tbody></table>`
+        : `<div class="vide">Visibles après l'audit.</div>`}</div>
+    <div class="doux" style="font-size:14px">Rien ne sort du laboratoire : modèle local, secrets masqués avant tout passage au modèle, sandbox sans accès à l'entreprise.</div>`;
+}
+
+function lignesInventaire() {
+  const a = E.audit, q = recherche.trim().toLowerCase();
+  const props = E.ia?.propositions || {}, prises = E.decisions?.prises || {};
+  const els = a.elements.filter((x) => (filtre === "tous" || x.statut === filtre) && (!q || x.cle.toLowerCase().includes(q) || (x.raison || "").toLowerCase().includes(q)))
+    .sort((x, y) => ORDRE.indexOf(x.statut) - ORDRE.indexOf(y.statut));
+  if (!els.length) return `<tr><td colspan="4" class="vide">Aucun élément.</td></tr>`;
+  return els.map((x) => {
+    const [cat, ...reste] = x.cle.split(":"), ouvert = ouverts.has(x.cle);
+    const det = ouvert ? `<tr class="detail"><td colspan="4"><div style="display:grid;gap:8px">
+        <div><span class="doux">Clé complète :</span> <span class="mono">${esc(x.cle)}</span></div>
+        <div><span class="doux">Écart :</span> ${esc(ECARTS[x.ecart] || x.ecart)} par rapport à une Debian 13 neuve · <span class="doux">Classement :</span> ${esc(x.raison)}</div>
+        ${proposition(props[x.cle])}
+        ${prises[x.cle] ? `<div><span class="doux">Décision de ${esc(E.par)} :</span> <b>${esc(LIB_DECISION[prises[x.cle].decision] || prises[x.cle].decision)}</b> · ${esc(prises[x.cle].raison)}</div>` : x.statut === "inconnu" ? `<div class="doux">En attente d'une décision humaine.</div>` : ""}
+      </div></td></tr>` : "";
+    return `<tr class="el" data-el="${esc(x.cle)}"><td>${statut(x.statut)}</td><td class="cle">${esc(reste.join(":"))}</td><td>${esc(CATEGORIES[cat] || cat)}</td><td class="doux">${esc(x.raison)}</td></tr>${det}`;
+  }).join("");
+}
+
+function vueInventaire() {
+  const a = E.audit;
+  if (!a) return `<div class="entete"><h1>Audit</h1><p>Tout ce qui distingue bs-logistique d'une Debian neuve.</p></div><div class="bloc"><div class="vide">Pas encore d'audit. Lancer l'audit depuis la vue d'ensemble.</div></div>`;
+  return `<div class="entete"><h1>Audit</h1><p>${a.total} écarts entre bs-logistique et une Debian 13 neuve, relevés le ${new Date(a.date).toLocaleString("fr-FR", { dateStyle: "long", timeStyle: "short" })}. Chaque écart porte la règle qui l'a classé.</p>
+      <div class="meta"><span class="tag">${esc(a.machine?.resume || "")}</span></div></div>
+    <div class="bloc"><div class="contenu">${repartition(a)}</div></div>
+    <div class="bloc">
+      <div class="tete"><div class="filtres">${[["tous", "Tous", a.total], ...ORDRE.map((s) => [s, STATUTS[s][0], a.comptes[s] || 0])].map(([k, lib, n]) =>
+        `<button class="filtre ${filtre === k ? "on" : ""}" data-filtre="${k}">${k !== "tous" ? `<i class="pt c-${k}"></i>` : ""}${lib} <b>${n}</b></button>`).join("")}</div>
+        <input type="search" placeholder="Chercher un fichier, un paquet…" id="recherche" value="${esc(recherche)}"></div>
+      <table><thead><tr><th style="width:120px">Statut</th><th>Élément</th><th style="width:190px">Type</th><th>Pourquoi</th></tr></thead><tbody id="lignes">${lignesInventaire()}</tbody></table>
+    </div>`;
+}
+
+function vueDecisions() {
+  const cartes = E.decisions?.cartes || [], prises = E.decisions?.prises;
+  const entete = `<div class="entete"><h1>Décisions</h1><p>Les éléments que personne n'a documentés. Le modèle local propose à partir des preuves (secrets masqués) ; ${esc(E.par)} décide et signe.</p></div>`;
+  if (!cartes.length) return entete + `<div class="bloc"><div class="vide">${E.audit ? "Aucune décision en attente." : "Les inconnus apparaîtront ici après l'audit."}</div></div>`;
+  if (prises) {
+    return entete + `<div class="bloc"><div class="tete"><h2>${cartes.length} décisions signées ${esc(E.par)}</h2><span class="droite doux" style="font-size:14px">${E.decisions.date ? `à ${heure(E.decisions.date)} · ` : ""}versionnées dans la merge request</span></div>
+      <table><thead><tr><th>Élément</th><th style="width:170px">Décision</th><th>Raison</th></tr></thead><tbody>${cartes.map((c) => {
+        const d = prises[c.cle] || {};
+        return `<tr><td class="cle">${esc(c.cle)}</td><td><b>${esc(LIB_DECISION[d.decision] || d.decision || "")}</b></td><td class="doux">${esc(d.raison || "")}</td></tr>`;
+      }).join("")}</tbody></table></div>`;
+  }
+  const faites = cartes.filter((c) => choix[c.cle]?.decision && choix[c.cle]?.raison?.trim()).length;
+  const html = cartes.map((c, i) => {
+    const ch = choix[c.cle] || {}, data = c.cle.startsWith("data:");
+    const opts = data ? [["accepter", "Accepter la perte", "accepter"]] : [["reproduire", "Garder", "reproduire"], ["ne pas reproduire", "Retirer", "non"]];
+    return `<div class="bloc dec ${ch.decision && ch.raison?.trim() ? "prise" : ""}" data-cle="${esc(c.cle)}">
+      <div class="haut-dec"><span class="cle">${esc(c.cle)}</span><span class="n">${i + 1} / ${cartes.length}</span></div>
+      <div class="constat">Constat de l'audit : ${esc(c.constat)}</div>
+      ${proposition(c.proposition)}
+      <div class="choix">${opts.map(([v, lib, cl]) => `<button class="${cl} ${ch.decision === v ? "on" : ""}" data-choix="${esc(v)}">${lib}</button>`).join("")}</div>
+      <textarea placeholder="Raison de la décision (obligatoire)" data-raison>${esc(ch.raison || "")}</textarea>
+    </div>`;
+  }).join("");
+  const sp = E.decisions?.sans_preuve || [];
+  return entete + (sp.length ? `<div class="doux" style="font-size:14px">${sp.length} inconnu sans preuve collectée (<span class="mono">${esc(sp.join(", "))}</span>) : ni envoyé au modèle, ni reproduit.</div>` : "")
+    + `<div class="decisions">${html}</div>
+    <div class="pied"><button class="bouton vert grand" data-action="decider" data-principal id="valider" ${faites === cartes.length && !E.occupe ? "" : "disabled"}>Valider ${faites} / ${cartes.length} et relancer la preuve</button>
+      <span class="doux">Les décisions partent dans la merge request ; la CI reconstruit alors la machine sur une copie isolée.</span></div>`;
+}
+
+function pasCI(e, i) {
+  const st = e.fin ? (e.code === 0 ? "ok" : "ko") : e.debut ? "en_cours" : "avenir";
+  const t = e.fin ? duree(e.duree) : e.debut ? `<span data-depuis="${e.debut}"></span>` : "";
+  return `<div class="pas-ci ${st}">${ico(st)}<div><div class="t">${i + 1}. ${esc(e.libelle)}</div><div class="x">${esc(e.explication || "")}</div>${e.resultat ? `<div class="r">${esc(e.resultat)}</div>` : ""}</div><div class="duree">${t}</div></div>`;
+}
+
+function vueCI() {
+  const mr = E.mr, c1 = E.ci1, c2 = E.ci2, code = E.code;
+  const entete = `<div class="entete"><h1>Preuve</h1><p>Le code de reconstruction est proposé comme n'importe quel changement : une merge request, que la CI vérifie en reconstruisant la machine sur une copie isolée.</p></div>`;
+  if (!mr?.numero) return entete + `<div class="bloc"><div class="vide">${E.audit ? "Merge request en préparation…" : "La merge request est ouverte à la fin de l'audit."}</div></div>`;
+  const opD = derniereOp("decider");
+  const resultats = {};
+  (opD?.pas || []).forEach((p) => { if (p.resultat) resultats[p.cle] = p.resultat; });
+  const etat2 = c2 ? (c2.etat === "success" ? etiquetteEtat("ok", "Verte") : ciFinie(c2) ? etiquetteEtat("ko", "Rouge") : etiquetteEtat("en_cours")) : "";
+  const etat1 = c1 ? (c1.etat === "success" ? etiquetteEtat("ok", "Verte") : ciFinie(c1) ? etiquetteEtat("bloque", "Bloquée") : etiquetteEtat("en_cours")) : "";
+  const r = c2?.rapport, cmp = r?.comparaison?.summary, s = r?.sauvegarde, tm = r?.test_metier;
+  return entete + `
+    <div class="bloc"><div class="tete"><h2>Reconstruction de bs-logistique depuis le code</h2><span class="droite">
+        ${prouve() ? etiquetteEtat("ok", "Prête à fusionner") : etiquetteEtat("bloque", "Fusion bloquée")}
+        <a href="${esc(mr.url)}" target="_blank" rel="noopener">Ouvrir dans la forge ↗</a></span></div>
+      <div class="contenu" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+        <span class="tag">n° ${mr.numero}</span><span class="tag">${esc(mr.branche || "reconstruction/bs-logistique")} → main</span><span class="tag">commit ${esc(c2?.sha || mr.sha)}</span>
+        ${code ? `<span class="doux" style="font-size:14px">${code.taches} tâches Ansible · ${code.coffre} secrets au coffre · ${code.paquets ?? "–"} paquets · inconnus jamais appliqués</span>` : ""}
+      </div></div>
+    ${c1 ? `<div class="bloc"><div class="tete"><h2>Vérification 1 · après l'audit</h2><span class="droite">${etat1}<span class="mono doux" style="font-size:13px">${esc(c1.sha)} · ${c1.duree != null ? duree(c1.duree) : `<span data-depuis="${c1.debut}"></span>`}</span></span></div>
+      <div class="contenu">${ciFinie(c1) && c1.etat !== "success"
+        ? `<b>${c1.attente ?? nbCartes()} décisions humaines en attente : reconstruction non lancée.</b> <span class="doux">La CI refuse de prouver une machine dont on ne sait pas tout. ${E.refus ? `Le garde-fou de bascule a refusé lui aussi : « ${esc(E.refus.motif)} ».` : ""}</span>`
+        : `<span class="doux">La forge contrôle la merge request…</span>`}</div></div>` : ""}
+    ${c2 ? `<div class="bloc"><div class="tete"><h2>Vérification 2 · après les décisions</h2><span class="droite">${etat2}<span class="mono doux" style="font-size:13px">${esc(c2.sha)} · ${ciFinie(c2) ? duree(c2.duree) : `<span data-depuis="${c2.debut}"></span>`}</span></span></div>
+      ${!c2.demarree && !ciFinie(c2) ? `<div class="contenu doux">Le runner de la forge prend la merge request… <span class="mono" data-depuis="${c2.debut}"></span></div>` : ""}
+      <div class="pipeline">${(c2.etapes || []).map((e, i) => pasCI({ ...e, resultat: resultats[e.cle] }, i)).join("")}</div></div>` : ""}
+    ${r ? `<div class="chiffres">
+      <div class="chiffre"><div class="l">Écarts comparés</div><div class="v">${cmp ? cmp.differences : "–"}</div><div class="s">entre la copie et l'original</div></div>
+      <div class="chiffre"><div class="l">Non justifiés</div><div class="v" style="color:${cmp && cmp.unjustified === 0 ? "var(--vert)" : "var(--rouge)"}">${cmp ? cmp.unjustified : "–"}</div><div class="s">bloquants pour la fusion</div></div>
+      <div class="chiffre"><div class="l">Données restaurées</div><div class="v">${s ? fr(s.age_h, 1) + " h" : "–"}</div><div class="s">${s ? `âge de l'instantané <span class="mono">${esc(s.instantane)}</span>` : ""}</div></div>
+      <div class="chiffre"><div class="l">Test métier</div><div class="v" style="color:${tm?.ok ? "var(--vert)" : "var(--rouge)"}">${tm ? (tm.ok ? "vert" : "rouge") : "–"}</div><div class="s">${tm ? `commande créée, relue, supprimée en ${fr(tm.duree_s, 2)} s` : ""}</div></div>
+    </div>` : ""}`;
+}
+
+function vueBascule() {
+  const b = E.bascule, opB = derniereOp("basculer");
+  const conds = `<div class="bloc"><div class="tete"><h2>Conditions</h2></div><div class="conditions">
+      <div>${ico(prouve() ? "ok" : E.ci1 ? "bloque" : "avenir")}<span>CI de la merge request verte <span class="doux">(reconstruction prouvée sur une copie isolée)</span></span></div>
+      <div>${ico(prouve() ? "ok" : "avenir")}<span>Copie prête : <span class="mono">sbx-logistique</span>, reconstruite, comparée, test métier vert</span></div>
+      <div>${ico("ok")}<span>Retour arrière possible : l'original est éteint, jamais détruit</span></div></div></div>`;
+  const entete = `<div class="entete"><h1>Bascule</h1><p>Remplacer la production par la copie reconstruite depuis le code, et mesurer la coupure de service réelle.</p></div>`;
+  if (!b) {
+    return entete + conds + (E.refus ? `<div class="alerte">Tentative refusée par le garde-fou : ${esc(E.refus.motif)}</div>` : "")
+      + `<div>${bouton({ nom: "basculer", lib: "Basculer la production", ok: prouve() && !E.occupe, rouge: true })}</div>`;
+  }
+  const coupe = b.coupure_debut && !b.retabli, retabli = !!b.retabli;
+  const compteur = retabli ? `${fr(b.coupure, 1)} s` : coupe ? `<span data-depuis="${b.coupure_debut}" data-dixiemes="1"></span>` : "0,0 s";
+  const tests = (b.tests || []).map((x) => `<div class="test">${ico(x.ok ? "ok" : "ko")}<div>${esc(x.etape)}<small>${esc(x.detail)}</small></div><span class="doux">${fr(x.duree, 2)} s</span></div>`).join("");
+  let bilan = "";
+  if (E.phase === "fini" && E.t0) {
+    const dec = E.decisions?.date && E.ci1?.fin ? E.decisions.date - E.ci1.fin : null;
+    bilan = `<div class="chiffres">
+      <div class="chiffre"><div class="l">Parcours complet</div><div class="v">${mmss((E.t_fin || maintenant()) - E.t0)}</div><div class="s">de l'audit à la production</div></div>
+      <div class="chiffre"><div class="l">Audit</div><div class="v">${duree(E.audit?.duree)}</div></div>
+      <div class="chiffre"><div class="l">Décisions</div><div class="v">${dec ? duree(dec) : "–"}</div></div>
+      <div class="chiffre"><div class="l">Preuve CI</div><div class="v">${duree(E.ci2?.duree)}</div></div>
+      <div class="chiffre"><div class="l">Coupure</div><div class="v" style="color:var(--vert)">${b.coupure ? fr(b.coupure, 1) + " s" : "–"}</div></div></div>`;
+  }
+  return entete + `<div class="bloc compteur ${retabli ? "retabli" : coupe ? "coupe" : ""}">
+      <div class="l">${retabli ? "Service rétabli · coupure totale, de l'arrêt de l'original au test métier vert" : coupe ? "Service coupé" : "Vérification de la preuve…"}</div>
+      <div class="v">${compteur}</div>${retabli ? `<div class="doux">sans geste manuel</div>` : ""}</div>
+    <div class="deux">
+      <div class="bloc"><div class="tete"><h2>Déroulé</h2></div><div class="pipeline">${(opB?.pas || []).map((p, i) => pasCI({ libelle: p.titre, explication: p.explication, resultat: p.resultat,
+        debut: p.debut, fin: p.fin, code: p.etat === "ok" ? 0 : 1, duree: p.fin && p.debut ? p.fin - p.debut : null }, i)).join("")}</div></div>
+      <div class="bloc"><div class="tete"><h2>Test métier sur la production</h2></div>${tests || `<div class="vide">En attente du redémarrage de la copie…</div>`}</div>
+    </div>${bilan}`;
+}
+
+function vueLabo() {
+  const p = E.preparation || {}, op = derniereOp("preparer");
+  return `<div class="entete"><h1>Laboratoire</h1><p>Coulisses de la démo : préparation avant l'oral et remise en état après. Rien ici n'est montré au jury.</p></div>
+    <div class="bloc"><div class="tete"><h2>Préparation</h2><span class="droite">${p.etat === "ok" ? etiquetteEtat("ok", `Prête depuis ${heure(p.date)}`) : p.etat === "en_cours" ? etiquetteEtat("en_cours") : p.etat === "ko" ? etiquetteEtat("ko") : etiquetteEtat("attention", "À faire")}
+        <button class="bouton ${p.etat === "ok" ? "second" : ""}" data-action="preparer" ${E.occupe ? "disabled" : ""}>${p.etat === "ok" ? "Refaire" : "Préparer"}</button></span></div>
+      <div class="contenu doux">À lancer 10 min avant l'oral : VM joignables, pièges reposés, modèle chargé, propositions calculées, sandbox préchauffée.</div>
+      ${op ? `<div class="pipeline">${op.pas.map((x, i) => pasCI({ libelle: x.titre, explication: x.explication, resultat: x.resultat, debut: x.debut, fin: x.fin,
+        code: x.etat === "ok" ? 0 : 1, duree: x.fin && x.debut ? x.fin - x.debut : null }, i)).join("")}</div>` : ""}</div>
+    <div class="bloc"><div class="tete"><h2>Remise en état</h2><span class="droite"><button class="bouton second" data-action="remettre" ${E.occupe ? "disabled" : ""}>Remettre en état</button></span></div>
+      <div class="contenu doux">Après l'oral : copie éteinte, original rallumé, pièges reposés. Résultats de chaque démo dans <span class="mono">banc/resultats/demo-salle-*.json</span>.</div></div>`;
+}
+
+const VUES = { ensemble: ["Vue d'ensemble", vueEnsemble], parc: ["Parc", vueParc], inventaire: ["Audit", vueInventaire],
+  decisions: ["Décisions", vueDecisions], ci: ["Preuve", vueCI], bascule: ["Bascule", vueBascule], labo: ["Laboratoire", vueLabo] };
+
+// ---------------------------------------------------------------- navigation, haut, activité
+function rendreNav() {
+  const badge = {};
+  if (E.audit) badge.inventaire = `<span class="badge">${E.audit.total}</span>`;
+  if (nbCartes() && !E.decisions?.prises) badge.decisions = `<span class="badge ambre">${nbCartes()}</span>`;
+  else if (E.decisions?.prises) badge.decisions = `<span class="badge vert"><svg class="i" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>`;
+  if (prouve()) badge.ci = `<span class="badge vert">Verte</span>`;
+  else if (E.ci2 && !ciFinie(E.ci2)) badge.ci = `<span class="badge ambre">En cours</span>`;
+  else if (E.ci1 && ciFinie(E.ci1)) badge.ci = `<span class="badge rouge">Bloquée</span>`;
+  if (basculeFaite()) badge.bascule = `<span class="badge vert"><svg class="i" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>`;
+  if (E.preparation?.etat !== "ok") badge.labo = `<span class="badge ambre">!</span>`;
+  const item = (k) => `<button class="${vue === k ? "actif" : ""}" data-vers="${k}"><svg viewBox="0 0 24 24">${ICONES[k === "labo" ? "labo" : k]}</svg>${VUES[k][0]}${badge[k] || ""}</button>`;
+  $("#nav").innerHTML = `<div class="titre-nav">bs-logistique</div>${["ensemble", "inventaire", "decisions", "ci", "bascule"].map(item).join("")}
+    <div class="titre-nav">Entreprise</div>${item("parc")}<div class="bas">${item("labo")}</div>`;
+}
+
+function rendreHaut() {
+  const p = E.preparation || {};
+  const labo = p.etat === "ok" ? `<span class="pastille ok"><i></i>Laboratoire prêt</span>` : p.etat === "en_cours" ? `<span class="pastille en_cours"><i></i>Préparation…</span>`
+    : `<span class="pastille attention"><i></i>Laboratoire à préparer</span>`;
+  const chrono = E.t0 ? `<span class="pastille ${E.t_fin ? "ok" : "en_cours"}"><i></i>${E.t_fin ? "Reprise complète en" : "Reprise en cours"} <b id="chrono">${mmss((E.t_fin || maintenant()) - E.t0)}</b></span>` : "";
+  $("#haut-droite").innerHTML = `${chrono}${labo}<span class="utilisateur"><span>${esc((E.par || "?")[0])}</span><div>${esc(E.par)}<small>décideur</small></div></span>`;
+  $("#fil").innerHTML = `<span>PME Logistique</span><span class="sep">/</span>${vue === "ensemble" ? "<b>bs-logistique</b>"
+    : vue === "parc" || vue === "labo" ? `<b>${VUES[vue][0]}</b>` : `<span>bs-logistique</span><span class="sep">/</span><b>${VUES[vue][0]}</b>`}<span class="env">démo · laboratoire</span>`;
+}
+
+function rendreActivite() {
+  const liste = ops();
+  const cour = opEnCours();
+  const montree = liste.find((o) => o.id === opChoisie) || cour || liste[liste.length - 1];
+  $("#activite-etat").innerHTML = cour ? etiquetteEtat("en_cours") : "";
+  if (!montree) {
+    $("#activite").innerHTML = `<div class="op doux">Aucune opération pour l'instant. Chaque action lancée ici apparaît pas à pas : ce qui va se passer, sur quelle machine, et le résultat.</div>`;
+  } else {
+    const etatOp = montree.etat === "en_cours" ? "en_cours" : montree.etat;
+    const pas = montree.pas.map((p) => {
+      const d = p.fin && p.debut ? duree(p.fin - p.debut) : p.debut ? `<span data-depuis="${p.debut}"></span>` : "";
+      // Pas à venir : le titre seul. Pas en cours : machine + explication. Pas fini : son résultat.
+      const corps = p.etat === "avenir" ? ""
+        : p.etat === "en_cours" ? `<div class="m">${esc(p.machine)}</div><div class="x">${esc(p.explication)}</div>${p.resultat ? `<div class="r">${esc(p.resultat)}</div>` : ""}`
+        : p.resultat ? `<div class="r">${esc(p.resultat)}</div>` : "";
+      return `<div class="pas ${p.etat}">${ico(p.etat)}<div><div class="t">${esc(p.titre)}<span class="duree">${d}</span></div>${corps}</div></div>`;
+    }).join("");
+    $("#activite").innerHTML = `<div class="op"><div class="titre-op">${esc(montree.titre)}</div>
+        <div class="sous">${etiquetteEtat(etatOp, etatOp === "ok" ? "Terminée" : undefined)}<span>Lancée à ${heure(montree.debut)}</span>
+          <span>${montree.fin ? duree(montree.fin - montree.debut) : `<span data-depuis="${montree.debut}"></span>`}</span></div>
+        ${montree.erreur ? `<div class="alerte" style="margin-bottom:14px;font-size:14px">${esc(montree.erreur)}</div>` : ""}
+        ${pas}</div>
+      ${liste.length > 1 ? `<div class="historique"><div class="titre-nav">Historique</div>${[...liste].reverse().map((o) =>
+        `<button class="${o === montree ? "on" : ""}" data-op="${esc(o.id)}"><span class="point ${o.etat === "ok" ? "ok" : o.etat === "ko" ? "ko" : o.etat === "en_cours" ? "actif" : ""}"></span><span>${esc(o.titre)}</span><span class="mono">${heure(o.debut)}</span></button>`).join("")}</div>` : ""}`;
+  }
+  const j = $("#journal"), enBas = j.scrollTop + j.clientHeight >= j.scrollHeight - 8;
+  j.textContent = (E.journal || []).map(([t, l]) => `${new Date(t * 1000).toLocaleTimeString("fr-FR")}  ${l}`).join("\n");
+  if (enBas) j.scrollTop = j.scrollHeight;
+}
+
+// ---------------------------------------------------------------- rendu
+function signatureVue() {
+  // Les vues avec saisie (décisions, recherche) ne sont reconstruites que si leur contenu change.
+  if (vue === "decisions") return "d" + JSON.stringify([E.decisions?.cartes?.map((c) => c.cle), !!E.decisions?.prises, E.occupe, E.ia?.propositions ? 1 : 0]);
+  if (vue === "inventaire") return "i" + JSON.stringify([E.audit?.date, E.ia?.nombre, !!E.decisions?.prises, filtre]);
+  if (vue === "bascule") return "b" + JSON.stringify([E.bascule, E.refus, E.ci2?.etat, E.occupe, E.phase, (derniereOp("basculer") || {}).pas]);
+  return vue + JSON.stringify([E.phase, E.preparation, E.parc, E.audit?.date, E.ia, E.code, E.mr, E.ci1, E.refus, E.ci2, E.decisions?.prises, E.bascule, E.occupe,
+    ops().map((o) => [o.id, o.etat, o.pas.map((p) => p.etat + (p.resultat || ""))])]);
+}
+
+function rendre() {
+  if (!E) return;
+  if (!VUES[vue]) vue = "ensemble";
+  rendreNav(); rendreHaut(); rendreActivite();
+  const sig = signatureVue() + (E.erreur || "");
+  if (sig !== signature) {
+    $("#vue").innerHTML = (E.erreur ? `<div class="alerte">${esc(E.erreur)}</div>` : "") + VUES[vue][1]();
+    signature = sig;
+  }
+}
+
+function aller(v) {
+  vue = v; signature = "";
+  if (!CAPTURE) history.replaceState(null, "", "#" + v);
+  rendre(); document.querySelector("main").scrollTop = 0;
+}
+
+function tic() {
+  if (E) {
+    const c = $("#chrono"); if (c && E.t0) c.textContent = mmss((E.t_fin || maintenant()) - E.t0);
+    document.querySelectorAll("[data-depuis]").forEach((el) => {
+      const s = maintenant() - Number(el.dataset.depuis);
+      el.textContent = el.dataset.dixiemes ? `${fr(Math.max(0, s), 1)} s` : duree(Math.max(0, Math.floor(s)));
+    });
+  }
+  if (!CAPTURE) requestAnimationFrame(tic);
+}
+
+function poster(action, corps) {
+  return fetch(`/action/${action}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(corps || {}) })
+    .then((r) => r.ok ? null : r.json().then((j) => { E.erreur = j.erreur; signature = ""; rendre(); }));
+}
+
+// ---------------------------------------------------------------- interactions
+document.addEventListener("click", (ev) => {
+  const a = ev.target.closest("[data-action]"), v = ev.target.closest("[data-vers]"), c = ev.target.closest("[data-choix]");
+  const f = ev.target.closest("[data-filtre]"), el = ev.target.closest("[data-el]"), o = ev.target.closest("[data-op]");
+  if (a) {
+    if (a.disabled) return;
+    const nom = a.dataset.action;
+    opChoisie = null;
+    if (nom === "decider") { poster("decider", { choix }); aller("ci"); }
+    else { poster(nom); if (a.dataset.vers) aller(a.dataset.vers); }
+  } else if (v) aller(v.dataset.vers);
+  else if (f) { filtre = f.dataset.filtre; signature = ""; rendre(); }
+  else if (el) { const k = el.dataset.el; ouverts.has(k) ? ouverts.delete(k) : ouverts.add(k); $("#lignes").innerHTML = lignesInventaire(); }
+  else if (o) { opChoisie = o.dataset.op === (opEnCours() || ops()[ops().length - 1])?.id ? null : o.dataset.op; rendreActivite(); }
+  else if (c) {
+    const carte = c.closest("[data-cle]"), cle = carte.dataset.cle;
+    // Raison préparée pour ce choix ; elle remplace une raison préparée pour l'autre choix,
+    // jamais un texte tapé à la main.
+    const raisons = (E.decisions.cartes.find((x) => x.cle === cle) || {}).raisons || {};
+    const ta = carte.querySelector("textarea"), tape = ta.value.trim();
+    const prepare = !tape || Object.values(raisons).some((r) => r.trim() === tape);
+    choix[cle] = { decision: c.dataset.choix, raison: prepare ? (raisons[c.dataset.choix] || "") : tape };
+    signature = ""; rendre();
+    const neuf = document.querySelector(`[data-cle="${CSS.escape(cle)}"] textarea`);
+    if (neuf && !choix[cle].raison) neuf.focus();
+  }
+});
+document.addEventListener("input", (ev) => {
+  if (ev.target.id === "recherche") { recherche = ev.target.value; $("#lignes").innerHTML = lignesInventaire(); return; }
+  if (!ev.target.matches("[data-raison]")) return;
+  const cle = ev.target.closest("[data-cle]").dataset.cle;
+  choix[cle] = { ...(choix[cle] || {}), raison: ev.target.value };
+  const cartes = E.decisions?.cartes || [];
+  const faites = cartes.filter((x) => choix[x.cle]?.decision && choix[x.cle]?.raison?.trim()).length;
+  const b = $("#valider"); if (b) { b.disabled = faites !== cartes.length || E.occupe; b.textContent = `Valider ${faites} / ${cartes.length} et relancer la preuve`; }
+  ev.target.closest(".dec").classList.toggle("prise", !!(choix[cle].decision && choix[cle].raison.trim()));
+});
+// Raccourci discret pour le présentateur : → déclenche l'action principale de la vue affichée.
+document.addEventListener("keydown", (ev) => {
+  if (ev.target.matches("textarea, input")) return;
+  if (ev.key === "ArrowRight") {
+    const b = document.querySelector("#vue [data-principal]:not(:disabled)");
+    if (b) { ev.preventDefault(); b.click(); }
+  }
+});
+
+function brancher() {
+  const src = new EventSource("/flux");
+  src.onmessage = (m) => {
+    const neuf = JSON.parse(m.data);
+    decalage = neuf.maintenant - Date.now() / 1000;
+    if (neuf.phase === "accueil" && E && E.phase !== "accueil") { for (const k in choix) delete choix[k]; ouverts.clear(); }
+    E = neuf; rendre();
+  };
+  src.onerror = () => { if (E) { E.erreur = "Connexion au serveur de la console perdue : nouvelle tentative…"; signature = ""; rendre(); } };
+}
+// #capture[-vue] : état lu une fois, sans flux (captures d'écran sans navigateur affiché).
+if (CAPTURE) fetch("/etat").then((r) => r.json()).then((d) => { decalage = d.maintenant - Date.now() / 1000; E = d; rendre(); tic(); });
+else { brancher(); requestAnimationFrame(tic); }
+</script>
+</body>
+</html>

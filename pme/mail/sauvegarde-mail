@@ -1,0 +1,7 @@
+#!/bin/sh
+# Sauvegarde quotidienne des boîtes mail vers le serveur de sauvegarde (bs-gitlab).
+set -eu
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin  # cron ne donne que /usr/bin:/bin
+set -a; . /etc/restic/mail.env; set +a
+restic backup --quiet --tag mail /var/mail /home/commandes
+restic forget --quiet --keep-daily 7 --keep-weekly 4 --prune

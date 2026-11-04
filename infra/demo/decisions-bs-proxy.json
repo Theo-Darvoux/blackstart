@@ -1,0 +1,17 @@
+{
+  "data:/var/lib/nginx": {
+    "decision": "accepter",
+    "par": "Théo",
+    "raison": "dossiers de travail de nginx (caches et tampons vides), recréés par le paquet"
+  },
+  "data:/var/lib/unbound": {
+    "decision": "accepter",
+    "par": "Théo",
+    "raison": "clé racine DNSSEC (root.key), recréée et mise à jour par unbound-anchor"
+  },
+  "data:/var/www/html": {
+    "decision": "accepter",
+    "par": "Théo",
+    "raison": "page d'accueil par défaut de nginx, sans contenu propre à la PME"
+  }
+}

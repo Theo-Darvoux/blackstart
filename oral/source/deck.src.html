@@ -8,7 +8,7 @@
   vert foncé #0E9F55 (sur fond clair). Polices : Clash Display 700 (titres, identité),
   IBM Plex Sans / Mono (texte, données).
   Touches : → ← Espace PageUp/Down, F plein écran, O vue d'ensemble, Début/Fin.
-  Diapo démo : T lance/arrête le chrono, R le remet à zéro, ↑ ↓ change l'étape en cours.
+  Annexes (après « Merci ») : pour les questions, hors des 15 min.
 -->
 <html lang="fr">
 <head>
@@ -101,9 +101,7 @@ h2 em{font-style:normal;color:var(--vert)}
 #s-cout .leg{font-size:46px;margin-top:40px;max-width:1300px;font-weight:500}
 #s-cout .leg2{font-size:32px;margin-top:20px;color:var(--gris-n)}
 
-/* 5 · bascule */
-
-/* 6 · TAM SAM SOM */
+/* 5 · TAM SAM SOM */
 .tss{display:flex;align-items:center;gap:100px;margin-top:30px}
 .cercles{position:relative;width:600px;height:600px;flex:none}
 .cercles div{position:absolute;border-radius:50%;left:50%;bottom:0;transform:translateX(-50%)}
@@ -116,7 +114,7 @@ h2 em{font-style:normal;color:var(--vert)}
 .tss .lst .v{font-family:var(--titre);font-size:70px;line-height:1.05}
 .tss .lst .d{font-size:28px;color:var(--gris)}
 
-/* 7 · écosystème */
+/* 6 · écosystème */
 .eco{position:relative;flex:1;margin-top:40px}
 .eco svg{position:absolute;inset:0;width:100%;height:100%}
 .noeud{position:absolute;transform:translate(-50%,-50%);background:#fff;border:2px solid var(--ligne);border-radius:14px;padding:20px 28px;text-align:center;min-width:300px}
@@ -127,7 +125,7 @@ h2 em{font-style:normal;color:var(--vert)}
 .noeud.coeur .t{font-family:var(--titre);font-size:44px;font-weight:700}
 .noeud.coeur .r{color:var(--phos)}
 
-/* 8 · carte concurrentielle */
+/* 7 · carte concurrentielle */
 .carto{display:flex;gap:80px;flex:1;margin-top:30px}
 .plan{position:relative;width:900px;height:560px;flex:none}
 .plan .ax{position:absolute;background:var(--nuit)}
@@ -141,7 +139,7 @@ h2 em{font-style:normal;color:var(--vert)}
 .carto .lecon p{font-size:44px;line-height:1.2;font-weight:500}
 .carto .lecon p b{color:var(--vert-f)}
 
-/* 9 · acteurs */
+/* 8 · acteurs */
 .acteurs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:36px;margin-top:56px}
 .acteur{background:#fff;border-radius:16px;padding:40px 40px 36px;border:2px solid var(--ligne)}
 .acteur h3{font-family:var(--titre);font-size:52px;font-weight:700}
@@ -150,17 +148,23 @@ h2 em{font-style:normal;color:var(--vert)}
 .acteur dt{font-family:var(--mono);font-size:22px;color:var(--gris);padding-top:4px}
 .acteur dd b{color:var(--rouge)}
 
-/* 10 · solution */
-#s-solution .phrase{font-family:var(--titre);font-size:96px;line-height:1;max-width:1600px}
-#s-solution .phrase s{text-decoration:none;color:var(--gris-n)}
-#s-solution .phrase em{font-style:normal;color:var(--vert)}
+/* 9 · solution et fonctionnement */
 .niveaux{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;margin-top:auto}
 .niv{padding:30px 34px 10px;border-left:2px solid var(--ligne)}
 .niv .i{font-family:var(--mono);font-size:24px;color:var(--vert-f)}
 .niv .t{font-family:var(--titre);font-size:54px;margin:6px 0 10px}
 .niv .q{font-size:28px;color:var(--gris);line-height:1.3}
 
-/* 11 · pipeline */
+#s-solution h2{font-size:76px}
+#s-solution .niveaux{margin-top:auto;padding-top:30px}
+#s-solution .niv{padding:12px 28px 4px}
+#s-solution .niv .t{font-size:40px;margin:2px 0 6px}
+#s-solution .niv .q{font-size:24px}
+#s-solution .rail{margin-top:36px!important}
+#s-solution .et{min-height:250px}
+#s-solution .pipe{margin-bottom:70px}
+
+/* 9 · pipeline (six étapes) */
 .pipe{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:20px;margin-top:auto;margin-bottom:40px;position:relative}
 .et{background:#fff;border-radius:14px;padding:30px 26px;border:2px solid var(--ligne);position:relative;min-height:330px;display:flex;flex-direction:column}
 .et .i{font-family:var(--titre);font-size:64px;color:var(--vert);line-height:1}
@@ -173,22 +177,12 @@ h2 em{font-style:normal;color:var(--vert)}
 .rail{display:flex;gap:20px;margin-bottom:14px}
 .rail div{font-family:var(--mono);font-size:22px;letter-spacing:.1em;text-transform:uppercase;color:var(--gris);border-top:3px solid var(--ligne);padding-top:10px}
 
-/* 12 · démo */
-#s-demo{flex-direction:row;gap:90px;align-items:center}
-#s-demo .g{flex:1}
+/* 10 · démo */
+#s-demo{justify-content:center}
 #s-demo h2{font-size:150px}
-#chrono{font-family:var(--mono);font-size:180px;font-weight:500;color:var(--phos);margin-top:40px;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
-#chrono.arret{color:var(--gris-n)}
-.etapes{list-style:none;width:780px;flex:none}
-.etapes li{display:flex;align-items:baseline;gap:26px;padding:20px 0;border-bottom:2px solid var(--ligne-n);font-size:38px;color:var(--gris-n);transition:color .3s}
-.etapes li .mono{font-size:24px;width:96px;flex:none}
-.etapes li.fait{color:var(--os)}
-.etapes li.fait .mono{color:var(--phos)}
-.etapes li.cour{color:var(--nuit);background:var(--phos);margin:0 -24px;padding-left:24px;padding-right:24px;border-radius:8px;font-weight:600}
-.etapes li.cour .mono{color:var(--nuit)}
-.etapes li .r{margin-left:auto;font-family:var(--mono);font-size:24px}
+#s-demo .sous{margin-top:40px;font-size:38px}
 
-/* 13 · mesures */
+/* 11 · mesures */
 .mesures{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:30px;margin-top:auto;margin-bottom:30px}
 .m{border-top:6px solid var(--vert);padding-top:26px}
 .m .v{font-family:var(--titre);font-size:160px;line-height:.95}
@@ -196,7 +190,7 @@ h2 em{font-style:normal;color:var(--vert)}
 .m .t{font-size:32px;font-weight:600;margin-top:12px;line-height:1.2}
 .m .p{font-family:var(--mono);font-size:22px;color:var(--gris);margin-top:12px;line-height:1.45}
 
-/* 13 bis · à la main */
+/* 12 · à la main */
 .duel{margin-top:auto;margin-bottom:40px;display:flex;flex-direction:column;gap:56px}
 .duel .lg{display:grid;grid-template-columns:260px minmax(0,1fr) 300px;gap:30px;align-items:center}
 .duel .qui{font-family:var(--mono);font-size:24px;letter-spacing:.1em;text-transform:uppercase;color:var(--gris)}
@@ -212,7 +206,7 @@ h2 em{font-style:normal;color:var(--vert)}
 .duel .vert{color:var(--vert)}
 .parc{font-size:34px;font-weight:500}
 .parc b{color:var(--vert-f)}
-/* 14 · capture */
+/* A2 · capture du livrable (annexe) */
 #s-rapport{flex-direction:row;gap:70px;align-items:center;padding-right:0}
 #s-rapport .g{width:520px;flex:none}
 #s-rapport h2{font-size:76px}
@@ -222,7 +216,7 @@ h2 em{font-style:normal;color:var(--vert)}
 #s-rapport li{font-size:30px;padding:16px 0;border-top:2px solid var(--ligne)}
 #s-rapport li b{font-family:var(--mono);font-weight:500;color:var(--vert-f);margin-right:10px}
 
-/* 15 · briques */
+/* 13 · briques */
 .briques{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:26px;margin-top:56px}
 .br{background:#fff;border-radius:14px;padding:30px 32px;border:2px solid var(--ligne)}
 .br .r{font-family:var(--mono);font-size:22px;letter-spacing:.1em;text-transform:uppercase;color:var(--vert-f)}
@@ -232,7 +226,7 @@ h2 em{font-style:normal;color:var(--vert)}
 .rd .k{font-family:var(--mono);font-size:22px;letter-spacing:.12em;text-transform:uppercase;color:var(--gris)}
 .rd span.c{background:var(--nuit);color:var(--os);padding:8px 20px;border-radius:30px;font-size:26px}
 
-/* 16 · IA */
+/* 14 · IA */
 #s-ia .duo{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:100px;margin-top:70px;flex:1}
 #s-ia .gros{font-family:var(--titre);font-size:220px;line-height:.9;color:var(--phos)}
 #s-ia .gros + p{font-size:36px;margin-top:20px;font-weight:500}
@@ -240,7 +234,7 @@ h2 em{font-style:normal;color:var(--vert)}
 #s-ia li{font-size:32px;padding:22px 0;border-top:2px solid var(--ligne-n);display:flex;gap:24px}
 #s-ia li .mono{color:var(--phos);font-size:26px;width:200px;flex:none;padding-top:4px}
 
-/* 17 · roadmap */
+/* 15 · roadmap */
 .road{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));margin-top:auto;margin-bottom:20px;position:relative}
 .road::before{content:"";position:absolute;left:0;right:0;top:46px;height:4px;background:var(--ligne)}
 .jal{padding-right:34px;position:relative}
@@ -254,7 +248,7 @@ h2 em{font-style:normal;color:var(--vert)}
 .jal .rh{font-family:var(--mono);font-size:24px;color:var(--vert-f);border-top:2px solid var(--ligne);padding-top:14px}
 .jal .rh b{font-family:var(--titre);font-size:48px;font-weight:700;color:var(--nuit);margin-right:8px}
 
-/* 18 · offre */
+/* 16 · offre */
 .offre{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;margin-top:70px;align-items:stretch}
 .of{padding:44px 46px;background:#fff;border:2px solid var(--ligne);position:relative}
 .of + .of{border-left:none}
@@ -269,7 +263,7 @@ h2 em{font-style:normal;color:var(--vert)}
 .of:last-child .p{color:var(--gris-n)}
 .fleche{position:absolute;right:-30px;top:50%;width:56px;height:56px;margin-top:-28px;background:var(--vert);border-radius:50%;z-index:2;color:#fff;display:flex;align-items:center;justify-content:center;font-size:30px}
 
-/* 19 · go-to-market */
+/* 17 · go-to-market */
 .gtm{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:90px;margin-top:60px;flex:1}
 .gtm h3{font-family:var(--mono);font-size:24px;letter-spacing:.12em;text-transform:uppercase;color:var(--vert-f);font-weight:500;margin-bottom:22px}
 .decl li{list-style:none;font-size:32px;padding:16px 0;border-top:2px solid var(--ligne);display:flex;justify-content:space-between;gap:20px}
@@ -282,7 +276,7 @@ h2 em{font-style:normal;color:var(--vert)}
 .kpis div{font-size:26px;color:var(--gris)}
 .kpis b{display:block;font-family:var(--titre);font-size:60px;color:var(--nuit);font-weight:700}
 
-/* 20 · finances */
+/* 18 · finances */
 .fin{display:flex;gap:80px;margin-top:40px;flex:1;align-items:flex-end}
 .chart{flex:1;height:500px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:40px;align-items:end;border-bottom:3px solid var(--nuit);position:relative}
 .col{position:relative;display:flex;flex-direction:column;justify-content:flex-end;height:100%}
@@ -296,10 +290,10 @@ h2 em{font-style:normal;color:var(--vert)}
 .leg-fin i{width:30px;height:30px;border-radius:6px;flex:none}
 .leg-fin .gros{font-family:var(--titre);font-size:120px;line-height:1;color:var(--vert);display:block;margin-bottom:6px}
 
-/* 21 · financement */
-.tours{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:36px;margin-top:auto;margin-bottom:30px;align-items:end}
+/* 19 · financement */
+.tours{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:36px;margin-top:auto;margin-bottom:76px;align-items:end}
 .tour{border-radius:16px;padding:36px 40px;background:#fff;border:2px solid var(--ligne)}
-.tour:nth-child(1){min-height:400px}.tour:nth-child(2){min-height:500px}.tour:nth-child(3){min-height:600px;background:var(--nuit);color:var(--os);border-color:var(--nuit)}
+.tour:nth-child(1){min-height:340px}.tour:nth-child(2){min-height:420px}.tour:nth-child(3){min-height:500px;background:var(--nuit);color:var(--os);border-color:var(--nuit)}
 .tour .q{font-family:var(--mono);font-size:24px;color:var(--gris)}
 .tour:nth-child(3) .q,.tour:nth-child(3) .p{color:var(--gris-n)}
 .tour .t{font-family:var(--titre);font-size:48px;margin-top:6px}
@@ -307,9 +301,11 @@ h2 em{font-style:normal;color:var(--vert)}
 .tour:nth-child(3) .v{color:var(--phos)}
 .tour .p{font-size:27px;color:var(--gris);line-height:1.4}
 .tour .p b{color:inherit;font-weight:600}
+.pourquoi{font-size:30px;line-height:1.45;color:var(--gris);max-width:1560px;margin-top:22px}
+.pourquoi b{color:var(--nuit);font-weight:600}
 .tour:nth-child(3) .p b{color:var(--os)}
 
-/* 22 · RSE */
+/* 20 · RSE */
 .rse{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:60px;margin-top:56px;flex:1}
 .rse h3{font-family:var(--mono);font-size:24px;letter-spacing:.12em;text-transform:uppercase;font-weight:500;margin-bottom:10px;padding-bottom:14px;border-bottom:4px solid}
 .rse .plus h3{color:var(--vert-f);border-color:var(--vert)}
@@ -320,14 +316,7 @@ h2 em{font-style:normal;color:var(--vert)}
 .ind .t small{display:block;font-family:var(--mono);font-size:22px;color:var(--gris);margin-top:4px}
 .afaire{font-family:var(--mono);font-size:24px;color:var(--orange,#A3620A);border:2px dashed #D9B27A;border-radius:8px;padding:4px 12px;font-weight:500}
 
-/* 23 · limites */
-.lim{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:40px;margin-top:80px}
-.lim > div{border-top:6px solid var(--nuit);padding-top:30px}
-.lim .t{font-family:var(--titre);font-size:50px;line-height:1.05}
-.lim .p{font-size:28px;color:var(--gris);margin-top:18px;line-height:1.35}
-.lim .p b{color:var(--vert-f);font-weight:600}
-
-/* 24 · fin */
+/* 21 · fin */
 #s-fin2{justify-content:center;align-items:flex-start}
 #s-fin2 .logo-ring{position:absolute;right:120px;top:50%;width:560px;height:560px;margin-top:-280px}
 #s-fin2 .q{font-family:var(--titre);font-size:96px;line-height:1;max-width:1050px}
@@ -420,7 +409,7 @@ body.ov .slide::after{content:counter(diapo);position:absolute;left:0;top:0;z-in
     <div class="lst">
       <div><div class="k">TAM</div><div class="v">374 M€ / an</div><div class="d">6 800 ETI × 55 k€ de budget résilience</div></div>
       <div><div class="k">SAM</div><div class="v">52 M€ / an</div><div class="d">~1 040 ETI industrielles et logistiques avec un parc Linux × 50 k€</div></div>
-      <div><div class="k">SOM · année 5</div><div class="v">1,6 M€</div><div class="d">45 clients sous abonnement, ~4 % du SAM</div></div>
+      <div><div class="k">SOM · année 5</div><div class="v">2,1 M€</div><div class="d">45 clients sous abonnement, ~4 % du SAM</div></div>
     </div>
   </div>
   <div class="src">ETI : ministère de l'Économie 2022, Insee · hypothèses : part Linux 40 %</div>
@@ -477,76 +466,60 @@ body.ov .slide::after{content:counter(diapo);position:absolute;left:0;top:0;z-in
   <h2>Ce qu'ils font, ce qui leur <em>manque</em>.</h2>
   <div class="acteurs">
     <div class="acteur"><h3>Veeam</h3><div class="type">Éditeur de sauvegarde</div>
-      <dl><dt>Taille</dt><dd>&gt; 1 Md$ de revenus</dd><dt>Fait</dt><dd>Restauration, large base installée</dd><dt>Manque</dt><dd><b>Ni audit du contenu, ni reconstruction depuis le code</b></dd></dl></div>
+      <dl><dt>Taille</dt><dd>1,7 Md$ de revenus récurrents (sept. 2024), valorisée 15 Md$</dd><dt>Fait</dt><dd>Restauration, large base installée</dd><dt>Manque</dt><dd><b>Ni audit du contenu, ni reconstruction depuis le code</b></dd></dl></div>
     <div class="acteur"><h3>Firefly</h3><div class="type">Start-up IaC cloud</div>
-      <dl><dt>Levée</dt><dd>23 M$ en 2024</dd><dt>Fait</dt><dd>Codifie et rend résilient le cloud</dd><dt>Manque</dt><dd><b>Cloud seulement, pas de preuve métier</b></dd></dl></div>
+      <dl><dt>Levée</dt><dd>23 M$ en 2024</dd><dt>Fait</dt><dd>Codifie et rend résilient le cloud</dd><dt>Manque</dt><dd><b>Cloud surtout, pas de preuve métier</b></dd></dl></div>
     <div class="acteur"><h3>ControlMonkey</h3><div class="type">Start-up IaC cloud</div>
       <dl><dt>Levée</dt><dd>7 M$ seed, janv. 2025</dd><dt>Fait</dt><dd>Terraform généré depuis l'existant</dd><dt>Manque</dt><dd><b>Ne lit pas l'intérieur des VM</b></dd></dl></div>
   </div>
-  <div class="src">TechCrunch (mai 2024) · CB Insights · analyse de l'équipe</div>
+  <div class="src">Veeam (déc. 2024) · TechCrunch (mai 2024) · CB Insights · analyse de l'équipe</div>
 </section>
 
-<!-- 9 · SOLUTION -->
+<!-- 9 · SOLUTION ET FONCTIONNEMENT -->
 <section class="slide" id="s-solution" data-section="Solution">
-  <div class="kicker">La solution</div>
-  <p class="phrase"><s>Ni un backup, ni un outil de plus.</s><br>La <em>preuve</em> que l'activité repart.</p>
+  <div class="kicker">La solution · une VM</div>
+  <h2>Ni un backup, ni un outil de plus :<br>la <em>preuve</em> que l'activité repart.</h2>
   <div class="niveaux">
     <div class="niv" data-b="1"><div class="i">01</div><div class="t">Prouver</div><div class="q">Peut-on redémarrer, et en combien de temps&nbsp;?</div></div>
-    <div class="niv" data-b="2"><div class="i">02</div><div class="t">Combler</div><div class="q">Que manque-t-il&nbsp;? Secrets, dépendances, gestes manuels.</div></div>
-    <div class="niv" data-b="3"><div class="i">03</div><div class="t">Reconstruire</div><div class="q">Repartir d'un système sain, depuis le code.</div></div>
-    <div class="niv" data-b="4"><div class="i">04</div><div class="t">Maintenir</div><div class="q">Est-ce encore vrai ce mois-ci&nbsp;?</div></div>
+    <div class="niv" data-b="1"><div class="i">02</div><div class="t">Combler</div><div class="q">Que manque-t-il&nbsp;? Secrets, dépendances, gestes manuels.</div></div>
+    <div class="niv" data-b="1"><div class="i">03</div><div class="t">Reconstruire</div><div class="q">Repartir d'un système sain, depuis le code.</div></div>
+    <div class="niv" data-b="1"><div class="i">04</div><div class="t">Maintenir</div><div class="q">Est-ce encore vrai ce mois-ci&nbsp;?</div></div>
   </div>
-</section>
-
-<!-- 10 · FONCTIONNEMENT -->
-<section class="slide" id="s-pipe" data-section="Solution">
-  <div class="kicker">Comment ça marche · une VM</div>
-  <h2>Six étapes, <em>un humain</em> au milieu.</h2>
   <div class="rail" style="margin-top:auto"><div style="flex:2">Script, sans IA</div><div style="flex:1">Humain</div><div style="flex:3">Automatique, en sandbox isolée</div></div>
   <div class="pipe" style="margin-top:0">
-    <div class="et" data-b="1"><div class="i">1</div><div class="t">Collecte</div><div class="p">En lecture seule. Secrets masqués.</div></div>
-    <div class="et" data-b="1"><div class="i">2</div><div class="t">Classement</div><div class="p">Compris, donnée, secret, ignoré ou inconnu.</div></div>
-    <div class="et h" data-b="2"><div class="i">3</div><div class="t">Décision</div><div class="p">L'IA locale propose, l'admin tranche chaque inconnu.</div></div>
-    <div class="et" data-b="3"><div class="i">4</div><div class="t">Code</div><div class="p">Ansible et CI, en merge request.</div></div>
-    <div class="et" data-b="3"><div class="i">5</div><div class="t">Preuve</div><div class="p">VM neuve, données restaurées, test métier, comparaison.</div></div>
-    <div class="et" data-b="3"><div class="i">6</div><div class="t">Bascule</div><div class="p">Refusée si la CI est rouge. Retour arrière possible.</div></div>
+    <div class="et" data-b="2"><div class="i">1</div><div class="t">Collecte</div><div class="p">En lecture seule. Secrets masqués. Écart : différence avec une Debian vierge.</div></div>
+    <div class="et" data-b="2"><div class="i">2</div><div class="t">Classement</div><div class="p">Compris, donnée, secret, ignoré ou inconnu.</div></div>
+    <div class="et h" data-b="3"><div class="i">3</div><div class="t">Décision</div><div class="p">L'IA locale propose, l'admin tranche chaque inconnu.</div></div>
+    <div class="et" data-b="4"><div class="i">4</div><div class="t">Code</div><div class="p">Ansible et CI, en merge request.</div></div>
+    <div class="et" data-b="4"><div class="i">5</div><div class="t">Preuve</div><div class="p">VM neuve, données restaurées, test métier, comparaison.</div></div>
+    <div class="et" data-b="4"><div class="i">6</div><div class="t">Bascule</div><div class="p">Refusée si la CI est rouge. Retour arrière possible.</div></div>
   </div>
 </section>
 
-<!-- 11 · DÉMO -->
+<!-- 10 · DÉMO -->
 <section class="slide nuit" id="s-demo" data-section="Démo">
-  <div class="g">
-    <div class="kicker">En direct · PME fictive, 3 VM</div>
-    <h2>Démo</h2>
-    <div id="chrono" class="arret">00:00</div>
-  </div>
-  <ol class="etapes" id="etapes">
-    <li><span class="mono">01</span>Audit de la VM<span class="r">~1,5 min</span></li>
-    <li><span class="mono">02</span>Merge request</li>
-    <li><span class="mono">03</span>CI rouge : inconnus</li>
-    <li><span class="mono">04</span>Décision humaine</li>
-    <li><span class="mono">05</span>CI verte<span class="r">~4 min</span></li>
-    <li><span class="mono">06</span>Bascule<span class="r">~28 s</span></li>
-  </ol>
+  <div class="kicker">En direct · PME fictive, 3 VM</div>
+  <h2>Démo</h2>
+  <p class="sous">Audit, merge request, CI rouge, décision humaine, CI verte, bascule.</p>
 </section>
 
-<!-- 12 · MESURES -->
+<!-- 11 · MESURES -->
 <section class="slide" id="s-mesures" data-section="Prototype">
-  <div class="kicker">Mesuré sur le labo · 2 et 3 novembre</div>
+  <div class="kicker">Mesuré sur le labo · 2 au 5 novembre</div>
   <h2>Des chiffres <em>mesurés</em>, pas promis.</h2>
   <div class="mesures">
-    <div class="m" data-b="1"><div class="v">4<small> min</small></div><div class="t">De la VM vide au service vérifié</div><div class="p">233 à 258 s · 7 passages en CI</div></div>
-    <div class="m" data-b="2"><div class="v">28<small> s</small></div><div class="t">De coupure à la bascule</div><div class="p">27,4 · 28,2 · 29,4 s · sans geste manuel</div></div>
+    <div class="m" data-b="1"><div class="v" style="font-size:112px">3<small style="font-size:44px"> min </small>34<small style="font-size:44px"> s</small></div><div class="t">De la VM vide au service vérifié</div><div class="p">5 nov. · 214 à 262 s sur 12 passages en CI</div></div>
+    <div class="m" data-b="2"><div class="v">28<small> s</small></div><div class="t">De coupure à la bascule</div><div class="p">27,3 à 29,4 s · 8 bascules, sans geste manuel</div></div>
     <div class="m" data-b="3"><div class="v">10<small>/10</small></div><div class="t">Pièges détectés</div><div class="p">cron oublié, binaire dans /opt, IP en dur…</div></div>
-    <div class="m" data-b="4"><div class="v">175</div><div class="t">Écarts classés</div><div class="p">dont 6 inconnus remontés à l'humain</div></div>
+    <div class="m" data-b="4"><div class="v">176</div><div class="t">Écarts classés</div><div class="p">avec une Debian vierge · 139 reproduits par le code, 5 décisions laissées à l'humain</div></div>
   </div>
-  <div class="src">Mesuré sur notre labo · rapports d'intégration continue des merge requests n° 1 à 5</div>
+  <div class="src">Mesuré sur notre labo · rapports d'intégration continue des merge requests n° 2 à 13 · 2 au 5 novembre</div>
 </section>
 
-<!-- 13 bis · SANS L'OUTIL (estimation) -->
+<!-- 12 · SANS L'OUTIL (estimation) -->
 <section class="slide" id="s-main" data-section="Prototype">
   <div class="kicker">La même VM, à la main</div>
-  <h2 style="font-size:76px">2 à 4 jours à la main.<br><em>4 minutes</em> avec Black Start.</h2>
+  <h2 style="font-size:76px">2 à 4 jours à la main.<br><em>3 min 34 s</em> avec Black Start.</h2>
   <div class="duel">
     <div class="lg">
       <div class="qui">À la main</div>
@@ -556,34 +529,19 @@ body.ov .slide::after{content:counter(diapo);position:absolute;left:0;top:0;z-in
         <div style="flex:3.4">Test<b>2–4 h</b></div>
         <div style="flex:3.4">Écarts<b>2–4 h</b></div>
       </div>
-      <div class="tot">16–32 h<small>estimation</small></div>
+      <div class="tot">16–32 h<small>estimation, expérience MiNET</small></div>
     </div>
     <div class="lg" data-b="1">
       <div class="qui">Black Start</div>
-      <div class="barre bs"><i></i><span>+ l'admin tranche 6 inconnus au lieu de 175 écarts</span></div>
-      <div class="tot vert">≈ 4 min<small>mesuré · 7 passages</small></div>
+      <div class="barre bs"><i></i><span>+ l'admin tranche 5 inconnus au lieu de 176 écarts</span></div>
+      <div class="tot vert" style="white-space:nowrap;font-size:52px">3 min 34 s<small>mesuré le 5 nov.</small></div>
     </div>
     <p class="parc" data-b="2">Sur 10 VM critiques : <b>20 à 40 jours-homme</b> d'admin à la main.</p>
   </div>
   <div class="src">À la main : estimation de l'équipe · Black Start : mesuré sur notre labo</div>
 </section>
 
-<!-- 13 · RAPPORT -->
-<section class="slide" id="s-rapport" data-section="Prototype">
-  <div class="g">
-    <div class="kicker">Le livrable</div>
-    <h2>Ce que reçoit le DSI.</h2>
-    <ul>
-      <li><b>verdict</b> reconstruction prouvée ou non</li>
-      <li><b>chrono</b> reprise mesurée, étape par étape</li>
-      <li><b>risques</b> ce que la reprise doit traiter</li>
-      <li><b>preuve</b> merge request et CI</li>
-    </ul>
-  </div>
-  <div class="shot"><img src="%%IMG:rapport%%" alt="Rapport de reprise généré par le prototype"></div>
-</section>
-
-<!-- 14 · ÉTAT DE L'ART -->
+<!-- 13 · ÉTAT DE L'ART -->
 <section class="slide" id="s-briques" data-section="Technique">
   <div class="kicker">État de l'art · nos briques</div>
   <h2>Des briques <em>standard</em>, assemblées autrement.</h2>
@@ -598,7 +556,7 @@ body.ov .slide::after{content:counter(diapo);position:absolute;left:0;top:0;z-in
   <div class="rd"><span class="k">Enjeux R&amp;D</span><span class="c">Windows et Active Directory</span><span class="c">observation longue (eBPF)</span><span class="c">grosses bases</span><span class="c">fiabilité du modèle</span></div>
 </section>
 
-<!-- 15 · L'IA À SA PLACE -->
+<!-- 14 · L'IA À SA PLACE -->
 <section class="slide nuit" id="s-ia" data-section="Technique">
   <div class="kicker">L'IA à sa place</div>
   <h2>Le modèle pose la question. <em>L'humain décide.</em></h2>
@@ -615,31 +573,31 @@ body.ov .slide::after{content:counter(diapo);position:absolute;left:0;top:0;z-in
   </div>
 </section>
 
-<!-- 16 · ROADMAP -->
+<!-- 15 · ROADMAP -->
 <section class="slide" id="s-road" data-section="Technique">
   <div class="kicker">Roadmap technique et équipe</div>
   <h2>D'une VM prouvée à tout le parc d'un client.</h2>
   <div class="road">
-    <div class="jal now"><div class="pt2"></div><div class="a" style="padding-left:44px">Nov. 26</div><div class="x"><div>1 VM reconstruite et basculée</div><div>3 VM auditées</div></div><div class="rh"><b>5</b>étudiants</div></div>
-    <div class="jal"><div class="pt2"></div><div class="a" style="padding-left:44px">A1 · 27</div><div class="x"><div>Tout le parc Linux d'un client pilote</div><div>Pièges à l'aveugle</div></div><div class="rh"><b>2</b>fondateur + commercial</div></div>
-    <div class="jal"><div class="pt2"></div><div class="a" style="padding-left:44px">A2 · 28</div><div class="x"><div>Observation longue (eBPF)</div><div>Collecte à froid</div></div><div class="rh"><b>3</b>+ 1 ingénieur</div></div>
-    <div class="jal"><div class="pt2"></div><div class="a" style="padding-left:44px">A3 · 29</div><div class="x"><div>Windows et Active Directory</div><div>Éditeurs de logiciels</div></div><div class="rh"><b>5</b>+ 1 dev outil</div></div>
-    <div class="jal"><div class="pt2"></div><div class="a" style="padding-left:44px">A5 · 31</div><div class="x"><div>Canal infogérants</div><div>Europe : DACH, Benelux</div></div><div class="rh"><b>8</b>dont 3 commerciaux</div></div>
+    <div class="jal now"><div class="pt2"></div><div class="a" style="padding-left:44px">Nov. 26</div><div class="x"><div>3 VM reconstruites en CI</div><div>1 VM basculée</div></div><div class="rh"><b>5</b>étudiants</div></div>
+    <div class="jal"><div class="pt2"></div><div class="a" style="padding-left:44px">A1 · 27</div><div class="x"><div>Tout le parc Linux d'un client pilote</div><div>Pièges à l'aveugle</div></div><div class="rh"><b>5</b>fondateurs</div></div>
+    <div class="jal"><div class="pt2"></div><div class="a" style="padding-left:44px">A2 · 28</div><div class="x"><div>Observation longue (eBPF)</div><div>Collecte à froid</div></div><div class="rh"><b>5</b>+ 1 consultant, + 1 dev outil</div></div>
+    <div class="jal"><div class="pt2"></div><div class="a" style="padding-left:44px">A3 · 29</div><div class="x"><div>Windows et Active Directory</div><div>Canal infogérants</div></div><div class="rh"><b>7</b>+ 1 commercial, + 1 consultant</div></div>
+    <div class="jal"><div class="pt2"></div><div class="a" style="padding-left:44px">A5 · 31</div><div class="x"><div>Éditeurs de logiciels</div><div>Europe : DACH, Benelux</div></div><div class="rh"><b>12</b>dont 3 commerciaux</div></div>
   </div>
 </section>
 
-<!-- 17 · BUSINESS MODEL -->
+<!-- 16 · BUSINESS MODEL -->
 <section class="slide" id="s-offre" data-section="Business model">
   <div class="kicker">Business model</div>
   <h2>Un cabinet <em>outillé</em> : l'outil fait le courant, l'ingénieur les exceptions.</h2>
   <div class="offre">
-    <div class="of"><div class="r">Porte d'entrée</div><div class="t">Audit</div><div class="prix">8–15 k€</div><div class="p">1 semaine, lecture seule. Score de reconstructibilité sur 5 à 10 applications.</div><div class="fleche">→</div></div>
-    <div class="of"><div class="r">Forfait</div><div class="t">Migration</div><div class="prix">20–50 k€</div><div class="p">Reconstruction des VM critiques depuis le code.</div><div class="fleche">→</div></div>
-    <div class="of"><div class="r">Récurrent</div><div class="t">Abonnement</div><div class="prix">1,5–3 k€<small> /mois</small></div><div class="p">Test de reprise régulier, détection de dérive, rapport.</div></div>
+    <div class="of"><div class="r">Porte d'entrée</div><div class="t">Audit</div><div class="prix">15–25 k€</div><div class="p">1 semaine, lecture seule. Score de reconstructibilité sur 5 à 10 applications.</div><div class="fleche">→</div></div>
+    <div class="of"><div class="r">Forfait</div><div class="t">Migration</div><div class="prix">30–60 k€<small> /VM</small></div><div class="p">Reconstruction des VM critiques depuis le code.</div><div class="fleche">→</div></div>
+    <div class="of"><div class="r">Récurrent</div><div class="t">Abonnement</div><div class="prix">2–5 k€<small> /mois/app</small></div><div class="p">Test de reprise régulier, détection de dérive, rapport.</div></div>
   </div>
 </section>
 
-<!-- 18 · GO-TO-MARKET -->
+<!-- 17 · GO-TO-MARKET -->
 <section class="slide" id="s-gtm" data-section="Go-to-market">
   <div class="kicker">Go-to-market</div>
   <h2>Vendre au moment où <em>la question se pose</em>.</h2>
@@ -649,7 +607,7 @@ body.ov .slide::after{content:counter(diapo);position:absolute;left:0;top:0;z-in
       <ul class="decl">
         <li>Incident récent <span>urgence très haute</span></li>
         <li>Renouvellement cyberassurance <span>haute</span></li>
-        <li>Audit NIS2 <span>haute</span></li>
+        <li>Audit d'un client <span>haute</span></li>
         <li>Départ de l'admin <span>moyenne</span></li>
       </ul>
     </div>
@@ -666,21 +624,21 @@ body.ov .slide::after{content:counter(diapo);position:absolute;left:0;top:0;z-in
   </div>
 </section>
 
-<!-- 19 · FINANCES -->
+<!-- 18 · FINANCES -->
 <section class="slide" id="s-fin" data-section="Finance">
   <div class="kicker">Prévisionnel · 5 ans</div>
   <h2>L'abonnement porte la croissance.</h2>
   <div class="fin" style="padding-bottom:110px">
     <div class="chart">
-      <div class="col"><div class="bar" style="height:12.9%"><div class="ca">204</div><div class="res" style="height:19%"></div></div><div class="an">A1 · 2027</div><div class="eff">2 pers.</div></div>
-      <div class="col"><div class="bar" style="height:33.5%"><div class="ca">530</div><div class="res" style="height:44%"></div></div><div class="an">A2 · 2028</div><div class="eff">3 pers.</div></div>
-      <div class="col"><div class="bar" style="height:56%"><div class="ca">885</div><div class="res" style="height:45%"></div></div><div class="an">A3 · 2029</div><div class="eff">5 pers.</div></div>
-      <div class="col"><div class="bar" style="height:76.3%"><div class="ca">1 206</div><div class="res" style="height:44%"></div></div><div class="an">A4 · 2030</div><div class="eff">6 pers.</div></div>
-      <div class="col"><div class="bar" style="height:100%"><div class="ca" style="color:var(--vert)">1 580</div><div class="res" style="height:45%"></div></div><div class="an">A5 · 2031</div><div class="eff">8 pers.</div></div>
+      <div class="col"><div class="bar" style="height:14.3%"><div class="ca">297</div><div class="res" style="height:0"></div><div style="position:absolute;left:0;right:0;bottom:10px;text-align:center;font-family:var(--mono);font-size:24px;color:#B3261E">−63</div></div><div class="an">A1 · 2027</div><div class="eff">5 pers.</div></div>
+      <div class="col"><div class="bar" style="height:33.3%"><div class="ca">690</div><div class="res" style="height:33%"></div></div><div class="an">A2 · 2028</div><div class="eff">5 pers.</div></div>
+      <div class="col"><div class="bar" style="height:55.8%"><div class="ca">1 155</div><div class="res" style="height:39%"></div></div><div class="an">A3 · 2029</div><div class="eff">7 pers.</div></div>
+      <div class="col"><div class="bar" style="height:76.2%"><div class="ca">1 578</div><div class="res" style="height:39%"></div></div><div class="an">A4 · 2030</div><div class="eff">9 pers.</div></div>
+      <div class="col"><div class="bar" style="height:100%"><div class="ca" style="color:var(--vert)">2 070</div><div class="res" style="height:39%"></div></div><div class="an">A5 · 2031</div><div class="eff">12 pers.</div></div>
     </div>
     <div class="leg-fin">
-      <span class="gros">1,6 M€</span>
-      <div style="font-size:30px;margin-bottom:40px">de CA en année 5, dont 810 k€ d'abonnements</div>
+      <span class="gros">2,1 M€</span>
+      <div style="font-size:30px;margin-bottom:40px">de CA en année 5, dont 1,08 M€ d'abonnements</div>
       <div><i style="background:var(--vert-bg)"></i>CA, k€</div>
       <div><i style="background:var(--vert)"></i>Résultat</div>
       <div style="margin-top:30px"><span class="hyp">hypothèses</span></div>
@@ -688,18 +646,19 @@ body.ov .slide::after{content:counter(diapo);position:absolute;left:0;top:0;z-in
   </div>
 </section>
 
-<!-- 20 · FINANCEMENT -->
+<!-- 19 · FINANCEMENT -->
 <section class="slide" id="s-financement" data-section="Finance">
   <div class="kicker">Stratégie de financement</div>
   <h2>Lever au rythme des <em>preuves</em>.</h2>
+  <p class="pourquoi"><b>Rentable dès l'année 2, mais lentement.</b> Le pré-seed couvre la perte de l'année 1, où les 5 fondateurs sont salariés. Ensuite, le prévisionnel recrute au rythme du chiffre d'affaires. La levée sert à prendre de l'avance : Windows et Active Directory prêts avant la conformité NIS2 attendue fin 2028, des recrutements avant la demande, et la trésorerie des projets payés jusqu'à 60 jours après livraison.</p>
   <div class="tours">
     <div class="tour" data-b="1"><div class="q">2027</div><div class="t">Pré-seed</div><div class="v">50–100 k€</div><div class="p"><b>Bourse French Tech, i-Lab, love money</b><br>Finaliser l'outil, premiers clients pilotes.</div></div>
-    <div class="tour" data-b="2"><div class="q">2028</div><div class="t">Seed</div><div class="v">0,5–1 M€</div><div class="p"><b>Fonds cyber, France 2030</b><br>Premier commercial, premier ingénieur.</div></div>
+    <div class="tour" data-b="2"><div class="q">2028</div><div class="t">Seed</div><div class="v">0,5–1 M€</div><div class="p"><b>Fonds cyber, France 2030</b><br>Consultants, 2e commercial, 2e dev outil.</div></div>
     <div class="tour" data-b="3"><div class="q">2030</div><div class="t">Série A</div><div class="v">3–5 M€</div><div class="p"><b>Fonds de croissance</b><br>Windows et AD, équipe commerciale, Europe.</div></div>
   </div>
 </section>
 
-<!-- 21 · RSE -->
+<!-- 20 · RSE -->
 <section class="slide" id="s-rse" data-section="RSE">
   <div class="kicker">Enjeux RSE · mesurables</div>
   <h2>Ce que ça apporte, ce que ça <em>coûte</em>.</h2>
@@ -707,28 +666,17 @@ body.ov .slide::after{content:counter(diapo);position:absolute;left:0;top:0;z-in
     <div class="plus"><h3>Positif</h3>
       <div class="ind"><div class="v">28 s</div><div class="t">de coupure mesurée à la bascule<small>l'activité continue pendant la reprise</small></div></div>
       <div class="ind"><div class="v">0 octet</div><div class="t">de donnée client envoyé hors de son infrastructure<small>modèle local, souveraineté</small></div></div>
-      <div class="ind"><div class="v">139/175</div><div class="t">écarts désormais écrits dans le code<small>la reprise ne dépend plus d'une personne</small></div></div>
+      <div class="ind"><div class="v">139/176</div><div class="t">écarts reproduits par le code<small>le reste au coffre, aux sauvegardes ou à l'humain : la reprise ne dépend plus d'une personne</small></div></div>
     </div>
     <div class="moins"><h3>Négatif</h3>
-      <div class="ind"><div class="v">~4 min</div><div class="t">de VM en plus à chaque test de reprise<small>≈ 0,7 Wh estimés : 1 cœur Xeon à 10,5 W</small></div></div>
+      <div class="ind"><div class="v">3 min 34 s</div><div class="t">de VM en plus à chaque test de reprise<small>≈ 0,6 Wh estimés : 1 cœur Xeon à 10,5 W</small></div></div>
       <div class="ind"><div class="v">69 s</div><div class="t">de calcul IA sur 10 cœurs par audit<small>≈ 2 Wh estimés : processeur entier, 105 W</small></div></div>
       <div class="ind"><div class="v">48 Go</div><div class="t">de mémoire gardés pour le modèle en permanence</div></div>
     </div>
   </div>
 </section>
 
-<!-- 22 · LIMITES -->
-<section class="slide" id="s-limites" data-section="Limites">
-  <div class="kicker">Ce qu'il reste à prouver</div>
-  <h2>Nos limites, et comment on les lève.</h2>
-  <div class="lim">
-    <div data-b="1"><div class="t">Une VM sur trois reconstruite</div><div class="p">Les deux autres sont auditées. <b>Prochaine étape : tout le parc.</b></div></div>
-    <div data-b="2"><div class="t">Pièges posés par nous</div><div class="p">10/10 sur des cas connus. <b>Pièges à l'aveugle en cours.</b></div></div>
-    <div data-b="3"><div class="t">Linux seulement</div><div class="p"><b>Windows en année 3.</b></div></div>
-  </div>
-</section>
-
-<!-- 23 · FIN -->
+<!-- 21 · FIN -->
 <section class="slide nuit" id="s-fin2" data-section="Black Start">
   <svg class="logo-ring" viewBox="0 0 512 512">
     <path d="M348.35 175.80 A150 150 0 0 1 380.05 378.34" fill="none" stroke="#3DFF8A" stroke-width="62" filter="url(#lueur)"/>
@@ -738,6 +686,35 @@ body.ov .slide::after{content:counter(diapo);position:absolute;left:0;top:0;z-in
   <div class="kicker">Black Start · équipe 16</div>
   <p class="q">Vos sauvegardes existent.<br><em>Nous prouvons que vous repartez.</em></p>
   <div class="mono">Merci · vos questions</div>
+</section>
+
+<!-- ANNEXES · pour les questions, après « Merci » -->
+<!-- A1 · PREUVES DU PROBLÈME -->
+<section class="slide annexe" id="s-preuves" data-section="Problème">
+  <div class="kicker">Annexe · Le problème, mesuré par d'autres</div>
+  <h2>Les sauvegardes sont <em>visées</em>. La reprise reste partielle.</h2>
+  <div class="mesures">
+    <div class="m" data-b="1"><div class="v">94<small> %</small></div><div class="t">des victimes de rançongiciel : l'attaquant a visé les sauvegardes</div><div class="p">Sophos 2024 · 2 974 répondants</div></div>
+    <div class="m" data-b="1"><div class="v">57<small> %</small></div><div class="t">de ces tentatives ont réussi</div><div class="p">Sophos 2024</div></div>
+    <div class="m" data-b="2"><div class="v">26<small> %</small></div><div class="t">rétablies en une semaine quand les sauvegardes sont touchées, contre 46 %</div><div class="p">Sophos 2024</div></div>
+    <div class="m" data-b="3"><div class="v">10<small> %</small></div><div class="t">des organisations attaquées récupèrent plus de 90 % de leurs données</div><div class="p">Veeam 2025 · 1 300 organisations</div></div>
+  </div>
+  <div class="src">Sophos, « The Impact of Compromised Backups on Ransomware Outcomes » (enquête Vanson Bourne, début 2024) · Veeam, « Ransomware Trends Report » (avril 2025)</div>
+</section>
+
+<!-- A2 · RAPPORT (LE LIVRABLE) -->
+<section class="slide annexe" id="s-rapport" data-section="Prototype">
+  <div class="g">
+    <div class="kicker">Annexe · Le livrable</div>
+    <h2>Ce que reçoit le DSI.</h2>
+    <ul>
+      <li><b>verdict</b> reconstruction prouvée ou non</li>
+      <li><b>chrono</b> reprise mesurée, étape par étape</li>
+      <li><b>risques</b> ce que la reprise doit traiter</li>
+      <li><b>preuve</b> merge request et CI</li>
+    </ul>
+  </div>
+  <div class="shot"><img src="%%IMG:rapport%%" alt="Rapport de reprise généré par le prototype"></div>
 </section>
 
 <div id="hud">
@@ -758,6 +735,7 @@ body.ov .slide::after{content:counter(diapo);position:absolute;left:0;top:0;z-in
   const statique = /HeadlessChrome/.test(navigator.userAgent) || matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (statique) document.body.classList.add('static');
   let cur = 0, step = 0;
+  const fin = slides.findIndex(x => x.id === 's-fin2');  // diapos suivantes : annexes
   const maxB = s => Math.max(0, ...[...s.querySelectorAll('[data-b]')].map(e => +e.dataset.b));
   const demos = {};
 
@@ -782,9 +760,9 @@ body.ov .slide::after{content:counter(diapo);position:absolute;left:0;top:0;z-in
     step = s === 'fin' ? maxB(sl) : (s || 0);
     applySteps();
     hud.classList.toggle('sombre', sl.classList.contains('nuit'));
-    hud.classList.toggle('cache', cur === 0 || cur === slides.length-1);
-    sec.innerHTML = '<b>' + (cur+1) + '</b> / ' + slides.length + (sl.dataset.section ? '<span class="sep">·</span>' + sl.dataset.section : '');
-    go.style.strokeDashoffset = 100 - 100*cur/(slides.length-1);
+    hud.classList.toggle('cache', cur === 0 || cur === fin);
+    sec.innerHTML = (cur > fin ? '<b>Annexe ' + (cur-fin) + '</b>' : '<b>' + (cur+1) + '</b> / ' + (fin+1)) + (sl.dataset.section ? '<span class="sep">·</span>' + sl.dataset.section : '');
+    go.style.strokeDashoffset = 100 - 100*Math.min(cur, fin)/fin;
     if (demos[sl.id] && demos[sl.id].start) demos[sl.id].start();
     history.replaceState(null, '', '#' + (cur+1));
   }
@@ -797,28 +775,6 @@ body.ov .slide::after{content:counter(diapo);position:absolute;left:0;top:0;z-in
     if (step > 0) { step--; applySteps(); return; }
     if (cur > 0) show(cur-1, 'fin');
   }
-
-  /* démo : chrono + étapes */
-  (function(){
-    const el = document.getElementById('chrono'), items = [...document.querySelectorAll('#etapes li')];
-    if (!el || !items.length) return;
-    let t0 = null, acc = 0, timer = null, idx = 0;
-    const fmt = ms => { const s = Math.floor(ms/1000); return String(Math.floor(s/60)).padStart(2,'0') + ':' + String(s%60).padStart(2,'0'); };
-    const draw = () => { el.textContent = fmt(acc + (t0 ? Date.now()-t0 : 0)); el.classList.toggle('arret', !t0); };
-    const mark = () => items.forEach((li,j) => { li.classList.toggle('fait', j < idx); li.classList.toggle('cour', j === idx); });
-    mark();
-    demos['s-demo'] = {
-      start(){ draw(); },
-      stop(){},
-      touche(k){
-        if (k === 't') { if (t0) { acc += Date.now()-t0; t0 = null; clearInterval(timer); } else { t0 = Date.now(); timer = setInterval(draw, 250); } draw(); return true; }
-        if (k === 'r') { t0 = null; acc = 0; clearInterval(timer); idx = 0; mark(); draw(); return true; }
-        if (k === 'ArrowDown') { idx = Math.min(items.length, idx+1); mark(); return true; }
-        if (k === 'ArrowUp') { idx = Math.max(0, idx-1); mark(); return true; }
-        return false;
-      }
-    };
-  })();
 
   function overview(on){
     document.body.classList.toggle('ov', on);
@@ -838,7 +794,7 @@ body.ov .slide::after{content:counter(diapo);position:absolute;left:0;top:0;z-in
     if (['ArrowRight',' ','PageDown','Enter'].includes(k)) { e.preventDefault(); next(); }
     else if (['ArrowLeft','PageUp','Backspace'].includes(k)) { e.preventDefault(); prev(); }
     else if (k === 'Home') show(0);
-    else if (k === 'End') show(slides.length-1);
+    else if (k === 'End') show(fin);
     else if (k === 'f') { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); }
   });
   addEventListener('resize', fit);

@@ -105,13 +105,30 @@ const LIVRABLES = {
     sortie: join(SORTIE, "black-start-oral.pdf"),
     prep: `document.body.classList.remove('ov');
       document.querySelectorAll('[data-b]').forEach(e => e.classList.add('vu'));
+      // Numéro de diapo sur chaque page (le HUD est masqué) : « n / total » puis « Annexe n ».
+      { const sl = [...document.querySelectorAll('.slide')], fin = sl.findIndex(x => x.id === 's-fin2');
+        sl.forEach((x, i) => { if (i === 0 || i === fin) return;
+          const d = document.createElement('div'); d.className = 'num-pdf';
+          d.innerHTML = (fin >= 0 && i > fin ? '<b>Annexe ' + (i-fin) + '</b>' : '<b>' + (i+1) + '</b> / ' + (fin >= 0 ? fin+1 : sl.length))
+            + (x.dataset.section ? '<span>·</span>' + x.dataset.section : '');
+          x.append(d); }); }
       ${injecter(COULEURS + `
+        .num-pdf{position:absolute;right:120px;bottom:58px;white-space:nowrap;font-family:var(--mono);font-size:22px;letter-spacing:.12em;text-transform:uppercase;color:var(--gris);z-index:50}
+        .num-pdf b{font-weight:500;color:var(--nuit);margin-right:4px} .num-pdf span{margin:0 14px;opacity:.6}
+        .nuit .num-pdf{color:var(--gris-n)} .nuit .num-pdf b{color:var(--os)}
         @page{size:1920px 1080px;margin:0}
         html,body{height:auto!important;overflow:visible!important;background:none!important}
         #stage{position:static!important;transform:none!important;width:1920px!important;height:auto!important;margin:0!important}
         .slide{display:flex!important;position:relative!important;inset:auto!important;width:1920px;height:1080px;break-after:page;break-inside:avoid}
         .slide:last-of-type{break-after:auto}
         #hud{display:none!important}`)}`,
+  }),
+  // Executive summary : 2 pages A4 (la source fixe la taille de chaque page).
+  "executive-summary": () => ({
+    url: fichier("EXECUTIVE_SUMMARY.html"), largeur: 794, hauteur: 1123,
+    sortie: join(SORTIE, "executive-summary-black-start.pdf"),
+    prep: injecter(COULEURS),
+    pdf: { preferCSSPageSize: true },
   }),
   // Affiche A4 en vectoriel (source HTML de 794 × 1123 px).
   affiche: () => ({

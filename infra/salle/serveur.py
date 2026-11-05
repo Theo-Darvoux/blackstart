@@ -83,6 +83,39 @@ ETAPES_CI = [
 ]
 
 
+RAPPORT_CONSOLE = os.path.join(INV, "rapport-console.html")  # rapport de reprise régénéré par la console
+_PARC = {"t": 0, "donnees": None}
+_PARC_VERROU = threading.Lock()
+
+
+def parc(force=False):
+    """État de reprise de chaque machine du parc, tiré des résultats réels par rapport/bs-rapport
+    (classement, décisions, rapports de la CI sur la forge, bascules), et la page de rapport
+    régénérée au passage. Lecture seule ; gardé 60 s."""
+    with _PARC_VERROU:
+        if force or not _PARC["donnees"] or time.time() - _PARC["t"] > 60:
+            chemin = os.path.join(RACINE, "rapport", "bs-rapport")
+            loader = importlib.machinery.SourceFileLoader("bs_rapport", chemin)
+            br = importlib.util.module_from_spec(importlib.util.spec_from_loader("bs_rapport", loader))
+            loader.exec_module(br)
+            cfg = br.load(os.path.join(RACINE, "rapport", "vms.json"))
+            try:
+                vms = br.collect(cfg, False)
+            except SystemExit as exc:  # classement introuvable : on le dit
+                raise RuntimeError(str(exc))
+            with open(RAPPORT_CONSOLE + ".new", "w", encoding="utf-8") as fh:
+                fh.write(br.render(cfg, vms, False))
+            os.replace(RAPPORT_CONSOLE + ".new", RAPPORT_CONSOLE)
+            machines = []
+            for v in vms:
+                code, lib = br.verdict(v)
+                r = br.risques(v)
+                machines.append(dict(v, verdict={"code": code, "lib": lib}, suivi=re.sub(r"<[^>]+>", "", br.suivi(v) or ""),
+                                     risques={"total": r["total"], "parts": [list(p) for p in r["parts"]]}))
+            _PARC.update(t=time.time(), donnees={"date": time.time(), "forge": cfg["forge"], "machines": machines})
+        return _PARC["donnees"]
+
+
 def charger_classify():
     chemin = os.path.join(RACINE, "classement", "bs-classify")
     loader = importlib.machinery.SourceFileLoader("bs_classify", chemin)
@@ -712,6 +745,19 @@ class Page(BaseHTTPRequestHandler):
             self.envoyer(200, open(os.path.join(ICI, "index.html"), "rb").read(), "text/html; charset=utf-8")
         elif self.path == "/etat":
             self.envoyer(200, ETAT.instantane()[1])
+        elif self.path.split("?")[0] == "/parc":
+            try:
+                self.envoyer(200, json.dumps(parc("force" in self.path), ensure_ascii=False, default=str))
+            except Exception as exc:  # forge, fichiers : affiché tel quel, rien d'inventé
+                traceback.print_exc()
+                self.envoyer(500, json.dumps({"erreur": str(exc)}, ensure_ascii=False))
+        elif self.path.split("?")[0] == "/rapport":
+            try:
+                parc("force" in self.path)
+                self.envoyer(200, open(RAPPORT_CONSOLE, "rb").read(), "text/html; charset=utf-8")
+            except Exception as exc:
+                traceback.print_exc()
+                self.envoyer(500, f"<p>Rapport indisponible : {exc}</p>", "text/html; charset=utf-8")
         elif self.path == "/flux":
             self.send_response(200)
             self.send_header("Content-Type", "text/event-stream")

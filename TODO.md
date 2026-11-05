@@ -22,7 +22,7 @@ Mise à jour du mardi 3 novembre vers 13h par Claude Code : seules les tâches d
 - [x] Mettre en place la sandbox isolée et les sauvegardes — MiNET 2 (fait : `infra/sandbox.py`, restic ; cron de sauvegarde réparé le 3 nov.)
 - [x] Écrire la collecte en lecture seule — Théo (`collecte/bs-collect`)
 - [x] Masquer les secrets et classer chaque élément — Ingé 3 (`classement/bs-classify`)
-- [x] Faire tourner un modèle local sur la machine de démo — Ingé 3 (`bs-ia`, `qwen3.6:35b`, 5 propositions en ~90 s)
+- [x] Faire tourner un modèle local sur la machine de démo — Ingé 3 (`bs-ia`, `qwen3.6:35b`, 5 propositions en 68 à 69 s une fois chargé)
 - [x] Maquetter l'écran de rapport et le score de reprise — Ingé 4 (`rapport/bs-rapport` : verdict, reprise mesurée, points à risque)
 - [ ] Mener les premiers entretiens et relancer les contacts — Manager + Ingé 4
 - [ ] Chiffrer TAM, SAM et SOM et décrire le persona — Manager
@@ -31,7 +31,7 @@ Mise à jour du mardi 3 novembre vers 13h par Claude Code : seules les tâches d
 
 ## Prototype : reste à faire avant le gel (jeudi midi)
 
-- [ ] Vérifier que la sauvegarde de 02h30 a bien tourné par cron dans la nuit du 3 au 4 novembre (nouvel instantané restic) — Claude Code
+- [x] Vérifier que la sauvegarde de 02h30 a bien tourné par cron dans la nuit du 3 au 4 novembre (nouvel instantané restic) — Claude Code (oui : instantané `27461956` du 4 nov. à 02:30:02, restauré par la CI de la MR n° 13 le 5 nov.)
 - [x] Script de démo chronométré du scénario B — Théo + Claude Code (`infra/demo-scenario-b.sh`, répété le 3 nov. : ≈ 11 min)
 - [x] Démo accélérée et visuelle pour l'oral — Claude Code (salle de contrôle `infra/salle/serveur.py --par Théo`, http://localhost:8080 ; 3 min 19 s de bout en bout le 3 nov. à 16h20, contre 9 min 43 s)
 - [ ] Répéter la démo dans la salle de contrôle en cliquant soi-même les 5 décisions, au vidéoprojecteur — Théo

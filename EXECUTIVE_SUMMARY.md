@@ -1,135 +1,125 @@
-# Executive Summary — Black Start
+# Executive summary : Black Start
 
-**Équipe n° 16 — Challenge Projets d'Entreprendre 2026**  
-IMT-BS / Télécom SudParis / ENSIIE  
-**Membres :** Théo (MiNET 1), Titouan (MiNET 2), Benjamin (Ingé 3), Maxime (Ingé 4), Glenn (Manager)  
-**Coaching :** rue Étoile | **Démo :** VM sur `luna.minet.lan` (Proxmox) | **Forge :** Forgejo sur `bs-gitlab` (192.168.103.203)
+**Challenge Projets d'Entreprendre 2026 · Équipe n° 16 · Projet : Black Start**
 
----
+- Théo Darvoux, Télécom SudParis
+- Titouan Jouanot-Goupil, Télécom SudParis
+- Benjamin Mora, ENSIIE
+- Maxime Theret, ENSIIE
+- Glenn Aaron, IMT-BS
 
-## 1. Problème : les sauvegardes existent, la reprise non
+**Vos sauvegardes existent. Nous prouvons que votre entreprise sait repartir.** Black Start reconstruit les serveurs critiques d'une entreprise sur une base saine, depuis du code et ses sauvegardes existantes, puis prouve par un test métier que l'activité repart. Chaque reprise est chronométrée.
 
-Trop d'ETI industrielles et logistiques dépendent de serveurs configurés à la main, peu documentés, que plus personne n'ose toucher. Elles ont des sauvegardes, mais **aucune preuve** qu'elles sauraient redémarrer après une panne, un rançongiciel ou le départ de l'administrateur.
+## 1. Le problème
 
-- **Coût moyen déclaré d'une cyberattaque pour une ETI : 13 M€** (enquête ANSSI/CLUSIF citée par le Sénat, 2024).
-- **6 800 ETI en France** (ministère de l'Économie, 2022), dont une fraction significative en logistique/industrie avec parc on-premise ou hybride.
-- **NIS2 / loi Résilience** : ~15 000 entités concernées, conformité complète visée fin 2028 (ANSSI) — mais la directive ne garantit pas la capacité technique de reprise.
+Dans beaucoup d'ETI, les serveurs critiques (logistique, messagerie, DNS) ont été configurés à la main, sont peu documentés et plus personne n'ose y toucher. L'entreprise a des sauvegardes, mais rarement la preuve qu'elle saurait redémarrer, ni en combien de temps.
 
-**Ce que le marché vend aujourd'hui :**
-- Sauvegarde et restauration vérifiée (Veeam, Rubrik…) — *ne teste pas le processus métier*.
-- IaC depuis l'existant (Firefly, ControlMonkey, formae) — *ciblé cloud/K8s, pas l'intérieur des VM on-premise*.
-- Cabinets de PRA / ESN — *intervention humaine, non répétable, coûteux*.
+- Après un rançongiciel, l'image restaurée ramène la porte dérobée de l'attaquant.
+- Après une panne, la VM démarre, mais l'entrepôt n'expédie toujours aucune commande.
+- Après un départ, sans inventaire ni code, la reprise dépend de quelques personnes.
 
-**Notre différenciation :** la **preuve de bout en bout** — repartir des sauvegardes existantes, reconstruire ce qui doit l'être, vérifier que le métier fonctionne (commande logistique, envoi mail, résolution DNS).
+**13 M€** : coût moyen déclaré d'une cyberattaque pour une ETI (466 k€ pour une TPE ou une PME). Enquête de l'ANSSI auprès du CLUSIF, citée par le Sénat, rapport n° 393 (2024-2025). Chiffre déclaratif.
 
----
+Les sauvegardes sont visées : chez 94 % des victimes de rançongiciel, l'attaquant s'en est pris aux sauvegardes, avec succès dans 57 % des cas ; seules 26 % de ces victimes se rétablissent en une semaine, contre 46 % quand les sauvegardes sont intactes (Sophos, 2024, 2 974 répondants). La reprise reste partielle : 10 % des organisations attaquées récupèrent plus de 90 % de leurs données (Veeam, avril 2025, 1 300 organisations).
 
-## 2. Solution : Black Start, la preuve de reprise automatisée
+## 2. Marché et cible
 
-**Promesse :** « Vos sauvegardes existent. Nous prouvons que votre activité peut réellement repartir, et nous corrigeons ce qui l'en empêche. »
+**Cible :** ETI françaises industrielles et logistiques, petit service informatique, parc Linux on-premise ou hybride. **Acheteur :** DSI ou RSSI, dirigeant en sponsor. **Utilisateur :** l'admin système, qui relit les merge requests. **Partenaires :** infogérants, ESN.
 
-### Le prototype fonctionne (mesures réelles, labo MiNET, 3 nov. 2026)
+| | Valeur | Calcul |
+|---|---|---|
+| TAM | 374 M€/an | 6 800 ETI × 55 k€ |
+| SAM | 52 M€/an | ~2 600 ETI industrielles et logistiques × 40 % avec un parc Linux (hypothèse) = ~1 040 ETI × 50 k€ |
+| SOM, année 5 | 2,07 M€ | 45 clients, ~4 % du SAM |
 
-| Indicateur | Résultat | Source |
-|------------|----------|--------|
-| **Reconstruction vérifiée** (VM neuve → code → données → redémarrage → test métier → comparaison) | **233–258 s** (≈ 4 min) | CI Forgejo, MR n° 2–5 |
-| **Coupure de service à la bascule** vers la copie vérifiée | **27–29 s** (3 mesures) | `banc/resultats/bascule-*.json` |
-| **Détection des pièges du banc** (crons oubliés, config modifiée, binaire `/opt`, IP en dur, sauvegarde mensuelle…) | **10 / 10** | `banc/resultats/mesure-20261103-1015.json` |
-| **Classement `bs-logistique`** | 175 écarts : 139 compris, 19 ignorés, 7 secrets, 4 données, **6 inconnus** (5 réels) | `classement/bs-classify` |
-| **Modèle local (Qwen 3.6 35B, Ollama, 10 cœurs, 24 Go, sans GPU)** | Proposition 5 inconnus en **78–91 s**, 6,5 tok/s | Journal prototype |
-| **Accord modèle / décision humaine** | **0 / 5** identique — le modèle formule la question, ne décide pas | Journal prototype |
+**Déclencheurs :** renouvellement de la cyberassurance, audit d'un client, incident récent, départ de l'admin. **Cadre juridique :** NIS2 vise ~15 000 entités en France ; la loi Résilience qui la transpose n'est pas votée (retirée de l'ordre du jour de l'Assemblée en octobre 2026), conformité visée fin 2028 par l'ANSSI. Argument secondaire, pas moteur de la vente.
 
-### Architecture en 4 niveaux
+Sources : ministère de l'Économie (2022), Insee Première n° 2084 (2025), Silicon.fr, Myra Security, AOCSI. Part Linux et budgets : hypothèses de l'équipe.
 
-| Niveau | Question | Action | Rôle de GitLab |
-|--------|----------|--------|----------------|
-| 1. **Prouver** | Peut-on redémarrer, et en combien de temps ? | Restauration en sandbox isolée, tests métier, rapport + chrono | Quasi nul |
-| 2. **Combler** | Que manque-t-il ? | Dépendances, secrets, étapes manuelles, VM non reproductibles | Documentation versionnée |
-| 3. **Reconstruire** | Peut-on repartir d'un système sain ? | VM critiques recréées depuis le code, données issues des backups | **Central** |
-| 4. **Maintenir** | Est-ce encore vrai ce mois-ci ? | Test de reprise régulier, détection de dérive | **Central** |
+## 3. Concurrence
 
-### Parcours pour une VM (démo scénario B)
+| Acteur | Ce qu'il fait | Ce qui manque |
+|---|---|---|
+| Veeam (sauvegarde, 1,7 Md$ de revenus récurrents en 2024) | Restauration vérifiée, large base installée | Ni audit du contenu des VM, ni reconstruction depuis le code |
+| Firefly (IaC cloud, 23 M$ levés en 2024) | Codifie le cloud et le rend résilient | Cloud surtout, pas de preuve métier |
+| ControlMonkey (IaC cloud, 7 M$ seed en janv. 2025) | Terraform généré depuis l'existant | Ne lit pas l'intérieur des VM |
+| ESN, cabinets PRA | Exercices de reprise, présence terrain | Manuel, ponctuel, coûteux |
 
-1. **Collecte lecture seule** (script déterministe, compte `bs-collect`, secrets masqués avant tout envoi).
-2. **Classement** : chaque élément → *Compris / Donnée / Secret / Ignoré / Inconnu* (preuves déterministes ; IA propose un statut indicatif).
-3. **Validation humaine** des inconnus (interface web, 5 inconnus réels sur `bs-logistique`).
-4. **Génération** Ansible + CI/CD dans une branche GitLab → reconstruction en sandbox isolée (`sbx-*`, pare-feu d'isolation).
-5. **Vérification** : même collecte sur la copie, comparaison inventaires + test métier (création commande logistique).
-6. **Rapport d'écarts + Merge Request** → relecture admin → **bascule** (DNS, proxy, base, mail réel) en **< 30 s** — retour arrière possible en **~31 s**.
+**Enseignement :** le cloud est bien couvert. Personne ne prouve, de bout en bout et de façon répétable, la reprise métier d'une VM on-premise. C'est notre créneau, et l'argument du modèle local : aucune donnée ne sort de chez le client.
 
-**Garanties :** aucun secret n'atteint le modèle ni Git (testé) ; la bascule est refusée si la CI n'est pas verte (vérifié en démo) ; les « inconnus » ne sont jamais appliqués sans décision humaine.
+## 4. La solution
 
----
+Un cabinet outillé : l'outil traite les cas courants, l'ingénieur les exceptions. Quatre niveaux : **prouver** (reprise en sandbox, test métier, chrono), **combler** (secrets, dépendances, gestes manuels, sauvegardes absentes), **reconstruire** (VM recréée depuis le code, données issues des sauvegardes), **maintenir** (test de reprise régulier, détection de dérive).
 
-## 3. Business Model : cabinet de conseil équipé de son propre outil
+1. **Collecte** (script, sans IA) : inventaire en lecture seule de la VM, secrets masqués, comparé à celui d'une Debian vierge de même version. Chaque différence (paquet ajouté, fichier modifié, service activé, tâche planifiée, port ouvert…) est un **écart** : ce que l'admin a fait à la main, et que la reconstruction doit reproduire ou écarter.
+2. **Classement** (règles) : chaque écart est compris, donnée, secret, ignoré ou inconnu, avec sa preuve.
+3. **Décision** (humain) : le modèle local formule la question ; l'admin tranche chaque inconnu.
+4. **Code** : Ansible et intégration continue, proposés en merge request.
+5. **Preuve** (sandbox isolée) : VM neuve, données restaurées, même collecte, comparaison, test métier.
+6. **Bascule** (chronométrée) : refusée si la vérification est rouge, retour arrière possible.
 
-| Offre | Description | Cible | Tarification (hypothèses, à valider) |
-|-------|-------------|-------|--------------------------------------|
-| **Audit** | 1 semaine lecture seule → cartographie + score de reconstructibilité sur 5–10 apps critiques | DSI / RSSI | ~15–25 k€ |
-| **Migration** | Reconstruction des VM critiques au forfait (code + tests + bascule) | DSI / RSSI | ~30–60 k€ / VM |
-| **Abonnement** | Détection de dérive, test de reconstruction mensuel, rapport de reprise | DSI / RSSI | ~2–5 k€ / mois / app |
+**Garde-fous :** l'IA ne modifie jamais la production sans merge request relue ; aucun inconnu n'est reproduit sans décision humaine ; les secrets vont dans un coffre, jamais au modèle ni dans Git. Promesse : *tout ce qui n'est pas expliqué vous est signalé, et ce qui a été reconstruit a été testé.*
 
-**Déclencheurs d'achat validés par hypothèses :** audit client, renouvellement cyberassurance, incident récent, test de reprise imposé. NIS2 = argument secondaire.
+## 5. Le prototype : des chiffres mesurés
 
-**Cible principale :** ETI françaises industrielles/logistiques (petit service IT, parc on-premise/hybride). Acheteur : DSI ou RSSI, dirigeant sponsor. Canal secondaire : infogérants.
+Banc de test : une PME fictive de 3 serveurs Debian (logiciel de logistique avec sa base, messagerie, proxy et DNS) montée par l'équipe sur un hyperviseur Proxmox, avec forge Git et intégration continue. Mesures du 2 au 5 novembre 2026.
 
-**Concurrence détaillée (3+ acteurs) :**
-- **Firefly** (cloud resilience, 23 M$ levés 2024) — ne couvre pas l'intérieur des VM on-premise.
-- **ControlMonkey** (Terraform from existing, 7 M$ seed 2025) — orienté cloud/IaC, pas preuve métier.
-- **formaé** (IaC open source, découverte existant) — pas de sandbox, pas de test métier, pas de bascule.
-- *Indirects :* Veeam/Rubrik (restauration seule), ESN/cabinets PRA (humain, non répétable), agents de code généralistes (accès SSH, pas de garantie).
+- **3 min 34 s** de la VM vide au service vérifié par le test métier (passage du 5 novembre ; 214 à 262 s sur 12 passages en CI).
+- **28 s** de coupure à la bascule vers la copie vérifiée (27,3 à 29,4 s, 8 bascules, aucun geste manuel).
+- **10/10** pièges détectés (posés par l'équipe).
+- **176 écarts** classés sur la VM de logistique, dont 139 reproduits par le code ; **5 décisions** laissées à l'humain.
+- **3 serveurs sur 3** reconstruits et vérifiés en CI (messagerie en 206 s, proxy et DNS en 144 s) ; la logistique est basculée, avec retour arrière en 25 à 35 s.
+- **Démo de l'oral en 3 min 19 s.** À la main, la même VM demande 16 à 32 h (estimation de l'équipe, issue de son expérience à MiNET).
+- **IA locale, sur CPU, sans GPU** (Qwen 3.6 35B) : 68 à 69 s pour proposer un statut aux 5 inconnus ; 1 avis identique à la décision humaine, 4 « à vérifier », 0 contradiction. Le modèle pose la question, l'humain décide.
+- **Limites :** pièges écrits par nous, Linux seulement, un seul hyperviseur.
 
-**Hypothèse SAM :** 6 200 ETI × 25 % secteurs pertinents × 40 k€/an ≈ **62 M€/an** (à affiner post-entretiens : Insee secteurs visés + budgets réels).
+## 6. Business model
 
-**Objectif jury :** **700–800 k€ CA en année 5** ≈ 20 clients à 40 k€/an.
+| Offre | Prix | Contenu |
+|---|---|---|
+| Audit (porte d'entrée) | 15–25 k€ | 1 semaine en lecture seule, score de reconstructibilité sur 5 à 10 applications critiques |
+| Migration (forfait) | 30–60 k€ par VM | Reconstruction des VM critiques depuis le code, bascule chronométrée |
+| Abonnement (récurrent) | 2–5 k€ par mois et par application | Test de reprise régulier, détection de dérive, rapport de reprise |
 
----
+## 7. Go-to-market
 
-## 4. Go-to-Market & Planning 5 ans (macro)
+| Phase | Canal | Coût d'acquisition |
+|---|---|---|
+| A1–A2 | Réseau direct : conférences cyber, IMT Alumni | ~2 k€ |
+| A1–A2 | Démos en direct et contenu technique | ~0,5 k€ |
+| A3–A4 | Infogérants, commission de 20 % | 0 € fixe |
+| A5 | Commercial dédié, salons sectoriels | ~3 k€ |
 
-| Année | Focus | Effectif visé | Jalons |
-|-------|-------|---------------|--------|
-| **1** (2027) | Produit + premiers clients | 3 consultants + 2 ingénieurs | 3 audits payants, 1 migration, MVP abonnement |
-| **2** | Répétabilité + partenariats infogérants | +2 consultants | 10 clients abonnement, CA ~300 k€ |
-| **3** | Industrialisation outil (Windows/AD, observation longue eBPF) | +3 consultants, +1 ingénieur | CA ~500 k€ |
-| **4** | Scale commercial, offre packagée | +5 consultants | CA ~650 k€ |
-| **5** | **Objectif : 700–800 k€ CA**, équipe ~15 | | Rentabilité, levée possible pour accélérer |
+Cycle de 4 à 8 semaines du contact à la signature. LTV/CAC visé > 10. Roadmap : tout le parc Linux d'un client pilote (A1), observation longue par eBPF (A2), Windows et Active Directory (A3), Europe : DACH, Benelux (A5).
 
-**Acquisition :** prospection ciblée (DSI/RSSI ETI logistique/industrie), webinaires « test de reprise réel », contenu technique (blog, démo), partenariats infogérants. CAC visé < 6 mois de marge.
+## 8. Prévisionnel sur 5 ans
 
----
+| k€ | A1 · 2027 | A2 | A3 | A4 | A5 · 2031 |
+|---|---:|---:|---:|---:|---:|
+| Clients sous abonnement | 3 | 10 | 20 | 32 | 45 |
+| CA audit + migration | 225 | 450 | 675 | 810 | 990 |
+| CA abonnement | 72 | 240 | 480 | 768 | 1 080 |
+| **Chiffre d'affaires** | **297** | **690** | **1 155** | **1 578** | **2 070** |
+| Charges | 360 | 465 | 710 | 965 | 1 265 |
+| Résultat | −63 | 225 | 445 | 613 | 805 |
+| Effectif | 5 | 5 | 7 | 9 | 12 |
 
-## 5. Finance & Besoins
+Hypothèses (bas des fourchettes) : 5, 10, 15, 18, 22 nouveaux clients par an, chacun à 15 k€ d'audit + 30 k€ (1 VM), puis 2 k€/mois ; salaires chargés 60 à 80 k€.
 
-**Modèle :** revenus récurrents (abonnement) + projets (audit/migration). Marge brute visée > 70 % sur l'abonnement, > 50 % sur les projets.
+## 9. Financement
 
-**Besoins année 1–2 (estimation) :**
-- Salaires (5 puis 7–8) : ~400–600 k€/an
-- Infra (labo, cloud CI, GPU éventuel) : ~30 k€/an
-- Commercial / marketing : ~50 k€/an
-- **Besoin de trésorerie ~500–600 k€ sur 18–24 mois**
+- **Pré-seed, 2027 : 50–100 k€** (Bourse French Tech, i-Lab, love money) pour finaliser l'outil et signer les premiers clients pilotes.
+- **Seed, 2028 : 0,5–1 M€** (fonds cyber, France 2030) pour les consultants, le 2e commercial et le 2e développeur de l'outil.
+- **Série A, 2030 : 3–5 M€** (fonds de croissance) pour Windows et AD, l'équipe commerciale et l'Europe.
 
-**Sources envisagées :** amorçage (business angels, BPI French Tech Grant), puis levée Seed en année 2–3 si traction. Pas de dilution prématurée : l'outil réduit le coût de livraison, pas le besoin d'expertise.
+**Pourquoi lever si le prévisionnel est rentable dès l'année 2 ?** Le pré-seed couvre la perte de l'année 1 (−63 k€). Ensuite, la levée sert à prendre de l'avance : Windows et AD avant la conformité NIS2 (fin 2028), recrutements avant la demande, trésorerie des projets payés à 60 jours.
 
----
+## 10. Enjeux RSE, chiffrés
 
-## 6. Enjeux RSE (impact mesurable)
+| Positif (mesuré) | Négatif (estimé) |
+|---|---|
+| 28 s de coupure à la bascule, au lieu d'un arrêt prolongé | ≈ 0,6 Wh par test de reprise (3 min 34 s de VM, 1 cœur Xeon à 10,5 W) |
+| 0 octet de donnée client envoyé hors de son infrastructure (modèle local) | ≈ 2 Wh de calcul IA par audit (69 s sur un processeur de 105 W) |
+| 139/176 écarts reproduits par le code, le reste au coffre, aux sauvegardes ou à l'humain : la reprise ne dépend plus d'une personne | 48 Go de mémoire réservés en permanence au modèle ; serveur existant, sans achat de matériel |
 
-| Positif | Négatif (atténuation) |
-|---------|----------------------|
-| **Résilience économique** : évite arrêts prolongés (coût médian cyberattaque ETI 13 M€) | **Conso électrique** : modèle local (Qwen 35B, 10 cœurs, 24 Go) ~200 W en inférence ; sandbox éphémère |
-| **Transmission du savoir** : code versionné, décisions tracées, moins de dépendance aux personnes | **Matériel** : VM de démo sur serveur existant (Dell R630, pas d'achat neuf) |
-| **Souveraineté** : modèle local interchangeable (Devstral option souveraine testée), pas de cloud obligatoire | **Données** : secrets jamais sortis, masqués avant modèle, coffre sur forge isolée |
-| **Emploi qualifié** : consultants + ingénieurs en France | — |
-
-**Indicateur suivi :** kWh / reconstruction (mesuré sur le labo), % de VM reconstruites sans intervention manuelle non documentée.
-
----
-
-## 7. Vision long terme
-
-Devenir **la référence de la preuve de reprise** pour les ETI françaises : l'outil qui transforme « on a des backups » en « on a testé, ça repart en 4 minutes, et on le refait tous les mois ». Étendre au Windows/AD, aux équipements réseau, à l'observation longue (eBPF/auditd) — mais **sans jamais promettre 100 %** : « Tout ce qui n'est pas expliqué vous est signalé, et ce qui a été reconstruit a été testé. »
-
----
-
-**Prototype gelé jeudi 5 novembre midi. Démo vivante vendredi 6 novembre (bâtiment F). Vidéo de secours enregistrée.**
+**Notre vision :** faire de la preuve de reprise un contrôle aussi régulier qu'une sauvegarde : « nous avons testé, l'activité repart en quelques minutes, et nous le vérifions chaque mois », d'abord pour les ETI françaises, puis en Europe.

@@ -454,7 +454,7 @@ def render(cfg, vms, fragment):
 <div class="parc"><table><thead><tr><th>Parc</th><th>Verdict</th><th>Chrono</th><th>Risques</th><th>Preuve</th></tr></thead>
 <tbody>{"".join(ligne_parc(x) for x in vms)}</tbody></table></div>
 <footer>Sources : collecte en lecture seule (<code>bs-collect</code>), classement (<code>bs-classify</code>), rapports de la CI
-de <a href="{esc(cfg["forge"])}">la forge</a>, mesures de bascule (<code>infra/bascule.py</code>). Aucune valeur n'est estimée.</footer>
+de <a href="{esc(cfg["forge"])}">la forge</a>, mesures de bascule chronométrées. Aucune valeur n'est estimée.</footer>
 </div>"""
     head = f'<title>Rapport de reprise</title>\n<meta name="claude:viewport-fit-sides" content="cover">\n{FONTS}\n<style>{CSS}</style>\n'
     if fragment:

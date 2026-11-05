@@ -69,9 +69,38 @@ nav .badge.ambre { background: var(--ambre-fond); color: var(--ambre); } nav .ba
 nav .badge.rouge { background: var(--rouge-fond); color: var(--rouge); }
 nav .badge svg.i { width: 12px; height: 12px; stroke-width: 2.6; }
 nav .bas { margin-top: auto; padding-top: 12px; border-top: 1px solid var(--trait); }
+nav button.sous { height: 32px; padding-left: 38px; font-size: 13.5px; font-weight: 400; }
+nav button.sous svg { width: 14px; height: 14px; }
+nav button.machine-nav { font-family: var(--mono); font-size: 13.5px; }
+nav button.machine-nav .pt { width: 7px; height: 7px; border-radius: 50%; }
+
+/* tableau de bord : parc */
+.pt.ok { background: var(--vert); } .pt.bloque, .pt.ko { background: var(--rouge); } .pt.attention, .pt.en_cours { background: var(--ambre); } .pt.avenir { background: var(--pale); }
+table.parc td { vertical-align: middle; }
+table.parc td:nth-child(n+4), table.parc th { white-space: nowrap; }
+table.parc tr[data-vers] { cursor: pointer; } table.parc tr[data-vers]:hover td { background: var(--survol); }
+table.parc .nom { font: 500 14px var(--mono); } table.parc .role { font-size: 13px; color: var(--doux); margin-top: 2px; }
+.score { display: flex; align-items: center; gap: 10px; white-space: nowrap; }
+.score .barre { width: 72px; height: 6px; border-radius: 3px; background: var(--trait2); overflow: hidden; }
+.score .barre i { display: block; height: 100%; background: var(--vert); }
+.score .barre i.moyen { background: var(--ambre); }
+.petit { font-size: 12.5px; color: var(--pale); }
+.source { font-size: 13px; color: var(--pale); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.lien { background: none; border: 0; padding: 0; color: var(--doux); text-decoration: underline; text-decoration-color: var(--trait2); text-underline-offset: 3px; font-size: 13px; }
+.lien:hover { color: var(--texte); }
+.grille2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+.liste { display: grid; }
+.liste > div { display: grid; grid-template-columns: 20px minmax(0, 1fr) auto; gap: 12px; padding: 12px 22px; border-top: 1px solid var(--trait); font-size: 14px; align-items: start; }
+.liste > div:first-child { border-top: 0; }
+.liste small { display: block; color: var(--doux); font-size: 13px; margin-top: 2px; }
+.cadre-rapport { width: 100%; border: 1px solid var(--trait); border-radius: var(--r); background: #fff; min-height: 900px; display: block; }
+@media (max-width: 1100px) { .grille2 { grid-template-columns: 1fr; } }
 
 main { overflow: auto; min-width: 0; }
-.vue { padding: 36px 48px 72px; display: flex; flex-direction: column; gap: 28px; max-width: 1100px; }
+.vue { padding: 36px 48px 72px; display: flex; flex-direction: column; gap: 28px; max-width: 1320px; }
+.vue.entree { animation: entree .22s ease-out; }
+@keyframes entree { from { opacity: 0; transform: translateY(6px); } }
+.nobr { white-space: nowrap; }
 .entete .fil-page { font-size: 13px; color: var(--pale); margin-bottom: 8px; }
 .entete h1 { font-size: 24px; font-weight: 600; margin: 0; letter-spacing: -.015em; }
 .entete p { margin: 6px 0 0; color: var(--doux); font-size: 15px; max-width: 72ch; }
@@ -104,6 +133,13 @@ h2 { font-size: 15px; font-weight: 600; margin: 0; }
 .prochaine p { grid-column: 1; margin: 0; color: var(--doux); font-size: 15px; max-width: 64ch; }
 .prochaine .actions { grid-column: 2; grid-row: 1 / span 3; display: flex; flex-direction: column; gap: 10px; align-items: flex-end; }
 .prochaine .note { grid-column: 1; font-size: 13px; color: var(--pale); margin-top: 4px; }
+/* fin de la reprise : verdict */
+.prochaine.fin { background: linear-gradient(100deg, rgba(61,255,138,.10), var(--panneau) 60%); border-color: rgba(61,255,138,.35); padding: 32px 34px; }
+.prochaine.fin .sur { color: var(--vert); }
+.prochaine.fin h2 { font-size: 24px; }
+.prochaine .gros { text-align: right; }
+.prochaine .gros .v { font-size: 56px; font-weight: 600; line-height: 1; letter-spacing: -.03em; color: var(--vert); }
+.prochaine .gros .l { font-size: 13px; color: var(--doux); margin-top: 6px; }
 
 /* plan de reprise : stepper relié */
 .fileplan { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); padding: 6px; }
@@ -143,7 +179,8 @@ h2 { font-size: 15px; font-weight: 600; margin: 0; }
 .chiffre { padding: 20px 22px; border-left: 1px solid var(--trait); }
 .chiffre:first-child { border-left: 0; }
 .chiffre .l { font-size: 13px; color: var(--doux); }
-.chiffre .v { font-size: 28px; font-weight: 600; line-height: 1.2; margin-top: 6px; letter-spacing: -.01em; }
+.chiffre .v { font-size: 28px; font-weight: 600; line-height: 1.2; margin-top: 6px; letter-spacing: -.01em; white-space: nowrap; }
+@media (max-width: 1400px) { .chiffre .v { font-size: 23px; } .chiffre { padding: 18px 18px; } }
 .chiffre .s { font-size: 12px; color: var(--pale); margin-top: 4px; }
 
 /* répartition */
@@ -192,7 +229,11 @@ input[type=search]:focus, .dec textarea:focus { border-color: var(--trait2); box
 
 /* décisions */
 .decisions { display: grid; gap: 16px; }
-.dec { padding: 22px 24px; display: grid; gap: 14px; }
+.dec { padding: 20px 24px; display: grid; gap: 12px 28px; grid-template-columns: minmax(0, 1fr) 360px; align-items: start; }
+.dec .info, .dec .geste { display: grid; gap: 12px; align-content: start; }
+.dec .geste .choix { justify-self: stretch; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; }
+.dec .geste textarea { height: 96px; }
+@media (max-width: 1500px) { .dec { grid-template-columns: minmax(0, 1fr); } .dec .geste .choix { justify-self: start; display: inline-flex; } .dec .geste textarea { height: 42px; } }
 .dec.prise { border-color: rgba(61,255,138,.3); }
 .dec .haut-dec { display: flex; gap: 12px; align-items: baseline; }
 .dec .cle { font: 500 14px var(--mono); color: var(--texte); word-break: break-all; }
@@ -206,6 +247,17 @@ input[type=search]:focus, .dec textarea:focus { border-color: var(--trait2); box
 .choix button.on.accepter { background: var(--bleu); color: #04101f; }
 .dec textarea { width: 100%; background: var(--fond); color: var(--texte); border: 1px solid var(--trait); border-radius: 8px; padding: 9px 12px; font: 14px/1.5 var(--sans); resize: vertical; min-height: 42px; height: 42px; outline: none; }
 .pied { position: sticky; bottom: -72px; padding: 16px 0 72px; background: linear-gradient(transparent, var(--fond) 30%); display: flex; gap: 16px; align-items: center; font-size: 13px; }
+.pied .jauge { width: 140px; height: 6px; border-radius: 3px; background: var(--trait2); overflow: hidden; flex: none; }
+.pied .jauge i { display: block; height: 100%; background: var(--vert); transition: width .25s; }
+.bouton.pret { box-shadow: 0 0 0 4px rgba(61,255,138,.18); }
+@media (max-width: 1500px) { .pied > .doux { display: none; } }
+
+/* progression de la CI */
+.progression { height: 3px; background: var(--trait); }
+.progression i { display: block; height: 100%; background: var(--ambre); }
+.progression.ok i { background: var(--vert); }
+.ligne-ci { display: flex; align-items: center; gap: 14px; padding: 16px 22px; font-size: 14px; }
+.ligne-ci .droite { margin-left: auto; display: flex; gap: 12px; align-items: center; }
 
 /* pipeline CI */
 .pipeline { display: grid; }
@@ -298,9 +350,13 @@ const fr = (x, d = 1) => Number(x).toLocaleString("fr-FR", { minimumFractionDigi
 const mmss = (s) => { s = Math.max(0, Math.floor(s)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; };
 const duree = (s) => s == null ? "" : s < 10 ? `${fr(s, 1)} s` : s < 60 ? `${Math.round(s)} s` : `${Math.floor(s / 60)} min ${String(Math.round(s % 60)).padStart(2, "0")} s`;
 const heure = (t) => new Date(t * 1000).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+// Noms de machine jamais coupés au trait d'union ; décimales à la française dans les textes des scripts.
+const nobr = (t) => esc(t).replace(/(bs|sbx)-[a-z]+/g, (m) => `<span class="nobr">${m}</span>`);
+const virgule = (t) => String(t ?? "").replace(/(\d)\.(\d+)( h| s)\b/g, "$1,$2$3");
 const CAPTURE = location.hash.startsWith("#capture");
 let E = null, decalage = 0, signature = "", opChoisie = null, ouverts = new Set();
-let vue = (location.hash.replace(/^#(capture-?)?/, "") || "ensemble");
+let P = null, parcErreur = null;   // état de reprise du parc (/parc : résultats réels via rapport/bs-rapport)
+let vue = (location.hash.replace(/^#(capture-?)?/, "") || "tableau");
 let filtre = "tous", recherche = "";
 const choix = {};           // décisions en cours de saisie : cle -> {decision, raison}
 const maintenant = () => Date.now() / 1000 + decalage;
@@ -330,7 +386,15 @@ const ICONES = {
   ci: '<circle cx="6" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="12" r="2.5"/><path d="M6 8.5v7M8.3 7l7.4 3.8"/>',
   bascule: '<path d="M7 7h11l-3-3M17 17H6l3 3"/>',
   labo: '<path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3l-5-9V3"/>',
+  tableau: '<rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/>',
+  rapport: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/>',
 };
+const VM_LIVE = "bs-logistique";   // la machine dont la reprise se joue dans cette console
+const NOMS_IP = { "192.168.103.200": "bs-logistique", "192.168.103.201": "bs-mail", "192.168.103.202": "bs-proxy",
+  "192.168.103.203": "bs-gitlab (sauvegardes)", "192.168.103.54": "DNS amont", "192.168.103.55": "DNS amont" };
+const MOIS = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
+// « 2026-11-03 13:38 » (dates de la forge et des rapports, heure de Paris) → « 3 nov. à 13:38 »
+const dateFr = (s) => { const m = /^(\d{4})-(\d\d)-(\d\d)[ T](\d\d:\d\d)/.exec(s || ""); return m ? `${+m[3]} ${MOIS[+m[2] - 1]} à ${m[4]}` : (s || ""); };
 
 // ---------------------------------------------------------------- état dérivé
 const ops = () => E.operations || [];
@@ -340,6 +404,12 @@ const ciFinie = (c) => c && ["success", "failure", "error"].includes(c.etat);
 const prouve = () => E.ci2?.etat === "success";
 const basculeFaite = () => E.phase === "fini" && E.bascule?.ok;
 const nbCartes = () => E.decisions?.cartes?.length || 0;
+// Les décisions en attente = les inconnus + les données sans sauvegarde (cartes « data: »).
+function detailAttente() {
+  const c = E.decisions?.cartes || [], d = c.filter((x) => x.cle.startsWith("data:")).length, i = c.length - d;
+  return [i ? `${i} inconnu${i > 1 ? "s" : ""}` : "", d ? `${d} donnée${d > 1 ? "s" : ""} sans sauvegarde` : ""].filter(Boolean).join(" + ");
+}
+const motifRefus = (m) => String(m || "").replace(/^refusé\s*:\s*/i, "");
 
 function plan() {
   // Une ligne par étape du plan de reprise : état, résumé court (pastille), et ce que la carte
@@ -361,8 +431,8 @@ function plan() {
   if (E.decisions?.prises) r.push({ titre: "Décisions", etat: "ok", vers: "decisions",
     court: `${Object.keys(E.decisions.prises).length} signées ${E.par}` });
   else if (n && !auditEnCours) r.push({ titre: "Décisions", etat: "attention", vers: "decisions", court: `${n} en attente`,
-    grand: `Trancher les ${n} éléments inconnus`,
-    texte: "Personne n'a documenté ces éléments. Le modèle local propose une réponse pour chacun ; vous décidez, avec une raison.",
+    grand: `Trancher les ${n} points en attente`,
+    texte: `${detailAttente()}. Personne ne les a documentés. Le modèle local donne son avis sur chacun ; vous décidez, avec une raison.`,
     action: { vers: "decisions", lib: "Prendre les décisions", ok: true },
     note: "Tant qu'ils ne sont pas tranchés, la CI refuse de reconstruire la machine." });
   else r.push({ titre: "Décisions", etat: "avenir", court: "après l'audit" });
@@ -420,7 +490,7 @@ function prochaine(etapes) {
     const p = cour.pas.find((x) => x.etat === "en_cours");
     const fait = cour.pas.filter((x) => x.etat !== "avenir" && x.etat !== "en_cours").length;
     const vers = { audit: "inventaire", decider: "ci", basculer: "bascule", preparer: "labo", remettre: "labo" }[cour.cle];
-    return `<div class="prochaine en_cours"><div class="sur"><span class="ico en_cours"></span>${esc(cour.titre)} · pas ${fait + 1} sur ${cour.pas.length}</div>
+    return `<div class="prochaine en_cours"><div class="sur"><span class="ico en_cours"></span>${nobr(cour.titre)} · pas ${fait + 1} sur ${cour.pas.length}</div>
       <h2>${esc(p ? p.titre : cour.titre)}</h2>
       <p>${esc(p ? p.explication : "")}</p>
       <div class="note">Démarré à ${heure(cour.debut)} · <span data-depuis="${cour.debut}"></span> · détail de chaque pas dans le panneau Activité</div>
@@ -428,10 +498,11 @@ function prochaine(etapes) {
   }
   const e = etapes.find((x) => x.grand);
   if (!e) {
-    if (basculeFaite()) return `<div class="prochaine"><div class="sur">Reprise terminée</div>
+    if (basculeFaite()) return `<div class="prochaine fin"><div class="sur">${ico("ok")}Reprise prouvée · décisions signées ${esc(E.par)}</div>
       <h2>bs-logistique tourne sur la copie reconstruite depuis le code</h2>
-      <p>Coupure de ${fr(E.bascule.coupure, 1)} s, de l'arrêt de l'original au test métier vert, sans geste manuel. Parcours complet en ${mmss(E.t_fin - E.t0)}.</p>
-      <div class="actions"><button class="bouton second" data-vers="bascule">Voir la bascule</button></div></div>`;
+      <p>Coupure de ${fr(E.bascule.coupure, 1)} s, de l'arrêt de l'original au test métier vert, sans geste manuel. L'original est éteint, pas détruit : retour arrière possible.</p>
+      <div class="actions"><div class="gros"><div class="v">${mmss(E.t_fin - E.t0)}</div><div class="l">de l'audit à la production</div></div>
+        <button class="bouton" data-vers="rapport" data-principal>Rapport de reprise</button></div></div>`;
     return "";
   }
   return `<div class="prochaine"><div class="sur">Prochaine étape</div><h2>${esc(e.grand)}</h2><p>${esc(e.texte)}</p>
@@ -445,14 +516,17 @@ function vueEnsemble() {
   const a = E.audit, s = E.ci2?.rapport?.sauvegarde;
   const file = etapes.map((x, i) => `<button class="e ${x === courante ? "courante" : ""} ${x.etat === "ok" ? "fait" : ""}" ${x.vers && x.etat !== "avenir" ? `data-vers="${x.vers}"` : ""}>
       <div class="rang">${ico(x.etat)}<span class="num">Étape ${i + 1}</span></div><div class="t">${esc(x.titre)}</div><div class="c">${esc(x.court)}</div></button>`).join("");
-  const chiffres = a ? `<div class="chiffres">
-      <div class="chiffre"><div class="l">Écarts relevés</div><div class="v">${a.total}</div><div class="s">en ${duree(a.duree)}, en lecture seule</div></div>
-      <div class="chiffre"><div class="l">Inconnus</div><div class="v" style="color:var(--ambre)">${a.comptes.inconnu || 0}</div><div class="s">${E.decisions?.prises ? "tous tranchés" : "à trancher"}</div></div>
+  // Les quatre chiffres de la reprise, visibles dès l'accueil : ils se remplissent au fil de la démo.
+  const n = nbCartes(), prises = !!E.decisions?.prises;
+  const chiffres = `<div class="chiffres">
+      <div class="chiffre"><div class="l">Écarts relevés</div><div class="v">${a ? a.total : "–"}</div><div class="s">${a ? `en ${duree(a.duree)}, en lecture seule` : "après l'audit"}</div></div>
+      <div class="chiffre"><div class="l">Décisions humaines</div><div class="v" style="color:${prises ? "var(--vert)" : n ? "var(--ambre)" : "inherit"}">${n || (a ? a.comptes.inconnu || 0 : "–")}</div><div class="s">${prises ? `toutes signées ${esc(E.par)}` : n ? detailAttente() : a ? "inconnus à trancher" : "ce que personne n'a documenté"}</div></div>
       <div class="chiffre"><div class="l">Perte de données max</div><div class="v">${s ? fr(s.age_h, 1) + " h" : "–"}</div><div class="s">${s ? "âge de la dernière sauvegarde" : "connue après la preuve"}</div></div>
       <div class="chiffre"><div class="l">Coupure mesurée</div><div class="v" style="${E.bascule?.coupure ? "color:var(--vert)" : ""}">${E.bascule?.coupure ? fr(E.bascule.coupure, 1) + " s" : "–"}</div><div class="s">${E.bascule?.coupure ? "arrêt → test métier vert" : "après la bascule"}</div></div>
-    </div>` : "";
+    </div>`;
   return `<div class="entete"><h1>bs-logistique</h1>
-      <p>Le serveur du logiciel de logistique et de sa base PostgreSQL. Aucune documentation : sait-on le reconstruire s'il disparaît demain ?</p></div>
+      <p>Le serveur du logiciel de logistique et de sa base PostgreSQL. Aucune documentation : sait-on le reconstruire s'il disparaît demain ?</p>
+      <div class="meta"><span class="tag mono">192.168.103.200</span>${a?.machine?.os ? `<span class="tag">${esc(a.machine.os)}</span>` : ""}<span class="tag">production</span>${a ? `<span class="tag">${esc(a.machine?.resume || "")}</span>` : ""}</div></div>
     ${prochaine(etapes)}
     <div class="bloc"><div class="fileplan">${file}</div></div>
     ${chiffres}`;
@@ -475,14 +549,14 @@ function vueParc() {
     : prouve() ? ["Copie prouvée, prête à basculer", "ok"] : [E.preparation?.etat === "ok" ? "Clone neuf, isolé, prêt pour la CI" : "Isolée de l'entreprise par pare-feu", ""];
   const deps = E.audit?.ip_en_dur || [];
   const noms = { "192.168.103.201": "bs-mail", "192.168.103.202": "bs-proxy", "192.168.103.203": "bs-gitlab (sauvegardes)" };
-  return `<div class="entete"><h1>Parc</h1><p>Les machines de l'entreprise et le laboratoire Black Start. ${pc.date ? `Joignabilité vérifiée à ${heure(pc.date)}.` : "Joignabilité vérifiée à la préparation."}</p></div>
+  return `<div class="entete"><h1>Infrastructure</h1><p>Les machines de production et la plateforme Black Start installée chez l'entreprise (forge, modèle local, sandbox). ${pc.date ? `Joignabilité vérifiée à ${heure(pc.date)}.` : ""}</p></div>
     <div class="zones">
-      <div class="bloc"><div class="tete"><h2>Entreprise · production</h2></div>
+      <div class="bloc"><div class="tete"><h2>Production</h2></div>
         ${m("bs-logistique", logi[0], "192.168.103.200", logi[1], logi[2])}
         ${m("bs-mail", "Postfix + Dovecot", "192.168.103.201", etatJ("192.168.103.201"))}
         ${m("bs-proxy", "Proxy web Nginx + DNS", "192.168.103.202", etatJ("192.168.103.202"))}
       </div>
-      <div class="bloc"><div class="tete"><h2>Laboratoire Black Start</h2></div>
+      <div class="bloc"><div class="tete"><h2>Plateforme Black Start (sur site)</h2></div>
         ${m("bs-ia", E.phase === "ia" || actif("103.204") ? "Le modèle lit les preuves masquées…" : "Modèle local qwen3.6:35b, sans GPU", "192.168.103.204", actif("103.204") ? "actif" : etatJ("192.168.103.204"))}
         ${m("bs-gitlab", ciActive ? "Vérifie la merge request…" : "Forge Forgejo, merge requests, CI, coffre", "192.168.103.203", ciActive || actif("103.203") ? "actif" : etatJ("192.168.103.203"))}
         ${m("sbx-logistique", sbx[0], promue ? "→ 192.168.103.200" : "192.168.103.210", sbx[1])}
@@ -522,9 +596,23 @@ function vueInventaire() {
     <div class="bloc">
       <div class="tete"><div class="filtres">${[["tous", "Tous", a.total], ...ORDRE.map((s) => [s, STATUTS[s][0], a.comptes[s] || 0])].map(([k, lib, n]) =>
         `<button class="filtre ${filtre === k ? "on" : ""}" data-filtre="${k}">${k !== "tous" ? `<i class="pt c-${k}"></i>` : ""}${lib} <b>${n}</b></button>`).join("")}</div>
-        <input type="search" placeholder="Chercher un fichier, un paquet…" id="recherche" value="${esc(recherche)}"></div>
+        <input type="search" placeholder="Chercher un fichier, un paquet…" id="recherche" value="${esc(recherche)}">
+        <button class="bouton second" data-export title="Tous les écarts, avec leur statut et la règle qui les classe">Exporter (CSV)</button></div>
       <table><thead><tr><th style="width:120px">Statut</th><th>Élément</th><th style="width:190px">Type</th><th>Pourquoi</th></tr></thead><tbody id="lignes">${lignesInventaire()}</tbody></table>
     </div>`;
+}
+
+// Export de l'audit : un écart par ligne, statut, type, écart, règle ; décision humaine si elle existe.
+function exporterCSV() {
+  const a = E.audit; if (!a) return;
+  const prises = E.decisions?.prises || {}, props = E.ia?.propositions || {};
+  const q = (x) => `"${String(x ?? "").replace(/"/g, '""')}"`;
+  const lignes = [["element", "statut", "type", "ecart", "regle", "proposition_modele", "decision", "raison_decision"].join(";")]
+    .concat(a.elements.map((x) => [x.cle, STATUTS[x.statut]?.[0] || x.statut, CATEGORIES[x.cle.split(":")[0]] || x.cle.split(":")[0], ECARTS[x.ecart] || x.ecart, x.raison,
+      props[x.cle] ? LIB_PROPO[props[x.cle].statut] || props[x.cle].statut : "", prises[x.cle] ? LIB_DECISION[prises[x.cle].decision] || prises[x.cle].decision : "", prises[x.cle]?.raison || ""].map(q).join(";")));
+  const url = URL.createObjectURL(new Blob(["﻿" + lignes.join("\r\n")], { type: "text/csv;charset=utf-8" }));
+  const l = document.createElement("a"); l.href = url; l.download = `audit-bs-logistique-${(a.date || "").slice(0, 10)}.csv`; l.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 function vueDecisions() {
@@ -543,24 +631,26 @@ function vueDecisions() {
     const ch = choix[c.cle] || {}, data = c.cle.startsWith("data:");
     const opts = data ? [["accepter", "Accepter la perte", "accepter"]] : [["reproduire", "Garder", "reproduire"], ["ne pas reproduire", "Retirer", "non"]];
     return `<div class="bloc dec ${ch.decision && ch.raison?.trim() ? "prise" : ""}" data-cle="${esc(c.cle)}">
-      <div class="haut-dec"><span class="cle">${esc(c.cle)}</span><span class="n">${i + 1} / ${cartes.length}</span></div>
-      <div class="constat">Constat de l'audit : ${esc(c.constat)}</div>
-      ${proposition(c.proposition)}
-      <div class="choix">${opts.map(([v, lib, cl]) => `<button class="${cl} ${ch.decision === v ? "on" : ""}" data-choix="${esc(v)}">${lib}</button>`).join("")}</div>
-      <textarea placeholder="Raison de la décision (obligatoire)" data-raison>${esc(ch.raison || "")}</textarea>
+      <div class="info"><div class="haut-dec"><span class="cle">${esc(c.cle)}</span><span class="n">${i + 1} / ${cartes.length}</span></div>
+        <div class="constat">Constat de l'audit : ${esc(c.constat)}</div>
+        ${proposition(c.proposition)}</div>
+      <div class="geste"><div class="choix">${opts.map(([v, lib, cl]) => `<button class="${cl} ${ch.decision === v ? "on" : ""}" data-choix="${esc(v)}">${lib}</button>`).join("")}</div>
+        <textarea placeholder="Raison de la décision (obligatoire)" data-raison>${esc(ch.raison || "")}</textarea></div>
     </div>`;
   }).join("");
   const sp = E.decisions?.sans_preuve || [];
-  return entete + (sp.length ? `<div class="doux" style="font-size:14px">${sp.length} inconnu sans preuve collectée (<span class="mono">${esc(sp.join(", "))}</span>) : ni envoyé au modèle, ni reproduit.</div>` : "")
+  const pret = faites === cartes.length && !E.occupe;
+  return entete + `<div class="doux" style="font-size:14px">${cartes.length} points en attente : ${esc(detailAttente())}.${sp.length ? ` ${sp.length} inconnu sans preuve collectée (<span class="mono">${esc(sp.join(", "))}</span>) : ni envoyé au modèle, ni reproduit.` : ""}</div>`
     + `<div class="decisions">${html}</div>
-    <div class="pied"><button class="bouton vert grand" data-action="decider" data-principal id="valider" ${faites === cartes.length && !E.occupe ? "" : "disabled"}>Valider ${faites} / ${cartes.length} et relancer la preuve</button>
+    <div class="pied"><button class="bouton vert grand ${pret ? "pret" : ""}" data-action="decider" data-principal id="valider" ${pret ? "" : "disabled"}>Valider ${faites} / ${cartes.length} et relancer la preuve</button>
+      <span class="jauge"><i id="jauge" style="width:${faites / (cartes.length || 1) * 100}%"></i></span>
       <span class="doux">Les décisions partent dans la merge request ; la CI reconstruit alors la machine sur une copie isolée.</span></div>`;
 }
 
 function pasCI(e, i) {
   const st = e.fin ? (e.code === 0 ? "ok" : "ko") : e.debut ? "en_cours" : "avenir";
   const t = e.fin ? duree(e.duree) : e.debut ? `<span data-depuis="${e.debut}"></span>` : "";
-  return `<div class="pas-ci ${st}">${ico(st)}<div><div class="t">${i + 1}. ${esc(e.libelle)}</div><div class="x">${esc(e.explication || "")}</div>${e.resultat ? `<div class="r">${esc(e.resultat)}</div>` : ""}</div><div class="duree">${t}</div></div>`;
+  return `<div class="pas-ci ${st}">${ico(st)}<div><div class="t">${i + 1}. ${esc(e.libelle)}</div><div class="x">${esc(e.explication || "")}</div>${e.resultat ? `<div class="r">${nobr(virgule(e.resultat))}</div>` : ""}</div><div class="duree">${t}</div></div>`;
 }
 
 function vueCI() {
@@ -573,6 +663,23 @@ function vueCI() {
   const etat2 = c2 ? (c2.etat === "success" ? etiquetteEtat("ok", "Verte") : ciFinie(c2) ? etiquetteEtat("ko", "Rouge") : etiquetteEtat("en_cours")) : "";
   const etat1 = c1 ? (c1.etat === "success" ? etiquetteEtat("ok", "Verte") : ciFinie(c1) ? etiquetteEtat("bloque", "Bloquée") : etiquetteEtat("en_cours")) : "";
   const r = c2?.rapport, cmp = r?.comparaison?.summary, s = r?.sauvegarde, tm = r?.test_metier;
+  // Vérification 1 : détaillée tant qu'elle est la seule ; ensuite une ligne sous la vérification 2.
+  const refus1 = ciFinie(c1) && c1.etat !== "success";
+  const dur1 = c1 ? `<span class="mono doux" style="font-size:13px">${esc(c1.sha)} · ${c1.duree != null ? duree(c1.duree) : `<span data-depuis="${c1.debut}"></span>`}</span>` : "";
+  const bloc1 = !c1 ? "" : c2
+    ? `<div class="bloc"><div class="ligne-ci">${ico(refus1 ? "bloque" : "ok")}<span><b>Vérification 1 · après l'audit :</b> <span class="doux">${refus1 ? `refusée, ${c1.attente ?? nbCartes()} décisions humaines en attente. La bascule avait été refusée elle aussi.` : "verte"}</span></span><span class="droite">${etat1}${dur1}</span></div></div>`
+    : `<div class="bloc"><div class="tete"><h2>Vérification 1 · après l'audit</h2><span class="droite">${etat1}${dur1}</span></div>
+      <div class="contenu">${refus1
+        ? `<b>${c1.attente ?? nbCartes()} décisions humaines en attente : reconstruction non lancée.</b> <span class="doux">La CI refuse de prouver une machine dont on ne sait pas tout. ${E.refus ? `Le garde-fou de bascule a refusé lui aussi : « ${esc(motifRefus(E.refus.motif))} ».` : ""}</span>`
+        : `<span class="doux">La forge contrôle la merge request…</span>`}</div></div>`;
+  const faits = (c2?.etapes || []).filter((e) => e.fin).length, total = (c2?.etapes || []).length || 7;
+  const progression = c2 ? `<div class="progression ${prouve() ? "ok" : ""}"><i style="width:${ciFinie(c2) ? 100 : faits / total * 100}%"></i></div>` : "";
+  const verdict = `<div class="chiffres">
+      <div class="chiffre"><div class="l">Écarts comparés</div><div class="v">${cmp ? cmp.differences : "–"}</div><div class="s">entre la copie et l'original</div></div>
+      <div class="chiffre"><div class="l">Non justifiés</div><div class="v" style="color:${cmp && cmp.unjustified === 0 ? "var(--vert)" : "var(--rouge)"}">${cmp ? cmp.unjustified : "–"}</div><div class="s">bloquants pour la fusion</div></div>
+      <div class="chiffre"><div class="l">Données restaurées</div><div class="v">${s ? fr(s.age_h, 1) + " h" : "–"}</div><div class="s">${s ? `âge de l'instantané <span class="mono">${esc(s.instantane)}</span>` : ""}</div></div>
+      <div class="chiffre"><div class="l">Test métier</div><div class="v" style="color:${tm?.ok ? "var(--vert)" : "var(--rouge)"}">${tm ? (tm.ok ? "vert" : "rouge") : "–"}</div><div class="s">${tm ? `commande créée, relue, supprimée en ${fr(tm.duree_s, 2)} s` : ""}</div></div>
+    </div>`;
   return entete + `
     <div class="bloc"><div class="tete"><h2>Reconstruction de bs-logistique depuis le code</h2><span class="droite">
         ${prouve() ? etiquetteEtat("ok", "Prête à fusionner") : etiquetteEtat("bloque", "Fusion bloquée")}
@@ -581,19 +688,12 @@ function vueCI() {
         <span class="tag">n° ${mr.numero}</span><span class="tag">${esc(mr.branche || "reconstruction/bs-logistique")} → main</span><span class="tag">commit ${esc(c2?.sha || mr.sha)}</span>
         ${code ? `<span class="doux" style="font-size:14px">${code.taches} tâches Ansible · ${code.coffre} secrets au coffre · ${code.paquets ?? "–"} paquets · inconnus jamais appliqués</span>` : ""}
       </div></div>
-    ${c1 ? `<div class="bloc"><div class="tete"><h2>Vérification 1 · après l'audit</h2><span class="droite">${etat1}<span class="mono doux" style="font-size:13px">${esc(c1.sha)} · ${c1.duree != null ? duree(c1.duree) : `<span data-depuis="${c1.debut}"></span>`}</span></span></div>
-      <div class="contenu">${ciFinie(c1) && c1.etat !== "success"
-        ? `<b>${c1.attente ?? nbCartes()} décisions humaines en attente : reconstruction non lancée.</b> <span class="doux">La CI refuse de prouver une machine dont on ne sait pas tout. ${E.refus ? `Le garde-fou de bascule a refusé lui aussi : « ${esc(E.refus.motif)} ».` : ""}</span>`
-        : `<span class="doux">La forge contrôle la merge request…</span>`}</div></div>` : ""}
-    ${c2 ? `<div class="bloc"><div class="tete"><h2>Vérification 2 · après les décisions</h2><span class="droite">${etat2}<span class="mono doux" style="font-size:13px">${esc(c2.sha)} · ${ciFinie(c2) ? duree(c2.duree) : `<span data-depuis="${c2.debut}"></span>`}</span></span></div>
+    ${c2 ? "" : bloc1}
+    ${r ? verdict : ""}
+    ${c2 ? `<div class="bloc">${progression}<div class="tete"><h2>Vérification 2 · après les décisions</h2><span class="droite">${etat2}<span class="mono doux" style="font-size:13px">${esc(c2.sha)} · ${ciFinie(c2) ? duree(c2.duree) : `<span data-depuis="${c2.debut}"></span>`}</span></span></div>
       ${!c2.demarree && !ciFinie(c2) ? `<div class="contenu doux">Le runner de la forge prend la merge request… <span class="mono" data-depuis="${c2.debut}"></span></div>` : ""}
       <div class="pipeline">${(c2.etapes || []).map((e, i) => pasCI({ ...e, resultat: resultats[e.cle] }, i)).join("")}</div></div>` : ""}
-    ${r ? `<div class="chiffres">
-      <div class="chiffre"><div class="l">Écarts comparés</div><div class="v">${cmp ? cmp.differences : "–"}</div><div class="s">entre la copie et l'original</div></div>
-      <div class="chiffre"><div class="l">Non justifiés</div><div class="v" style="color:${cmp && cmp.unjustified === 0 ? "var(--vert)" : "var(--rouge)"}">${cmp ? cmp.unjustified : "–"}</div><div class="s">bloquants pour la fusion</div></div>
-      <div class="chiffre"><div class="l">Données restaurées</div><div class="v">${s ? fr(s.age_h, 1) + " h" : "–"}</div><div class="s">${s ? `âge de l'instantané <span class="mono">${esc(s.instantane)}</span>` : ""}</div></div>
-      <div class="chiffre"><div class="l">Test métier</div><div class="v" style="color:${tm?.ok ? "var(--vert)" : "var(--rouge)"}">${tm ? (tm.ok ? "vert" : "rouge") : "–"}</div><div class="s">${tm ? `commande créée, relue, supprimée en ${fr(tm.duree_s, 2)} s` : ""}</div></div>
-    </div>` : ""}`;
+    ${c2 ? bloc1 : ""}`;
 }
 
 function vueBascule() {
@@ -604,7 +704,7 @@ function vueBascule() {
       <div>${ico("ok")}<span>Retour arrière possible : l'original est éteint, jamais détruit</span></div></div></div>`;
   const entete = `<div class="entete"><h1>Bascule</h1><p>Remplacer la production par la copie reconstruite depuis le code, et mesurer la coupure de service réelle.</p></div>`;
   if (!b) {
-    return entete + conds + (E.refus ? `<div class="alerte">Tentative refusée par le garde-fou : ${esc(E.refus.motif)}</div>` : "")
+    return entete + conds + (E.refus && !prouve() ? `<div class="alerte">Tentative de bascule refusée par le garde-fou : ${esc(motifRefus(E.refus.motif))}</div>` : "")
       + `<div>${bouton({ nom: "basculer", lib: "Basculer la production", ok: prouve() && !E.occupe, rouge: true })}</div>`;
   }
   const coupe = b.coupure_debut && !b.retabli, retabli = !!b.retabli;
@@ -623,11 +723,12 @@ function vueBascule() {
   return entete + `<div class="bloc compteur ${retabli ? "retabli" : coupe ? "coupe" : ""}">
       <div class="l">${retabli ? "Service rétabli · coupure totale, de l'arrêt de l'original au test métier vert" : coupe ? "Service coupé" : "Vérification de la preuve…"}</div>
       <div class="v">${compteur}</div>${retabli ? `<div class="doux">sans geste manuel</div>` : ""}</div>
+    ${bilan}
     <div class="deux">
       <div class="bloc"><div class="tete"><h2>Déroulé</h2></div><div class="pipeline">${(opB?.pas || []).map((p, i) => pasCI({ libelle: p.titre, explication: p.explication, resultat: p.resultat,
         debut: p.debut, fin: p.fin, code: p.etat === "ok" ? 0 : 1, duree: p.fin && p.debut ? p.fin - p.debut : null }, i)).join("")}</div></div>
       <div class="bloc"><div class="tete"><h2>Test métier sur la production</h2></div>${tests || `<div class="vide">En attente du redémarrage de la copie…</div>`}</div>
-    </div>${bilan}`;
+    </div>`;
 }
 
 function vueLabo() {
@@ -642,8 +743,139 @@ function vueLabo() {
       <div class="contenu doux">Après l'oral : copie éteinte, original rallumé, pièges reposés. Résultats de chaque démo dans <span class="mono">banc/resultats/demo-salle-*.json</span>.</div></div>`;
 }
 
-const VUES = { ensemble: ["Vue d'ensemble", vueEnsemble], parc: ["Parc", vueParc], inventaire: ["Audit", vueInventaire],
-  decisions: ["Décisions", vueDecisions], ci: ["Preuve", vueCI], bascule: ["Bascule", vueBascule], labo: ["Laboratoire", vueLabo] };
+// ---------------------------------------------------------------- parc : tableau de bord, fiches, rapport
+const machineP = (vm) => (P?.machines || []).find((m) => m.vm === vm);
+const scoreBarre = (pct) => pct == null ? `<span class="doux">–</span>`
+  : `<span class="score"><span class="barre"><i class="${pct < 100 ? "moyen" : ""}" style="width:${pct}%"></i></span>${fr(pct, pct < 100 ? 1 : 0)} %</span>`;
+
+// Une ligne par machine, mêmes colonnes pour toutes. bs-logistique : l'état de la reprise jouée dans
+// cette console (audit, décisions, CI, bascule) ; les autres : leur dernière preuve sur la forge.
+function ligneParc(vm) {
+  if (vm === VM_LIVE) {
+    const a = E.audit, opA = derniereOp("audit"), n = nbCartes(), prises = !!E.decisions?.prises;
+    let etat, lib;
+    if (opA?.etat === "en_cours") [etat, lib] = ["en_cours", "Audit en cours"];
+    else if (!a) [etat, lib] = ["attention", "Pas encore auditée"];
+    else if (basculeFaite()) [etat, lib] = ["ok", "Prouvée, en production"];
+    else if (prouve()) [etat, lib] = ["ok", "Reconstruction prouvée"];
+    else if (E.ci2 && ciFinie(E.ci2)) [etat, lib] = ["ko", "Preuve en échec"];
+    else if (E.ci2) [etat, lib] = ["en_cours", "Preuve en cours"];
+    else if (n && !prises) [etat, lib] = ["bloque", `Bloquée : ${n} décisions en attente`];
+    else [etat, lib] = ["en_cours", "Contrôle en cours"];
+    const utiles = a ? a.total - (a.comptes.ignore || 0) : 0;
+    const pct = a && utiles ? 100 * (utiles - (prises ? 0 : a.comptes.inconnu || 0)) / utiles : null;
+    const s = E.ci2?.rapport?.sauvegarde;
+    return { vm, role: "Logiciel de logistique, PostgreSQL", ip: "192.168.103.200", etat, lib, pct, vers: "ensemble",
+      reconstruction: prouve() ? E.ci2.duree : null, donnees: s ? `${fr(s.age_h, 1)} h` : null,
+      coupure: E.bascule?.coupure, preuve: prouve() ? `n° ${E.mr.numero} · aujourd'hui à ${heure(E.ci2.fin)}` : null,
+      attente: prises ? 0 : n };
+  }
+  const m = machineP(vm);
+  if (!m) return null;
+  const p = m.forge?.preuve, v = p?.verif || {}, s = v.sauvegarde, b = (m.bascules || []).slice(-1)[0];
+  const etat = { prouvee: "ok", echec: "bloque" }[m.verdict.code] || "avenir";
+  return { vm, role: m.role, ip: m.ip, etat, lib: m.verdict.lib, pct: m.score?.pct, vers: "m-" + vm,
+    reconstruction: v.chronos?.total_s, donnees: s ? `${fr(s.age_h, 1)} h` : p ? "sans sauvegarde" : null,
+    coupure: b?.coupure_s, preuve: p ? `n° ${p.numero} · ${dateFr(p.date)}` : null, attente: m.score?.comptes?.attente || 0 };
+}
+
+function vueTableau() {
+  const vms = [VM_LIVE, ...(P?.machines || []).map((m) => m.vm).filter((v) => v !== VM_LIVE)];
+  const lignes = vms.map(ligneParc).filter(Boolean);
+  const live = lignes[0], enCours = E.t0 && !E.t_fin;
+  // Action recommandée : intégrer bs-logistique, suivre sa reprise, puis lire le rapport.
+  const carte = !E.audit && !enCours
+    ? `<div class="prochaine"><div class="sur">Action recommandée</div><h2>bs-logistique n'a jamais été auditée</h2>
+        <p>Le serveur du logiciel de logistique et de sa base PostgreSQL, sans documentation. Premier audit en lecture seule, rien n'est modifié sur la machine.</p>
+        <div class="actions">${bouton({ vers: "ensemble", lib: "Ouvrir bs-logistique", ok: true, grand: true })}</div></div>`
+    : enCours ? `<div class="prochaine en_cours"><div class="sur"><span class="ico en_cours"></span>Reprise en cours</div><h2>${esc(live.lib)} sur bs-logistique</h2>
+        <p>Démarrée à ${heure(E.t0)} · <span data-depuis="${E.t0}"></span></p>
+        <div class="actions">${bouton({ vers: "ensemble", lib: "Suivre la reprise", ok: true, grand: true })}</div></div>`
+    : basculeFaite() ? `<div class="prochaine fin"><div class="sur">${ico("ok")}Reprise prouvée</div><h2>Le rapport de reprise de bs-logistique est prêt</h2>
+        <p>Verdict, chrono, risques et preuve, générés depuis les résultats de cette reprise. À joindre au plan de continuité.</p>
+        <div class="actions">${bouton({ vers: "rapport", lib: "Voir le rapport", ok: true, grand: true })}</div></div>` : "";
+  const prouvees = lignes.filter((l) => l.etat === "ok").length, attente = lignes.reduce((x, l) => x + (l.attente || 0), 0);
+  const recs = lignes.map((l) => l.reconstruction).filter((x) => x != null);
+  const coupures = lignes.map((l) => l.coupure).filter((x) => x != null);
+  const chiffres = `<div class="chiffres">
+      <div class="chiffre"><div class="l">Machines prouvées</div><div class="v"><span style="color:${prouvees === lignes.length ? "var(--vert)" : "inherit"}">${prouvees}</span><span class="doux" style="font-size:20px"> / ${lignes.length}</span></div><div class="s">reconstruites depuis le code, test métier vert</div></div>
+      <div class="chiffre"><div class="l">Décisions en attente</div><div class="v" style="color:${attente ? "var(--ambre)" : "inherit"}">${attente}</div><div class="s">${attente ? "bloquent la preuve" : "rien ne bloque la preuve"}</div></div>
+      <div class="chiffre"><div class="l">Reconstruction la plus longue</div><div class="v">${recs.length ? duree(Math.max(...recs)) : "–"}</div><div class="s">VM vide → service vérifié</div></div>
+      <div class="chiffre"><div class="l">Coupure mesurée</div><div class="v">${coupures.length ? fr(coupures[coupures.length - 1], 1) + " s" : "–"}</div><div class="s">dernière bascule en production</div></div></div>`;
+  const tableau = `<div class="bloc"><div class="tete"><h2>Machines critiques</h2><span class="droite doux">cliquer une ligne pour le détail</span></div>
+    <table class="parc"><thead><tr><th>Machine</th><th>Statut de reprise</th><th>Reconstructibilité</th><th>Reconstruction</th><th>Données restaurées</th><th>Coupure</th><th>Dernière preuve</th></tr></thead><tbody>
+    ${lignes.map((l) => `<tr data-vers="${l.vers}"><td><div class="nom">${esc(l.vm)}</div><div class="role">${esc(l.role)}</div></td>
+      <td>${etiquetteEtat(l.etat, l.lib)}</td><td>${scoreBarre(l.pct)}</td>
+      <td>${l.reconstruction != null ? duree(l.reconstruction) : "<span class='pale'>–</span>"}</td>
+      <td>${l.donnees ? `${esc(l.donnees)}${l.donnees.endsWith("h") ? `<div class="petit">d'âge à la restauration</div>` : ""}` : "<span class='pale'>–</span>"}</td>
+      <td>${l.coupure != null ? `${fr(l.coupure, 1)} s` : `<span class="pale">pas de bascule</span>`}</td>
+      <td>${l.preuve ? esc(l.preuve) : "<span class='pale'>aucune</span>"}</td></tr>`).join("")}
+    </tbody></table></div>`;
+  const deps = (P?.machines || []).flatMap((m) => (m.vm === VM_LIVE && E.audit ? E.audit.ip_en_dur.map((d) => ({ path: d.fichier, line: d.ligne, ip: d.ip })) : m.ip_en_dur || []).map((d) => ({ ...d, vm: m.vm })));
+  const depsBloc = deps.length ? `<div class="bloc"><div class="tete"><h2>Dépendances entre machines</h2><span class="droite doux">adresses IP écrites en dur : à modifier si une machine change d'adresse</span></div>
+    <table><thead><tr><th>Machine</th><th>Fichier</th><th>Vers</th></tr></thead><tbody>${deps.map((d) =>
+      `<tr><td class="mono">${esc(d.vm)}</td><td class="cle">${esc(d.path)}${d.line ? `<span class="pale"> : ${d.line}</span>` : ""}</td><td><span class="mono">${esc(d.ip)}</span> <span class="doux">${esc(NOMS_IP[d.ip] || "")}</span></td></tr>`).join("")}</tbody></table></div>` : "";
+  return `<div class="entete"><h1>Tableau de bord</h1><p>Pour chaque machine critique : peut-on la reconstruire, en combien de temps, avec quelles données. Chaque statut vient d'une reconstruction réelle, vérifiée par un test métier, jamais d'une estimation.</p></div>
+    ${carte}${chiffres}${tableau}${depsBloc}${sourceParc()}`;
+}
+
+function sourceParc() {
+  if (parcErreur) return `<div class="alerte">État du parc indisponible : ${esc(parcErreur)}</div>`;
+  return `<div class="source">${P ? `Preuves lues sur la forge (<a href="${esc(P.forge)}/pme/infra/pulls?state=all" target="_blank" rel="noopener">pme/infra</a>) à ${heure(P.date)}` : "Lecture des preuves sur la forge…"}
+    <button class="lien" data-parc="force">Actualiser</button></div>`;
+}
+
+const ETAPES_PREUVE = [["sandbox_s", "Sandbox isolée", "VM vide clonée d'une Debian vierge, coupée de l'entreprise"], ["reconstruction_s", "Reconstruction depuis le code", "Ansible applique le code de la merge request"],
+  ["restauration_s", "Restauration des données", "depuis la dernière sauvegarde restic"], ["redemarrage_s", "Redémarrage", "la configuration doit survivre à un redémarrage"],
+  ["collecte_s", "Audit de la copie", "même collecte en lecture seule que sur l'original"], ["comparaison_s", "Comparaison avec l'original", "tout écart doit être justifié"], ["test_metier_s", "Test métier", "le service rend le service attendu"]];
+
+function vueMachine(vm) {
+  const m = machineP(vm);
+  const entete = (p) => `<div class="entete"><h1>${esc(vm)}</h1><p>${esc(m?.role || "")}</p>
+    <div class="meta"><span class="tag mono">${esc(m?.ip || "")}</span>${p ? `<span class="tag">preuve : merge request n° ${p.numero} (${esc(p.etat)}), commit ${esc(p.sha)}</span>` : ""}</div></div>`;
+  if (!m) return `<div class="entete"><h1>${esc(vm)}</h1></div>` + (parcErreur ? sourceParc() : `<div class="bloc"><div class="vide">Lecture des preuves sur la forge…</div></div>`);
+  const p = m.forge?.preuve, v = p?.verif || {}, ch = v.chronos || {}, s = v.sauvegarde, tm = v.test_metier, cmp = v.comparaison?.summary;
+  const etat = { prouvee: "ok", echec: "bloque" }[m.verdict.code] || "avenir";
+  const verdict = `<div class="prochaine ${etat === "ok" ? "fin" : ""}"><div class="sur">${ico(etat)}${esc(m.verdict.lib)}</div>
+    <h2>${p ? `Reconstruite depuis le code en ${duree(ch.total_s)}, test métier ${tm?.ok ? "vert" : "rouge"}` : "Pas encore de preuve de reconstruction"}</h2>
+    <p>${p ? `Vérifiée le ${dateFr(p.date)} par la CI de la merge request n° ${p.numero} : machine vide, code, sauvegarde, puis ${cmp ? `${cmp.differences} écarts comparés avec l'original, ${cmp.unjustified} non justifié` : "comparaison avec l'original"}.` : "La CI n'a encore rien vérifié pour cette machine."}</p>
+    <div class="actions">${p ? `<a class="bouton second" href="${esc(p.url)}" target="_blank" rel="noopener">Ouvrir la merge request ↗</a>` : ""}</div></div>
+    ${m.suivi ? `<div class="alerte">${esc(m.suivi)}</div>` : ""}`;
+  const chiffres = `<div class="chiffres">
+    <div class="chiffre"><div class="l">Reconstructibilité</div><div class="v">${fr(m.score.pct, m.score.pct < 100 ? 1 : 0)} %</div><div class="s">${m.score.traites} éléments sur ${m.score.total} reproduits ou tranchés</div></div>
+    <div class="chiffre"><div class="l">Reconstruction</div><div class="v">${ch.total_s ? duree(ch.total_s) : "–"}</div><div class="s">VM vide → service vérifié</div></div>
+    <div class="chiffre"><div class="l">Données restaurées</div><div class="v">${s ? fr(s.age_h, 1) + " h" : "–"}</div><div class="s">${s ? `âge de l'instantané <span class="mono">${esc(s.instantane)}</span>` : "aucune sauvegarde : perte acceptée"}</div></div>
+    <div class="chiffre"><div class="l">Test métier</div><div class="v" style="color:${tm?.ok ? "var(--vert)" : "var(--rouge)"}">${tm ? (tm.ok ? "vert" : "rouge") : "–"}</div><div class="s">${tm ? `${tm.etapes.length} vérifications en ${fr(tm.duree_s, 2)} s` : ""}</div></div></div>`;
+  const chrono = `<div class="bloc"><div class="tete"><h2>Déroulé de la preuve</h2><span class="droite mono doux">${esc(ch.sandbox || "")}</span></div><div class="pipeline">${ETAPES_PREUVE.map(([k, lib, ex], i) =>
+    k === "restauration_s" && !s ? pasCI({ libelle: lib, explication: "aucune sauvegarde : rien à restaurer", debut: 1, fin: 1, code: 0, duree: null }, i)
+      : pasCI({ libelle: lib, explication: ex, debut: 1, fin: 1, code: 0, duree: ch[k] ?? null }, i)).join("")}</div></div>`;
+  const tests = `<div class="bloc"><div class="tete"><h2>Test métier</h2>${tm?.ref ? `<span class="droite mono doux">${esc(tm.ref)}</span>` : ""}</div><div class="liste">${(tm?.etapes || []).map((e) =>
+    `<div>${ico(e.ok ? "ok" : "ko")}<span>${esc(e.etape)}<small>${esc(e.detail)}</small></span><span class="doux">${e.duree_s != null ? fr(e.duree_s, 2) + " s" : ""}</span></div>`).join("") || `<div class="vide">–</div>`}</div></div>`;
+  const sauv = `<div class="bloc"><div class="tete"><h2>Sauvegarde</h2>${s ? etiquetteEtat(s.trop_vieux ? "attention" : "ok", s.trop_vieux ? "En retard" : "À jour") : ""}</div><div class="liste">${s ? `
+    <div>${ico("ok")}<span>Instantané restauré <span class="mono">${esc(s.instantane)}</span><small>pris le ${dateFr(s.date)}, ${fr(s.age_h, 1)} h avant la preuve</small></span><span></span></div>
+    <div>${ico("ok")}<span>Tâche planifiée<small class="mono">${esc(s.tache)}</small></span><span></span></div>
+    <div>${ico(s.trop_vieux ? "attention" : "ok")}<span>Dernier passage prévu : ${dateFr(s.dernier_passage_prevu)}<small>alerte si l'instantané a plus de ${fr(s.max_h, 0)} h</small></span><span></span></div>`
+    : `<div>${ico("attention")}<span>Aucune sauvegarde sur cette machine<small>données régénérables : perte acceptée par décision humaine</small></span><span></span></div>`}</div></div>`;
+  const decs = Object.entries(m.decisions || {});
+  const decBloc = `<div class="bloc"><div class="tete"><h2>Décisions humaines</h2><span class="droite doux">versionnées avec le code</span></div>${decs.length ? `<table><thead><tr><th>Élément</th><th style="width:150px">Décision</th><th>Raison</th></tr></thead><tbody>${decs.map(([k, d]) =>
+    `<tr><td class="cle">${esc(k)}</td><td><b>${esc(LIB_DECISION[d.decision] || d.decision)}</b><div class="petit">${esc(d.par || "")}</div></td><td class="doux">${esc(d.raison)}</td></tr>`).join("")}</tbody></table>` : `<div class="vide">Aucune décision nécessaire.</div>`}</div>`;
+  const risques = `<div class="bloc"><div class="tete"><h2>Risques relevés à l'audit</h2></div><div class="liste">${m.risques.parts.map(([lib, n, st]) =>
+    `<div>${ico(n ? "attention" : "ok")}<span>${n} ${esc(lib)}<small>${esc(st)}</small></span><span></span></div>`).join("")}
+    ${(m.trous || []).map((t) => `<div>${ico("attention")}<span>${esc(t.replace(/`/g, ""))}</span><span></span></div>`).join("")}</div></div>`;
+  return entete(p) + verdict + chiffres + `<div class="grille2">${chrono}<div style="display:grid;gap:20px">${tests}${sauv}</div></div>` + risques + decBloc + sourceParc();
+}
+
+function vueRapport() {
+  return `<div class="entete"><h1>Rapport de reprise</h1><p>Le livrable remis à la direction : verdict, chrono, risques et preuve pour chaque machine, générés uniquement depuis les résultats réels. Aucune valeur n'est estimée.</p></div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <a class="bouton" href="/rapport" target="_blank" rel="noopener">Ouvrir pour imprimer ou exporter en PDF ↗</a>
+      <button class="bouton second" data-parc="force">Régénérer</button>${sourceParc()}</div>
+    ${P ? `<iframe class="cadre-rapport" id="cadre-rapport" src="/rapport?v=${Math.round(P.date)}" title="Rapport de reprise"></iframe>` : ""}`;
+}
+
+const VUES = { tableau: ["Tableau de bord", vueTableau], ensemble: ["Vue d'ensemble", vueEnsemble], parc: ["Infrastructure", vueParc], inventaire: ["Audit", vueInventaire],
+  decisions: ["Décisions", vueDecisions], ci: ["Preuve", vueCI], bascule: ["Bascule", vueBascule], rapport: ["Rapport de reprise", vueRapport], labo: ["Laboratoire", vueLabo] };
+const vueDe = (v) => VUES[v] || (v.startsWith("m-") ? [v.slice(2), () => vueMachine(v.slice(2))] : null);
 
 // ---------------------------------------------------------------- navigation, haut, activité
 function rendreNav() {
@@ -656,24 +888,35 @@ function rendreNav() {
   else if (E.ci1 && ciFinie(E.ci1)) badge.ci = `<span class="badge rouge">Bloquée</span>`;
   if (basculeFaite()) badge.bascule = `<span class="badge vert"><svg class="i" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>`;
   if (E.preparation?.etat !== "ok") badge.labo = `<span class="badge ambre">!</span>`;
-  const item = (k) => `<button class="${vue === k ? "actif" : ""}" data-vers="${k}"><svg viewBox="0 0 24 24">${ICONES[k === "labo" ? "labo" : k]}</svg>${VUES[k][0]}${badge[k] || ""}</button>`;
-  $("#nav").innerHTML = `<div class="titre-nav">bs-logistique</div>${["ensemble", "inventaire", "decisions", "ci", "bascule"].map(item).join("")}
-    <div class="titre-nav">Entreprise</div>${item("parc")}<div class="bas">${item("labo")}</div>`;
+  const item = (k, cls = "") => `<button class="${cls} ${vue === k ? "actif" : ""}" data-vers="${k}"><svg viewBox="0 0 24 24">${ICONES[k]}</svg>${VUES[k][0]}${badge[k] || ""}</button>`;
+  // Machines du parc : point d'état ; bs-logistique déplie les étapes de sa reprise.
+  const machine = (vm) => {
+    const l = ligneParc(vm), k = vm === VM_LIVE ? "ensemble" : "m-" + vm;
+    const actif = vm === VM_LIVE ? ["ensemble", "inventaire", "decisions", "ci", "bascule"].includes(vue) : vue === k;
+    return `<button class="machine-nav ${actif ? "actif" : ""}" data-vers="${k}"><i class="pt ${l ? l.etat : "avenir"}"></i>${esc(vm)}</button>`
+      + (vm === VM_LIVE ? ["inventaire", "decisions", "ci", "bascule"].map((x) => item(x, "sous")).join("") : "");
+  };
+  const autres = (P?.machines || []).map((m) => m.vm).filter((v) => v !== VM_LIVE);
+  $("#nav").innerHTML = `${item("tableau")}<div class="titre-nav">Machines</div>${[VM_LIVE, ...autres].map(machine).join("")}
+    <div class="titre-nav">Pilotage</div>${item("rapport")}${item("parc")}<div class="bas">${item("labo")}</div>`;
 }
 
 function rendreHaut() {
   const p = E.preparation || {};
-  const labo = p.etat === "ok" ? `<span class="pastille ok"><i></i>Laboratoire prêt</span>` : p.etat === "en_cours" ? `<span class="pastille en_cours"><i></i>Préparation…</span>`
+  // Laboratoire : signalé en haut seulement s'il n'est pas prêt (coulisses de la démo).
+  const labo = p.etat === "ok" ? "" : p.etat === "en_cours" ? `<span class="pastille en_cours"><i></i>Préparation…</span>`
     : `<span class="pastille attention"><i></i>Laboratoire à préparer</span>`;
   const chrono = E.t0 ? `<span class="pastille ${E.t_fin ? "ok" : "en_cours"}"><i></i>${E.t_fin ? "Reprise complète en" : "Reprise en cours"} <b id="chrono">${mmss((E.t_fin || maintenant()) - E.t0)}</b></span>` : "";
-  $("#haut-droite").innerHTML = `${chrono}${labo}<span class="utilisateur"><span>${esc((E.par || "?")[0])}</span><div>${esc(E.par)}<small>décideur</small></div></span>`;
+  $("#haut-droite").innerHTML = `${chrono}${labo}<span class="utilisateur"><span>${esc((E.par || "?")[0])}</span><div>${esc(E.par)}<small>responsable de la reprise</small></div></span>`;
+  const sousLog = ["inventaire", "decisions", "ci", "bascule"].includes(vue);
   $("#fil").innerHTML = `<span>PME Logistique</span><span class="sep">/</span>${vue === "ensemble" ? "<b>bs-logistique</b>"
-    : vue === "parc" || vue === "labo" ? `<b>${VUES[vue][0]}</b>` : `<span>bs-logistique</span><span class="sep">/</span><b>${VUES[vue][0]}</b>`}<span class="env">démo · laboratoire</span>`;
+    : sousLog ? `<span>bs-logistique</span><span class="sep">/</span><b>${VUES[vue][0]}</b>` : `<b>${esc(vueDe(vue)[0])}</b>`}`;
 }
 
 function rendreActivite() {
-  const liste = ops();
-  const cour = opEnCours();
+  // Préparation et remise en état sont des coulisses : visibles seulement depuis le Laboratoire.
+  const liste = vue === "labo" ? ops() : ops().filter((o) => !["preparer", "remettre"].includes(o.cle));
+  const cour = liste.find((o) => o.etat === "en_cours");
   const montree = liste.find((o) => o.id === opChoisie) || cour || liste[liste.length - 1];
   $("#activite-etat").innerHTML = cour ? etiquetteEtat("en_cours") : "";
   if (!montree) {
@@ -684,17 +927,17 @@ function rendreActivite() {
       const d = p.fin && p.debut ? duree(p.fin - p.debut) : p.debut ? `<span data-depuis="${p.debut}"></span>` : "";
       // Pas à venir : le titre seul. Pas en cours : machine + explication. Pas fini : son résultat.
       const corps = p.etat === "avenir" ? ""
-        : p.etat === "en_cours" ? `<div class="m">${esc(p.machine)}</div><div class="x">${esc(p.explication)}</div>${p.resultat ? `<div class="r">${esc(p.resultat)}</div>` : ""}`
-        : p.resultat ? `<div class="r">${esc(p.resultat)}</div>` : "";
+        : p.etat === "en_cours" ? `<div class="m">${esc(p.machine)}</div><div class="x">${esc(p.explication)}</div>${p.resultat ? `<div class="r">${nobr(virgule(p.resultat))}</div>` : ""}`
+        : p.resultat ? `<div class="r">${nobr(virgule(p.resultat))}</div>` : "";
       return `<div class="pas ${p.etat}">${ico(p.etat)}<div><div class="t">${esc(p.titre)}<span class="duree">${d}</span></div>${corps}</div></div>`;
     }).join("");
-    $("#activite").innerHTML = `<div class="op"><div class="titre-op">${esc(montree.titre)}</div>
+    $("#activite").innerHTML = `<div class="op"><div class="titre-op">${nobr(montree.titre)}</div>
         <div class="sous">${etiquetteEtat(etatOp, etatOp === "ok" ? "Terminée" : undefined)}<span>Lancée à ${heure(montree.debut)}</span>
           <span>${montree.fin ? duree(montree.fin - montree.debut) : `<span data-depuis="${montree.debut}"></span>`}</span></div>
         ${montree.erreur ? `<div class="alerte" style="margin-bottom:14px;font-size:14px">${esc(montree.erreur)}</div>` : ""}
         ${pas}</div>
       ${liste.length > 1 ? `<div class="historique"><div class="titre-nav">Historique</div>${[...liste].reverse().map((o) =>
-        `<button class="${o === montree ? "on" : ""}" data-op="${esc(o.id)}"><span class="point ${o.etat === "ok" ? "ok" : o.etat === "ko" ? "ko" : o.etat === "en_cours" ? "actif" : ""}"></span><span>${esc(o.titre)}</span><span class="mono">${heure(o.debut)}</span></button>`).join("")}</div>` : ""}`;
+        `<button class="${o === montree ? "on" : ""}" data-op="${esc(o.id)}"><span class="point ${o.etat === "ok" ? "ok" : o.etat === "ko" ? "ko" : o.etat === "en_cours" ? "actif" : ""}"></span><span>${nobr(o.titre)}</span><span class="mono">${heure(o.debut)}</span></button>`).join("")}</div>` : ""}`;
   }
   const j = $("#journal"), enBas = j.scrollTop + j.clientHeight >= j.scrollHeight - 8;
   j.textContent = (E.journal || []).map(([t, l]) => `${new Date(t * 1000).toLocaleTimeString("fr-FR")}  ${l}`).join("\n");
@@ -707,25 +950,37 @@ function signatureVue() {
   if (vue === "decisions") return "d" + JSON.stringify([E.decisions?.cartes?.map((c) => c.cle), !!E.decisions?.prises, E.occupe, E.ia?.propositions ? 1 : 0]);
   if (vue === "inventaire") return "i" + JSON.stringify([E.audit?.date, E.ia?.nombre, !!E.decisions?.prises, filtre]);
   if (vue === "bascule") return "b" + JSON.stringify([E.bascule, E.refus, E.ci2?.etat, E.occupe, E.phase, (derniereOp("basculer") || {}).pas]);
-  return vue + JSON.stringify([E.phase, E.preparation, E.parc, E.audit?.date, E.ia, E.code, E.mr, E.ci1, E.refus, E.ci2, E.decisions?.prises, E.bascule, E.occupe,
+  if (vue === "rapport") return "r" + JSON.stringify([P?.date, parcErreur]);   // l'iframe ne se recharge qu'au nouveau rapport
+  if (vue.startsWith("m-")) return vue + JSON.stringify([P?.date, parcErreur]);
+  return vue + JSON.stringify([P?.date, parcErreur, E.phase, E.preparation, E.parc, E.audit?.date, E.ia, E.code, E.mr, E.ci1, E.refus, E.ci2, E.decisions?.prises, E.bascule, E.occupe,
     ops().map((o) => [o.id, o.etat, o.pas.map((p) => p.etat + (p.resultat || ""))])]);
 }
 
 function rendre() {
   if (!E) return;
-  if (!VUES[vue]) vue = "ensemble";
+  if (!vueDe(vue)) vue = "tableau";
   rendreNav(); rendreHaut(); rendreActivite();
   const sig = signatureVue() + (E.erreur || "");
   if (sig !== signature) {
-    $("#vue").innerHTML = (E.erreur ? `<div class="alerte">${esc(E.erreur)}</div>` : "") + VUES[vue][1]();
+    $("#vue").innerHTML = (E.erreur ? `<div class="alerte">${esc(E.erreur)}</div>` : "") + vueDe(vue)[1]();
     signature = sig;
+    const cadre = $("#cadre-rapport");   // le rapport prend sa hauteur réelle (même origine)
+    if (cadre) cadre.onload = () => { try { cadre.style.height = cadre.contentDocument.documentElement.scrollHeight + 24 + "px"; } catch (e) { /* hauteur par défaut */ } };
   }
+}
+
+function chargerParc(force) {
+  return fetch("/parc" + (force ? "?force=1" : "")).then((r) => r.json()).then((d) => {
+    if (d.erreur) parcErreur = d.erreur; else { P = d; parcErreur = null; }
+  }).catch((e) => { parcErreur = String(e); }).then(() => { signature = ""; rendre(); });
 }
 
 function aller(v) {
   vue = v; signature = "";
   if (!CAPTURE) history.replaceState(null, "", "#" + v);
   rendre(); document.querySelector("main").scrollTop = 0;
+  // Fondu à l'arrivée sur une vue (navigation seulement, pas à chaque mise à jour d'état).
+  const el = $("#vue"); el.classList.remove("entree"); void el.offsetWidth; el.classList.add("entree");
 }
 
 function tic() {
@@ -748,6 +1003,8 @@ function poster(action, corps) {
 document.addEventListener("click", (ev) => {
   const a = ev.target.closest("[data-action]"), v = ev.target.closest("[data-vers]"), c = ev.target.closest("[data-choix]");
   const f = ev.target.closest("[data-filtre]"), el = ev.target.closest("[data-el]"), o = ev.target.closest("[data-op]");
+  if (ev.target.closest("[data-parc]")) { chargerParc(true); return; }
+  if (ev.target.closest("[data-export]")) { exporterCSV(); return; }
   if (a) {
     if (a.disabled) return;
     const nom = a.dataset.action;
@@ -778,7 +1035,8 @@ document.addEventListener("input", (ev) => {
   choix[cle] = { ...(choix[cle] || {}), raison: ev.target.value };
   const cartes = E.decisions?.cartes || [];
   const faites = cartes.filter((x) => choix[x.cle]?.decision && choix[x.cle]?.raison?.trim()).length;
-  const b = $("#valider"); if (b) { b.disabled = faites !== cartes.length || E.occupe; b.textContent = `Valider ${faites} / ${cartes.length} et relancer la preuve`; }
+  const b = $("#valider"); if (b) { b.disabled = faites !== cartes.length || E.occupe; b.classList.toggle("pret", !b.disabled); b.textContent = `Valider ${faites} / ${cartes.length} et relancer la preuve`; }
+  const g = $("#jauge"); if (g) g.style.width = `${faites / (cartes.length || 1) * 100}%`;
   ev.target.closest(".dec").classList.toggle("prise", !!(choix[cle].decision && choix[cle].raison.trim()));
 });
 // Raccourci discret pour le présentateur : → déclenche l'action principale de la vue affichée.
@@ -796,13 +1054,15 @@ function brancher() {
     const neuf = JSON.parse(m.data);
     decalage = neuf.maintenant - Date.now() / 1000;
     if (neuf.phase === "accueil" && E && E.phase !== "accueil") { for (const k in choix) delete choix[k]; ouverts.clear(); }
+    const finie = E && E.phase !== "fini" && neuf.phase === "fini";
     E = neuf; rendre();
+    if (finie) chargerParc(true);   // la reprise vient d'aboutir : preuve et bascule relues, rapport régénéré
   };
   src.onerror = () => { if (E) { E.erreur = "Connexion au serveur de la console perdue : nouvelle tentative…"; signature = ""; rendre(); } };
 }
 // #capture[-vue] : état lu une fois, sans flux (captures d'écran sans navigateur affiché).
-if (CAPTURE) fetch("/etat").then((r) => r.json()).then((d) => { decalage = d.maintenant - Date.now() / 1000; E = d; rendre(); tic(); });
-else { brancher(); requestAnimationFrame(tic); }
+if (CAPTURE) fetch("/etat").then((r) => r.json()).then((d) => { decalage = d.maintenant - Date.now() / 1000; E = d; return chargerParc(); }).then(tic);
+else { brancher(); requestAnimationFrame(tic); chargerParc(); setInterval(() => chargerParc(), 5 * 60 * 1000); }
 </script>
 </body>
 </html>

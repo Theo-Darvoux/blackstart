@@ -1030,7 +1030,7 @@ footer .footer-logo { width: 132px; opacity: .8; }
     </div>
     <div class="hero-stats">
       <div class="hero-stat">
-        <div class="big">3 min 59 s</div>
+        <div class="big">3 min 34 s</div>
         <div class="label">Reconstruction complète mesurée</div>
       </div>
       <div class="hero-stat">
@@ -1124,9 +1124,9 @@ footer .footer-logo { width: 132px; opacity: .8; }
 
     <div class="preuve-grid">
       <div class="preuve-card fade-up">
-        <div class="big">175</div>
-        <div class="unit">éléments audités</div>
-        <div class="desc">Paquets, fichiers modifiés, services, crons, ports, secrets&nbsp;: tout est inventorié et classé.</div>
+        <div class="big">176</div>
+        <div class="unit">écarts classés</div>
+        <div class="desc">Paquets, fichiers modifiés, services, crons, ports, secrets&nbsp;: tout ce qui diffère d'une Debian neuve est inventorié et classé.</div>
       </div>
       <div class="preuve-card fade-up">
         <div class="big">10/10</div>
@@ -1134,7 +1134,7 @@ footer .footer-logo { width: 132px; opacity: .8; }
         <div class="desc">Cron oublié, binaire opaque, sudo de prestataire, réglage noyau fait à chaud&nbsp;: les 10 pièges posés sur la machine logistique sont relevés par l'audit.</div>
       </div>
       <div class="preuve-card fade-up">
-        <div class="big">31</div>
+        <div class="big">37</div>
         <div class="unit">écarts trouvés</div>
         <div class="desc">Entre l'original et la copie, tous justifiés par une règle ou une décision. 0 écart non expliqué.</div>
       </div>
@@ -1147,21 +1147,21 @@ footer .footer-logo { width: 132px; opacity: .8; }
 
     <!-- Timeline de reconstruction -->
     <div class="preuve-bar fade-up">
-      <h3>Chronologie d'une reconstruction complète&nbsp;: <span class="tl-clock">3 min 59 s</span></h3>
+      <h3>Chronologie d'une reconstruction complète&nbsp;: <span class="tl-clock">3 min 34 s</span></h3>
       <div class="timeline">
-        <span style="flex:77; background:#1a6b42" title="Sandbox neuve">sandbox</span>
-        <span style="flex:89; background:#0E9F55" title="Reconstruction Ansible">ansible</span>
-        <span style="flex:10; background:#14C267" title="Restauration données"></span>
-        <span style="flex:30; background:#3DFF8A; color:#07090A" title="Redémarrage">reboot</span>
-        <span style="flex:10; background:#6cf5a0; color:#07090A" title="Test métier">test</span>
+        <span style="flex:74; background:#1a6b42" title="Sandbox neuve">sandbox</span>
+        <span style="flex:85; background:#0E9F55" title="Reconstruction Ansible">ansible</span>
+        <span style="flex:9; background:#14C267" title="Restauration données"></span>
+        <span style="flex:22; background:#3DFF8A; color:#07090A" title="Redémarrage">reboot</span>
+        <span style="flex:1; background:#6cf5a0; color:#07090A" title="Test métier"></span>
         <span style="flex:23; background:#a8fbc8; color:#07090A" title="Collecte finale">collecte</span>
       </div>
       <div class="tl-legend">
-        <span><i class="dot" style="background:#1a6b42"></i> Sandbox neuve · 77 s</span>
-        <span><i class="dot" style="background:#0E9F55"></i> Reconstruction · 89 s</span>
-        <span><i class="dot" style="background:#14C267"></i> Restauration · 10 s</span>
-        <span><i class="dot" style="background:#3DFF8A"></i> Redémarrage · 30 s</span>
-        <span><i class="dot" style="background:#6cf5a0"></i> Test métier · 10 s</span>
+        <span><i class="dot" style="background:#1a6b42"></i> Sandbox neuve · 74 s</span>
+        <span><i class="dot" style="background:#0E9F55"></i> Reconstruction · 85 s</span>
+        <span><i class="dot" style="background:#14C267"></i> Restauration · 9 s</span>
+        <span><i class="dot" style="background:#3DFF8A"></i> Redémarrage · 22 s</span>
+        <span><i class="dot" style="background:#6cf5a0"></i> Test métier · 1 s</span>
         <span><i class="dot" style="background:#a8fbc8"></i> Collecte finale · 23 s</span>
       </div>
     </div>
@@ -1262,9 +1262,9 @@ footer .footer-logo { width: 132px; opacity: .8; }
         <div class="source">Silicon.fr, NIS Solutions</div>
       </div>
       <div class="marche-stat fade-up">
-        <div class="big">~62 M€</div>
+        <div class="big">~52 M€</div>
         <div class="label">SAM indicatif (hypothèse de travail)</div>
-        <div class="source">6 200 ETI × 25 % × 40 k€/an</div>
+        <div class="source">~1 040 ETI industrielles et logistiques avec un parc Linux × 50 k€/an</div>
       </div>
     </div>
   </div>
@@ -1399,7 +1399,7 @@ const fmtNombre = n => Math.round(n).toLocaleString('fr-FR').replace(/\s/g, ' '
 const fmtDuree  = t => { t = Math.round(t); const m = Math.floor(t / 60), sec = t % 60;
   return m ? `${m} min ${String(sec).padStart(2, '0')} s` : `${sec} s`; };
 
-// Lit « 3 min 59 s », « 6 800 », « ~62 M€ », « 100 % » et rend une fonction d'affichage
+// Lit « 3 min 34 s », « 6 800 », « ~52 M€ », « 100 % » et rend une fonction d'affichage
 function lecteur(texte) {
   const t = texte.replace(/\s+/g, ' ').trim();
   const d = t.match(/^(\d+) min (\d+) s$/);

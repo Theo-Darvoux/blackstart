@@ -51,12 +51,16 @@ Le nom vient du « black start », le redémarrage d'un réseau électrique apr�
 
 ## Déroulé pour une VM
 
-1. Un script fixe inventorie la VM en lecture seule et masque les secrets.
-2. L'IA propose l'utilité de la VM ; l'admin confirme ou corrige.
-3. L'IA écrit Ansible et la CI/CD dans une branche, puis reconstruit la VM dans la sandbox.
-4. La VM reconstruite est comparée à l'originale. En cas d'écart, l'IA corrige et relance, avec une limite de tentatives avant de passer la main à un humain.
-5. L'admin relit la merge request et le rapport d'écarts.
-6. La nouvelle VM démarre à côté de l'ancienne, le trafic bascule, les tests sont relancés, et l'ancienne reste disponible pour revenir en arrière.
+Déroulé tel que le prototype le réalise (et tel que le présentent le deck et l'executive summary) :
+
+1. **Collecte :** un script fixe inventorie la VM en lecture seule et masque les secrets.
+2. **Classement :** des règles déterministes classent chaque écart (compris, donnée, secret, ignoré, inconnu), avec une preuve.
+3. **Décision :** le modèle local formule une proposition pour chaque inconnu ; l'admin tranche.
+4. **Code :** Ansible et la CI/CD sont générés (de façon déterministe dans le prototype) dans une branche, en merge request.
+5. **Preuve :** la CI reconstruit la VM dans la sandbox depuis le code et les sauvegardes, relance la même collecte, compare et passe le test métier. Tout écart non justifié, ou toute décision en attente, bloque la merge request.
+6. **Bascule :** la nouvelle VM remplace l'ancienne seulement si la CI est verte ; l'ancienne reste disponible pour revenir en arrière.
+
+Piste non réalisée dans le prototype : en cas d'écart, laisser l'IA corriger et relancer, avec une limite de tentatives avant de passer la main à un humain.
 
 Certains cas restent manuels : logiciels métier sous licence, secrets à ressaisir, grosses bases de données et services dont personne ne connaît le comportement attendu.
 
@@ -75,7 +79,7 @@ Les prix ne sont pas fixés. Le support officiel attend au moins 700 à 800 k€
 ## Décisions prises
 
 - **Pas de « mode turbo » :** l'IA agit librement en sandbox, mais seulement par merge request vers la production.
-- **Modèle local et interchangeable :** Qwen léger d'abord, Devstral comme option souveraine à tester. Kimi est écarté car trop lourd.
+- **Modèle local et interchangeable :** `qwen3.6:35b` retenu (sur CPU, sans GPU) ; `gemma4:26b` comparé et écarté (2 contradictions sur 5). Devstral reste une option souveraine, non testée. Kimi est écarté car trop lourd.
 - **Audit des pipelines GitLab :** au mieux un produit d'appel gratuit, pas un second produit.
 - **Réseau :** switchs et routeurs limités à la sauvegarde et à la lecture de configuration.
 - **Promesse honnête :** ne jamais annoncer « 100 % détecté ». Dire : « Tout ce qui n'est pas expliqué vous est signalé, et ce qui a été reconstruit a été testé. »

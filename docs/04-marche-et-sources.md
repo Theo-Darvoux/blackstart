@@ -22,6 +22,14 @@ Recherches rapides du 2 novembre 2026, à vérifier sur les sources primaires av
 - Programme CaRE, volet continuité et reprise d'activité doté de 45 M€ pour la santé : https://esante.gouv.fr/espace-presse/ouverture-du-guichet-de-depot-de-lappel-financement-du-programme-care-dedie-la-strategie-de-continuite-et-de-reprise-dactivite
 - Près de 1 500 collectivités et organismes visés par le projet de loi : https://www.senat.fr/rap/l24-393/l24-393-syn.pdf
 
+### Sauvegardes et reprise (sources ajoutées le 5 nov.)
+
+- Sophos, *The Impact of Compromised Backups on Ransomware Outcomes* (enquête Vanson Bourne début 2024, 2 974 répondants) : 94 % des victimes de rançongiciel disent que l'attaquant a tenté de compromettre leurs sauvegardes ; 57 % des tentatives réussissent ; 26 % des victimes aux sauvegardes compromises se rétablissent en une semaine, contre 46 % ; coût médian de reprise 3 M$ contre 375 k$ : https://www.sophos.com/en-us/blog/the-impact-of-compromised-backups-on-ransomware-outcomes
+- Veeam, *Ransomware Trends Report 2025* (communiqué du 23 avril 2025, 1 300 organisations) : 69 % touchées en un an ; 10 % récupèrent plus de 90 % de leurs données, 57 % moins de la moitié : https://www.veeam.com/company/press-release/veeam-report-finds-close-to-70-percent-of-organizations-still-under-cyber-attack-despite-improved-defenses.html
+- Veeam : 1,7 Md$ de revenus récurrents annuels en septembre 2024, valorisation de 15 Md$ (GeekWire, déc. 2024) : https://www.geekwire.com/2024/veeam-software-which-recently-relocated-its-hq-to-the-seattle-area-reaches-15b-valuation/
+- Marchés de référence : DRaaS 13,7 Md$ (2025) → 24,1 Md$ (2030), Mordor Intelligence ; IaC 1,3 Md$ (2025) → 6,9 Md$ (2034), Fortune Business Insights ; cybersécurité France 9,1 Md$ (2025), Mordor Intelligence. Estimations de cabinets, très variables selon le périmètre.
+- Chiffres retirés faute de source : « coût d'1 h d'arrêt d'une ETI : 10–50 k€ », « 5–6 % des ETI utilisent l'IA défensive (OCDE) », « < 5 % des PME assurées », « 160 000 PME de plus de 50 salariés ».
+
 ## Concurrence à creuser
 
 Le jury veut au moins 3 acteurs détaillés.
@@ -51,10 +59,13 @@ Prévoir une réponse sur l'origine chinoise de Qwen, même exécuté en local. 
 
 Ces chiffres sont des suppositions de travail, pas des faits :
 
-- **SAM indicatif :** 6 200 ETI × 25 % de cibles pertinentes × 40 k€ par an ≈ 62 M€ par an.
-- **Lecture du seuil du jury :** à 40 k€ par client, 700 à 800 k€ de CA correspondent à environ 20 clients en année 5.
+Chiffres retenus le 3 novembre dans `analyse-marche-blackstart.md`, repris tels quels par le deck, la landing et l'executive summary :
 
-Remplacer le 25 % par le nombre d'ETI des secteurs visés (données Insee) et le 40 k€ par les budgets entendus en entretien. Un TAM et un SOM restent à construire.
+- **TAM :** 6 800 ETI × 55 k€ de budget résilience ≈ 374 M€ par an (55 k€ : hypothèse).
+- **SAM :** ~2 600 ETI industrielles et logistiques × 40 % avec un parc Linux (hypothèse) ≈ 1 040 ETI × 50 k€ ≈ 52 M€ par an. 2 100 ETI industrielles : Insee Première n° 2084, déc. 2025, données 2023 (https://www.insee.fr/fr/statistiques/8673351). 500 ETI de transport et d'entreposage : estimation, 7,4 % des effectifs des ETI (Insee, Ésane 2021, https://www.insee.fr/fr/statistiques/7678536) appliqués aux 6 800 ETI.
+- **SOM année 5 :** 45 clients sous abonnement (~4 % du SAM), 2,07 M€ de CA (prévisionnel de l'analyse de marché, tarifs du 5 nov. : audit 15–25 k€, migration 30–60 k€ par VM, abonnement 2–5 k€ par mois et par application).
+
+Ancienne hypothèse, abandonnée : 6 200 ETI × 25 % × 40 k€ ≈ 62 M€. Remplacer la part Linux et les budgets par ce qu'entendent les entretiens.
 
 ## Preuves encore manquantes
 

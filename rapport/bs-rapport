@@ -27,6 +27,7 @@ Rien n'est estimé : une valeur absente est affichée comme absente.
 """
 
 import argparse
+import datetime
 import glob
 import html
 import json
@@ -138,23 +139,36 @@ def verte(ver):
                 and (ver.get("chronos") or {}).get("total_s"))
 
 
-def forge_state(cfg, vm):
+def depuis_ok(date, depuis):
+    """Vrai si la date (ISO de la forge, ou « AAAA-MM-JJ HH:MM » locale) est postérieure à `depuis` (epoch)."""
+    if not depuis:
+        return True
+    try:
+        t = datetime.datetime.fromisoformat(date.replace("Z", "+00:00"))
+        return (t.timestamp() if t.tzinfo else time.mktime(t.timetuple())) >= depuis
+    except (AttributeError, ValueError):
+        return False
+
+
+def forge_state(cfg, vm, depuis=None):
     """Merge requests de reconstruction de la VM : la dernière vérification, et la dernière preuve verte.
 
     La preuve retenue est la dernière vérification verte faite depuis une VM vide (sandbox créée pendant
     la CI) ; à défaut, la dernière vérification verte. Une vérification plus récente qui n'est pas verte
-    (par exemple une MR qui attend des décisions) est signalée à côté, jamais cachée."""
+    (par exemple une MR qui attend des décisions) est signalée à côté, jamais cachée.
+    `depuis` (epoch) : ne lit que les MR et vérifications postérieures (remise à zéro du laboratoire)."""
     from forge import Forge
     f = Forge()
     branche = f"reconstruction/{vm}"
     prs = sorted((p for p in f.call("GET", f"/repos/{cfg['depot']}/pulls?state=all&limit=50")
-                  if branche in (p["head"]["ref"], p["head"].get("label"))), key=lambda p: p["number"])
+                  if branche in (p["head"]["ref"], p["head"].get("label")) and depuis_ok(p["created_at"], depuis)),
+                 key=lambda p: p["number"])
     if not prs:
         return None
     verifs = []
     for pr in prs:
         for c in f.call("GET", f"/repos/{cfg['depot']}/issues/{pr['number']}/comments"):
-            if "bs-verif" in c["body"] or "parcours complet en" in c["body"]:
+            if ("bs-verif" in c["body"] or "parcours complet en" in c["body"]) and depuis_ok(c["created_at"], depuis):
                 ver, src = parse_verif(c["body"])
                 verifs.append({"numero": pr["number"], "url": pr["html_url"], "sha": pr["head"]["sha"][:7],
                                "etat": "fusionnée" if pr["merged"] else ("ouverte" if pr["state"] == "open" else "fermée"),
@@ -168,19 +182,27 @@ def forge_state(cfg, vm):
         pr = prs[-1]
         derniere = {"numero": pr["number"], "url": pr["html_url"], "sha": pr["head"]["sha"][:7], "date": None,
                     "etat": "ouverte" if pr["state"] == "open" else "fermée", "verif": {}}
-    return {"preuve": preuve_, "derniere": derniere}
+    # Historique : chaque vérification de la CI, la plus récente d'abord (pour le rapport de la console).
+    historique = [{"numero": v["numero"], "url": v["url"], "sha": v["sha"], "etat": v["etat"], "date": v["date"],
+                   "verte": verte(v["verif"]), "total_s": (v["verif"].get("chronos") or {}).get("total_s"),
+                   "depuis_vide": ((v["verif"].get("chronos") or {}).get("sandbox_s") or 0) > 0,
+                   "test_ok": (v["verif"].get("test_metier") or {}).get("ok"),
+                   "non_justifies": ((v["verif"].get("comparaison") or {}).get("summary") or {}).get("unjustified"),
+                   "attente": len(v["verif"].get("attente") or []), "echec": v["verif"].get("echec")}
+                  for v in reversed(verifs)]
+    return {"preuve": preuve_, "derniere": derniere, "historique": historique}
 
 
-def bascules(vm):
+def bascules(vm, depuis=None):
     out = []
     for p in sorted(glob.glob(os.path.join(ROOT, "banc", "resultats", "bascule-*.json"))):
         d = load(p)
-        if d and d.get("bascule"):
+        if d and d.get("bascule") and depuis_ok(d["bascule"].get("date"), depuis):
             out.append({**d["bascule"], "test_ok": d.get("ok"), "fichier": os.path.relpath(p, ROOT)})
     return out if vm == "bs-logistique" else []
 
 
-def collect(cfg, hors_ligne):
+def collect(cfg, hors_ligne, depuis=None):
     vms = []
     for v in cfg["vms"]:
         cl = load(os.path.join(ROOT, v["classement"]))
@@ -191,11 +213,11 @@ def collect(cfg, hors_ligne):
         f = None
         if not hors_ligne:
             try:
-                f = forge_state(cfg, v["vm"])
+                f = forge_state(cfg, v["vm"], depuis)
             except Exception as exc:  # forge injoignable : on le dit, on n'invente rien
                 f = {"erreur": str(exc)}
         vms.append({**v, "score": score(cl, dec), "decisions": dec, "ip_en_dur": cl.get("ip_en_dur", []),
-                    "trous": section_md(md, "Trous de la sauvegarde"), "forge": f, "bascules": bascules(v["vm"])})
+                    "trous": section_md(md, "Trous de la sauvegarde"), "forge": f, "bascules": bascules(v["vm"], depuis)})
     return vms
 
 

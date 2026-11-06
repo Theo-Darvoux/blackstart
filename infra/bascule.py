@@ -12,6 +12,7 @@ L'original n'est jamais supprimé : le retour arrière prend une minute.
 import argparse
 import json
 import os
+import shlex
 import subprocess
 import sys
 import time
@@ -26,6 +27,10 @@ COPY_VMID, COPY_IP = 1650, "192.168.103.210"
 REPO, BRANCH = "pme/infra", "reconstruction/bs-logistique"
 KEY = os.path.expanduser("~/.ssh/id_blackstart_admin")
 HERE = os.path.dirname(os.path.realpath(__file__))
+# Accès de collecte de la plateforme (console infra/salle) : clé et empreintes des serveurs qu'elle exige.
+CLE_PLATEFORME = os.path.expanduser("~/.ssh/id_blackstart.pub")
+KNOWN_HOSTS = os.path.join(HERE, "..", "inventaires", "parc", "known_hosts")
+MARQUE = "bascule-copie"  # empreinte de la copie en production, retirée au retour arrière
 
 
 def log(msg, t0=[time.monotonic()]):
@@ -75,6 +80,44 @@ def wait_http(url, host, timeout=120):
     raise TimeoutError(url)
 
 
+def acces_plateforme():
+    """La copie devient la production : la plateforme doit pouvoir continuer à l'auditer.
+    - accès de collecte : la CI n'y a autorisé que la clé de son runner ; on y met celle de la plateforme
+      (même commande forcée que collecte/install-on-vm.sh, le sudoers est déjà posé par la CI) ;
+    - identité : la copie a sa propre clé d'hôte. Elle est reconnue pour l'adresse de production, marquée,
+      à côté de celle de l'original, et retirée au retour arrière (oublier_copie)."""
+    pub = open(CLE_PLATEFORME, encoding="utf-8").read().strip()
+    ak = "/var/lib/bs-collect/.ssh/authorized_keys"
+    ligne = f'restrict,command="/usr/local/sbin/bs-collect-ssh" {pub}'
+    r = ssh(ORIG_IP, f"printf '%s\\n' {shlex.quote(ligne)} | sudo tee {ak} >/dev/null && sudo chown bs-collect:bs-collect {ak} "
+                     f"&& sudo chmod 600 {ak} && cat /etc/ssh/ssh_host_ed25519_key.pub")
+    if r.returncode != 0 or len(r.stdout.split()) < 2:
+        log(f"accès de collecte de la plateforme NON reporté sur la copie : {r.stderr.strip()[-200:]}")
+        return False
+    type_, cle = r.stdout.split()[:2]
+    lignes = oublier_copie(ecrire=False)
+    if not any(l.split()[1:3] == [type_, cle] for l in lignes if l.startswith(ORIG_IP + " ")):
+        lignes.append(f"{ORIG_IP} {type_} {cle} {MARQUE}")
+    os.makedirs(os.path.dirname(KNOWN_HOSTS), exist_ok=True)
+    with open(KNOWN_HOSTS, "w", encoding="utf-8") as fh:
+        fh.write("".join(l + "\n" for l in lignes))
+    log("accès de collecte de la plateforme reporté sur la copie, son empreinte reconnue pour " + ORIG_IP)
+    return True
+
+
+def oublier_copie(ecrire=True):
+    """Retire de known_hosts l'empreinte de la copie (lignes marquées) ; renvoie les lignes gardées."""
+    try:
+        lignes = [l for l in open(KNOWN_HOSTS, encoding="utf-8").read().splitlines() if l.strip()]
+    except OSError:
+        return []
+    garde = [l for l in lignes if not l.endswith(" " + MARQUE)]
+    if ecrire and garde != lignes:
+        with open(KNOWN_HOSTS, "w", encoding="utf-8") as fh:
+            fh.write("".join(l + "\n" for l in garde))
+    return garde
+
+
 def vers_copie(force):
     state, sha = ci_green()
     log(f"vérification CI de la merge request ({sha}) : {state}")
@@ -114,6 +157,7 @@ def vers_copie(force):
     except (OSError, ValueError, KeyError):
         nettoyage = 0
     coupure = round(time.monotonic() - t_coupure - nettoyage, 1)
+    acces_plateforme()  # service déjà rétabli : hors coupure
     log(f"bascule terminée, coupure du service : {coupure} s" if rc == 0
         else "bascule faite mais test métier ROUGE : envisager « retour »")
     try:
@@ -130,18 +174,25 @@ def retour():
     pve = PVE()
     log(f"copie ({COPY_VMID}) éteinte")
     power(pve, COPY_VMID, "stop")
+    # Elle ne sert plus la production : de nouveau une sandbox jetable, que la CI ou « Préparer » peut recréer.
+    pve.put(f"/nodes/{pve.node}/qemu/{COPY_VMID}/config",
+            description=f"Sandbox Black Start, jetable (infra/sandbox.py) ; copie de production jusqu'au {time.strftime('%Y-%m-%d %H:%M')}")
     log(f"original {ORIG_NAME} ({ORIG_VMID}) rallumé")
     power(pve, ORIG_VMID, "start")
     subprocess.run(["ssh-keygen", "-R", ORIG_IP], capture_output=True)
+    oublier_copie()  # l'original répond de nouveau à l'adresse de production, avec sa propre clé d'hôte
     sandbox.wait_ssh(ORIG_IP)
     log("retour arrière terminé")
 
 
 def main():
     ap = argparse.ArgumentParser(description="Bascule de production vers la copie reconstruite, ou retour.")
-    ap.add_argument("sens", choices=["vers-copie", "retour"])
+    ap.add_argument("sens", choices=["vers-copie", "retour", "acces"],
+                    help="acces : seulement reporter l'accès de collecte sur la copie déjà en production")
     ap.add_argument("--force", action="store_true", help="ignorer l'état de la CI (répétition seulement)")
     args = ap.parse_args()
+    if args.sens == "acces":
+        sys.exit(0 if acces_plateforme() else 1)
     vers_copie(args.force) if args.sens == "vers-copie" else retour()
 
 

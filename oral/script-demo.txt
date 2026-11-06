@@ -1,0 +1,124 @@
+BLACK START · SCRIPT DE LA DÉMO (Théo)
+Durée visée : 3 min 55. Temps machine incompressible : environ 3 min 20.
+On parle PENDANT que les opérations tournent, on n'attend jamais.
+
+Repères mesurés : audit environ 9 s, CI verte 150 à 160 s, coupure à la bascule environ 28 s.
+
+
+============================================================
+AVANT L'ORAL (T-15 min)
+============================================================
+
+1. Lancer infra/salle/serveur.py --par Théo, ouvrir http://localhost:8080, plein écran (F11).
+2. Laboratoire → « Remettre en état », puis « Préparer ».
+   Attendre que les 5 pas soient verts : machines, pièges, modèle chargé, propositions, sandbox.
+   Si le modèle était déchargé, compter 3 à 5 min.
+3. Ouvrir la fiche bs-logistique → onglet Résumé, avec le panneau Activité visible à droite.
+4. Garder la vidéo de secours ouverte dans un onglet.
+5. Ne jamais cliquer dans une zone de texte : la touche → n'y fonctionne pas.
+
+
+============================================================
+TEXTE
+============================================================
+
+Entre crochets : les gestes. Tout le reste se dit à voix haute.
+
+
+--- 0:00 · Diapo « Démo », puis passage à la console ---
+
+Voici bs-logistique. C'est le serveur qui fait tourner le logiciel de logistique de notre PME fictive : les commandes, le stock, l'export vers le transporteur. Comme dans beaucoup de PME, il a été monté il y a longtemps, retouché à la main, et personne ne sait vraiment ce qu'il y a dedans. Si ce serveur tombe demain, est-ce qu'on sait le refaire ? On va le vérifier.
+
+
+--- 0:08 · [→ Lancer l'audit] ---
+
+Black Start se connecte avec un compte qui ne peut rien modifier. Il compare ce serveur à une Debian neuve et relève tout ce qui a changé : paquets, services, fichiers de configuration, comptes, tâches planifiées, ports ouverts. Chaque écart reçoit un classement et la règle qui le justifie. Ce qu'on comprend part dans du code de reconstruction. Les mots de passe partent dans un coffre et les données dans la sauvegarde. Ce qu'on ne comprend pas reste marqué « inconnu ». Ces inconnus sont envoyés à notre modèle d'IA local, sans les secrets, pour qu'il donne son avis.
+
+Une merge request s'ouvre sur notre forge… et la CI est rouge. On tente quand même de basculer : c'est refusé aussi. Tant qu'il reste un inconnu, Black Start refuse de prétendre qu'il sait reconstruire la machine.
+
+
+--- 0:25 · [→ Prendre les décisions] ---
+
+Il reste cinq points que personne n'a documentés. Le modèle donne son avis sur chacun, mais c'est un humain qui tranche.
+
+[Retirer, sur sudoers.d/prestataire]
+Ici, un accès administrateur donné à un prestataire, en dehors de toute procédure. On ne le recrée pas.
+
+[Garder, sur zpl-print]
+Le pilote de l'imprimante d'étiquettes : on le garde.
+
+[Retirer, sur le port 9100]
+Un petit serveur lancé à la main il y a des mois. On le retire, et la décision s'applique aussi au processus qui l'ouvre.
+
+[Garder, sur swappiness]
+Un réglage voulu : on le garde.
+
+Chaque décision porte une raison et mon nom. Elle est versionnée avec le code, ce qui permettra de savoir qui a décidé quoi le jour de l'incident.
+
+
+--- 0:50 · [→ Valider et relancer la preuve] (la vue CI s'ouvre seule) ---
+
+Maintenant, la vraie preuve. La CI prend une machine neuve, isolée du reste du réseau par un pare-feu…
+
+(Étape « Reconstruction », environ 85 s)
+… et elle reconstruit le serveur uniquement à partir du code. Personne n'est au clavier. C'est toute la différence avec une sauvegarde. Une sauvegarde vous dit que vos données existent quelque part. Elle ne vous dit pas si vous savez remonter le serveur autour. D'après notre estimation, refaire cette machine à la main prendrait entre seize et trente-deux heures.
+
+[Onglet Audit]
+Pendant que ça tourne, voici ce que l'audit a trouvé : tous les écarts, chacun avec son statut et sa règle. Rien n'est caché, et tout peut être exporté.
+
+[Onglet Preuve]
+
+(Étape « Restauration »)
+Les données reviennent de la dernière sauvegarde.
+
+(Étape « Redémarrage »)
+Là, on redémarre exprès. Un réglage fait à chaud, qui disparaît au redémarrage, c'est exactement ce qui vous trahit le jour de la panne.
+
+(Étape « Audit de la copie »)
+On refait le même audit, cette fois sur la copie, et on la compare à l'original. La moindre différence non justifiée rend la CI rouge.
+
+(Étape « Test métier »)
+Pour finir, une vraie commande est créée dans le logiciel, relue, puis supprimée.
+
+La CI est verte : la reconstruction est prouvée.
+
+
+--- 3:20 · [Onglet Bascule, puis →] ---
+
+Dernière étape : on remplace la production par cette copie. L'original est éteint, pas détruit, donc on peut revenir en arrière à tout moment. Le chronomètre mesure la vraie coupure, jusqu'à ce qu'une commande traverse à nouveau le proxy, le DNS et le vrai serveur de mail de l'entreprise.
+
+(Le test passe au vert)
+[Lire le chiffre affiché] secondes de coupure.
+
+
+--- 3:45 · [Menu : Rapport] (la couverture s'affiche) ---
+
+Et voici ce que l'entreprise garde : le rapport de reprise. Il est généré à partir de ce qu'on vient de faire, et aucune valeur n'y est estimée.
+
+[Défiler jusqu'à la Synthèse]
+En une page : combien de machines sont prouvées, le temps de reconstruction le plus long, la perte de données maximale, et ce qui reste en attente.
+
+[Défiler jusqu'aux Points d'attention]
+Ensuite, ce qu'il faut traiter, par priorité. Puis une section par machine, avec le déroulé de la preuve, la sauvegarde et les décisions signées.
+
+[Défiler jusqu'en bas, Validation]
+Il se termine par deux signatures, celle du responsable de la reprise et celle de la direction. C'est le document qu'on joint au plan de continuité.
+
+Quand tout s'arrête, Black Start prouve que votre entreprise sait repartir.
+
+
+--- 3:58 · [Retour aux diapos, « Mesures »] ---
+
+
+============================================================
+ALÉAS
+============================================================
+
+- CI lente : couper le paragraphe de l'onglet Audit.
+- Plus de 4 min au moment du rapport : montrer seulement la couverture et la Synthèse, puis la phrase finale.
+- Étape de CI rouge : « C'est justement le rôle de la CI : refuser une copie non prouvée », puis vidéo de secours.
+- La touche → ne fait rien : cliquer le bouton à la souris.
+- Rapport encore sur l'ancienne preuve : attendre 2 à 3 s avant de cliquer sur Rapport (à vérifier en répétition).
+- Après l'oral : Laboratoire → « Remettre en état » (retour vers l'original, pièges reposés).
+
+Seul chiffre non mesuré du texte : 16 à 32 heures à la main, à dire comme une estimation de l'équipe.

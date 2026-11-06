@@ -78,8 +78,13 @@ nav button.machine-nav .pt { width: 7px; height: 7px; border-radius: 50%; }
 .pt.ok { background: var(--vert); } .pt.bloque, .pt.ko { background: var(--rouge); } .pt.attention, .pt.en_cours { background: var(--ambre); } .pt.avenir { background: var(--pale); }
 table.parc td { vertical-align: middle; }
 table.parc td:nth-child(n+4), table.parc th { white-space: nowrap; }
+table.parc td:nth-child(n+5) { white-space: normal; min-width: 96px; }
 table.parc tr[data-vers] { cursor: pointer; } table.parc tr[data-vers]:hover td { background: var(--survol); }
-table.parc .nom { font: 500 14px var(--mono); } table.parc .role { font-size: 13px; color: var(--doux); margin-top: 2px; }
+table.parc .nom { font: 500 14px var(--mono); white-space: nowrap; }
+table.parc td, table.parc th { padding-left: 14px; padding-right: 14px; } table.parc td:first-child, table.parc th:first-child { padding-left: 22px; min-width: 180px; }
+table.parc .score .barre { width: 44px; } table.parc th { white-space: normal; }
+.defile-x { overflow-x: auto; }
+a.bouton { text-decoration: none; } table.parc .role { font-size: 13px; color: var(--doux); margin-top: 2px; }
 .score { display: flex; align-items: center; gap: 10px; white-space: nowrap; }
 .score .barre { width: 72px; height: 6px; border-radius: 3px; background: var(--trait2); overflow: hidden; }
 .score .barre i { display: block; height: 100%; background: var(--vert); }
@@ -95,6 +100,56 @@ table.parc .nom { font: 500 14px var(--mono); } table.parc .role { font-size: 13
 .liste small { display: block; color: var(--doux); font-size: 13px; margin-top: 2px; }
 .cadre-rapport { width: 100%; border: 1px solid var(--trait); border-radius: var(--r); background: #fff; min-height: 900px; display: block; }
 @media (max-width: 1100px) { .grille2 { grid-template-columns: 1fr; } }
+
+/* intégration d'une machine : formulaire, commandes à copier, réglages */
+.entete.avec-actions { display: flex; gap: 24px; align-items: flex-start; justify-content: space-between; }
+.entete.avec-actions > div:last-child { flex: none; padding-top: 4px; }
+.formulaire { padding: 24px 24px 22px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px 24px; }
+.champ { display: grid; gap: 6px; align-content: start; }
+.champ.large { grid-column: 1 / -1; }
+.champ label { font-size: 13px; font-weight: 500; color: var(--texte); }
+.champ small { font-size: 12.5px; color: var(--pale); }
+.champ input, .champ select, input.compte { background: var(--fond); border: 1px solid var(--trait2); border-radius: 8px; color: var(--texte); height: 38px; padding: 0 12px; font: 14px var(--sans); outline: none; width: 100%; }
+.champ textarea { background: var(--fond); border: 1px solid var(--trait2); border-radius: 8px; color: var(--texte); padding: 9px 12px; font: 13.5px/1.5 var(--mono); outline: none; width: 100%; resize: vertical; }
+.champ textarea:focus { border-color: var(--vert); box-shadow: 0 0 0 3px rgba(61,255,138,.12); }
+.bloc > .formulaire { border-top: 0; }
+.champ input:disabled { color: var(--pale); }
+.champ input.mono, input.compte { font-family: var(--mono); font-size: 13.5px; }
+.champ input:focus, .champ select:focus, input.compte:focus { border-color: var(--vert); box-shadow: 0 0 0 3px rgba(61,255,138,.12); }
+.champ input:invalid:not(:placeholder-shown) { border-color: rgba(255,107,99,.6); }
+.formulaire .pied-form { grid-column: 1 / -1; display: flex; align-items: center; gap: 16px; padding-top: 4px; }
+.erreur-form { color: var(--rouge); font-size: 14px; }
+.etapes-cmd { margin: 0; padding: 0; list-style: none; counter-reset: e; display: grid; gap: 22px; }
+.etapes-cmd > li { counter-increment: e; display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 4px 14px; }
+.etapes-cmd > li::before { content: counter(e); grid-row: 1 / span 4; width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--trait2); display: grid; place-items: center; font-size: 13px; font-weight: 600; color: var(--doux); }
+.etapes-cmd > li > * { grid-column: 2; }
+.etapes-cmd b { font-weight: 600; }
+.etapes-cmd .x { color: var(--doux); font-size: 14px; }
+.cmd { display: flex; align-items: stretch; background: var(--fond); border: 1px solid var(--trait2); border-radius: 8px; margin-top: 6px; overflow: hidden; }
+.cmd pre { margin: 0; padding: 10px 14px; font: 13px/1.5 var(--mono); color: var(--texte); white-space: pre-wrap; word-break: break-all; flex: 1; }
+.cmd pre .var { color: var(--vert); }
+.cmd button { border: 0; border-left: 1px solid var(--trait2); background: var(--panneau2); color: var(--doux); padding: 0 14px; font-size: 13px; flex: none; }
+.cmd button:hover { color: var(--texte); background: var(--survol); }
+.ligne-champ { display: flex; gap: 10px; align-items: center; margin-top: 6px; font-size: 13px; color: var(--doux); }
+.ligne-champ input.compte { width: 180px; height: 32px; }
+.depli { border-top: 1px solid var(--trait); }
+.depli summary { padding: 14px 22px; cursor: pointer; font-size: 14px; color: var(--doux); list-style: none; display: flex; gap: 8px; align-items: center; }
+.depli summary::-webkit-details-marker { display: none; }
+.depli summary::before { content: ""; width: 6px; height: 6px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(-45deg); transition: transform .15s; }
+.depli[open] summary::before { transform: rotate(45deg); }
+.depli summary:hover { color: var(--texte); }
+.depli > div { padding: 0 22px 18px; font-size: 14px; color: var(--doux); }
+.depli ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
+.reglages { display: grid; grid-template-columns: 220px minmax(0, 1fr); }
+.reglages > div { padding: 13px 22px; border-top: 1px solid var(--trait); font-size: 14px; min-width: 0; }
+.reglages > div:nth-child(-n+2) { border-top: 0; }
+.reglages > div:nth-child(odd) { color: var(--doux); }
+.reglages .mono { word-break: break-all; }
+.pied-page { display: flex; gap: 16px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.lien.danger:hover { color: var(--rouge); }
+nav button.ajout { color: var(--pale); font-size: 13.5px; }
+nav button.ajout:hover { color: var(--texte); }
+@media (max-width: 1100px) { .formulaire { grid-template-columns: 1fr; } .reglages { grid-template-columns: 1fr; } .entete.avec-actions { flex-direction: column; } }
 
 main { overflow: auto; min-width: 0; }
 .vue { padding: 36px 48px 72px; display: flex; flex-direction: column; gap: 28px; max-width: 1320px; }
@@ -112,6 +167,13 @@ h2 { font-size: 15px; font-weight: 600; margin: 0; }
 .bloc > .tete .droite { margin-left: auto; display: flex; gap: 12px; align-items: center; font-size: 13px; }
 .bloc > .contenu { padding: 20px 22px; }
 .vide { padding: 40px 22px; text-align: center; color: var(--doux); font-size: 14px; }
+.bandeau-erreur { display: flex; gap: 14px; align-items: flex-start; padding: 14px 0 16px; margin-bottom: 8px; border-bottom: 1px solid rgba(255,107,99,.28); }
+.bandeau-erreur svg { flex: none; width: 20px; height: 20px; margin-top: 1px; fill: none; stroke: var(--rouge); stroke-width: 2; stroke-linecap: round; }
+.bandeau-erreur .texte { display: grid; gap: 3px; min-width: 0; flex: 1; }
+.bandeau-erreur b { color: var(--texte); font-weight: 600; font-size: 15px; }
+.bandeau-erreur span { color: var(--doux); font-size: 14px; overflow-wrap: anywhere; }
+.bandeau-erreur .lien { flex: none; align-self: center; color: var(--rouge); }
+.erreur-op { border-left: 2px solid var(--rouge); padding: 2px 0 2px 12px; margin-bottom: 14px; color: var(--doux); font-size: 14px; overflow-wrap: anywhere; }
 .alerte { background: var(--rouge-fond); border: 1px solid rgba(255,107,99,.35); color: #ffd7d6; padding: 12px 16px; border-radius: var(--r); font-size: 14px; }
 
 .bouton { border: 1px solid transparent; border-radius: 8px; height: 38px; padding: 0 16px; font-weight: 500; font-size: 14px; background: var(--accent); color: #03140a; display: inline-flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap; transition: filter .15s; }
@@ -239,6 +301,13 @@ input[type=search]:focus, .dec textarea:focus { border-color: var(--trait2); box
 .dec .cle { font: 500 14px var(--mono); color: var(--texte); word-break: break-all; }
 .dec .n { font-size: 12px; color: var(--pale); margin-left: auto; }
 .dec .constat { color: var(--doux); font-size: 14px; }
+.dec .lie { color: var(--doux); font-size: 13px; }
+.dec .avert { color: var(--ambre); font-size: 13px; }
+.dec .conflit { color: var(--rouge); font-size: 13px; border-left: 2px solid var(--rouge); padding-left: 10px; }
+.dec.en-erreur { border-color: rgba(255,107,99,.55); }
+.bandeau-erreur ul { margin: 2px 0 0; padding-left: 18px; display: grid; gap: 4px; color: var(--doux); font-size: 14px; }
+.choix button:disabled { opacity: .35; cursor: not-allowed; }
+.choix button:disabled:hover { color: var(--doux); background: none; }
 .choix { display: inline-flex; gap: 4px; background: var(--fond); border: 1px solid var(--trait); border-radius: 8px; padding: 3px; justify-self: start; }
 .choix button { border: 0; background: none; border-radius: 6px; height: 32px; padding: 0 16px; font-weight: 500; font-size: 14px; color: var(--doux); }
 .choix button:hover { color: var(--texte); background: var(--survol); }
@@ -256,8 +325,6 @@ input[type=search]:focus, .dec textarea:focus { border-color: var(--trait2); box
 .progression { height: 3px; background: var(--trait); }
 .progression i { display: block; height: 100%; background: var(--ambre); }
 .progression.ok i { background: var(--vert); }
-.ligne-ci { display: flex; align-items: center; gap: 14px; padding: 16px 22px; font-size: 14px; }
-.ligne-ci .droite { margin-left: auto; display: flex; gap: 12px; align-items: center; }
 
 /* pipeline CI */
 .pipeline { display: grid; }
@@ -297,7 +364,7 @@ aside .defile { overflow: auto; flex: 1; min-height: 0; }
 .pas .t .duree { margin-left: auto; font-size: 12px; font-weight: 400; color: var(--pale); white-space: nowrap; }
 .pas .m { font: 400 11.5px var(--mono); color: var(--pale); margin-top: 3px; }
 .pas .x { font-size: 13px; color: var(--doux); margin-top: 6px; }
-.pas .r { font-size: 13px; margin-top: 3px; color: var(--doux); }
+.pas .r { font-size: 13px; margin-top: 3px; color: var(--doux); overflow-wrap: anywhere; }
 .pas.ko .r, .pas.bloque .r { color: #ff9b95; }
 .pas.avenir .t { color: var(--pale); }
 .pas.en_cours .t { color: var(--texte); font-weight: 600; }
@@ -323,6 +390,60 @@ aside .defile { overflow: auto; flex: 1; min-height: 0; }
   aside { border-left: 0; border-top: 1px solid var(--trait); } .zones, .deux { grid-template-columns: 1fr; }
   .vue { padding: 24px 16px; } .fil { display: none; } .marque { border: 0; }
 }
+
+/* ================= Mise en page sans blocs (5 nov.) =================
+   Une page continue : titres, filets fins et tableaux pleine largeur. Seule l'action à faire maintenant
+   garde un accent (filet vert à gauche). */
+.vue { gap: 32px; max-width: 1240px; }
+.entete p { max-width: 80ch; }
+.intro { margin: -14px 0 0; color: var(--doux); font-size: 15px; max-width: 80ch; }
+.bloc { background: none; border: 0; border-radius: 0; border-top: 1px solid var(--trait2); }
+.bloc > .tete { padding: 18px 0 8px; min-height: 0; border-bottom: 0; }
+.bloc > .tete h2 { font-size: 16px; }
+.bloc > .contenu { padding: 8px 0 0; }
+.bloc table th:first-child, .bloc table td:first-child, .depli table th:first-child, .depli table td:first-child { padding-left: 0; }
+.bloc table th:last-child, .bloc table td:last-child { padding-right: 0; }
+th { background: var(--fond); }
+.liste > div { padding: 12px 0; }
+.pipeline .pas-ci { padding: 13px 0; }
+.vide { padding: 22px 0; text-align: left; }
+.machine { padding: 14px 0; }
+.reglages > div { padding: 12px 0; }
+.reglages > div:nth-child(odd) { padding-right: 20px; }
+.bloc > .formulaire, .formulaire { padding: 20px 0 8px; }
+form.bloc.formulaire { border-top: 1px solid var(--trait2); }
+.depli { border-top: 1px solid var(--trait); }
+.depli summary { padding: 14px 0; }
+.depli > div { padding: 0 0 16px; }
+/* chiffres : une bande entre deux filets */
+.chiffres { background: none; border: 0; border-radius: 0; border-top: 1px solid var(--trait2); border-bottom: 1px solid var(--trait2); }
+.chiffre { padding: 18px 22px 18px 0; border-left: 0; }
+.chiffre + .chiffre { padding-left: 22px; border-left: 1px solid var(--trait); }
+/* action à faire maintenant : un filet d'accent, pas une carte */
+.prochaine { background: none; border: 0; border-radius: 0; box-shadow: none; border-left: 3px solid var(--vert); padding: 6px 0 6px 22px; }
+.prochaine.en_cours { border-left-color: var(--ambre); box-shadow: none; }
+.prochaine.fin { background: none; border: 0; border-left: 3px solid var(--vert); padding: 6px 0 6px 22px; }
+.prochaine h2 { font-size: 19px; }
+.prochaine.fin h2 { font-size: 21px; }
+/* plan de reprise et étapes d'intégration : une frise à plat */
+.fileplan { padding: 0; border-top: 1px solid var(--trait2); border-bottom: 1px solid var(--trait2); }
+.fileplan .e { padding: 16px 18px 16px 0; border-radius: 0; }
+.fileplan .e.courante::before { left: 0; right: 18px; }
+.fileplan .e[data-vers]:hover { background: none; } .fileplan .e[data-vers]:hover .t { text-decoration: underline; text-underline-offset: 3px; }
+/* décisions : une par ligne, séparées par un filet */
+.decisions { gap: 0; }
+.decisions .bloc.dec { padding: 22px 0; }
+.dec.prise { border-color: var(--trait2); box-shadow: inset 3px 0 0 var(--vert); padding-left: 16px !important; }
+.compteur { border-top: 0; }
+/* onglets de la fiche machine */
+.onglets { display: flex; gap: 26px; margin-top: 20px; border-bottom: 1px solid var(--trait2); flex-wrap: wrap; }
+.onglets button { background: none; border: 0; padding: 10px 0 11px; margin-bottom: -1px; color: var(--doux); font-size: 14px; font-weight: 500; border-bottom: 2px solid transparent; display: inline-flex; gap: 8px; align-items: center; }
+.onglets button:hover { color: var(--texte); }
+.onglets button.on { color: var(--texte); border-bottom-color: var(--vert); }
+.onglets .badge { font-size: 11.5px; height: 18px; min-width: 18px; padding: 0 6px; border-radius: 5px; background: var(--panneau2); color: var(--doux); display: inline-grid; place-items: center; }
+.onglets .badge.ambre { background: var(--ambre-fond); color: var(--ambre); } .onglets .badge.vert { background: var(--vert-fond); color: var(--vert); } .onglets .badge.rouge { background: var(--rouge-fond); color: var(--rouge); }
+/* panneau Activité : toujours visible à droite (il remplit l'écran et raconte chaque opération) */
+.vue { max-width: none; }
 </style>
 </head>
 <body>
@@ -388,12 +509,34 @@ const ICONES = {
   labo: '<path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3l-5-9V3"/>',
   tableau: '<rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/>',
   rapport: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/>',
+  ajout: '<path d="M12 5v14M5 12h14"/>',
+  journal: '<path d="M12 8v4l3 2"/><circle cx="12" cy="12" r="9"/>',
+  parametres: '<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>',
 };
 const VM_LIVE = "bs-logistique";   // la machine dont la reprise se joue dans cette console
-const NOMS_IP = { "192.168.103.200": "bs-logistique", "192.168.103.201": "bs-mail", "192.168.103.202": "bs-proxy",
-  "192.168.103.203": "bs-gitlab (sauvegardes)", "192.168.103.54": "DNS amont", "192.168.103.55": "DNS amont" };
+// Nom affiché pour une adresse IP : machine du parc, machine de la plateforme, ou adresse connue du registre.
+function nomIP(ip) {
+  const m = (P?.machines || []).find((x) => x.ip === ip); if (m) return m.vm;
+  const p = Object.values(P?.plateforme || {}).find((x) => x.ip === ip); if (p) return p.nom;
+  return P?.adresses_connues?.[ip] || "";
+}
+const AIDE_ETAT = { ok: "Reconstruite depuis le code sur une machine vide, test métier vert", bloque: "Des décisions humaines manquent : la CI refuse de reconstruire",
+  attention: "Une action vous attend (audit, décisions)", avenir: "Pas encore de preuve : machine déclarée, accès ou audit à faire", ko: "La dernière tentative a échoué", en_cours: "Une opération tourne" };
+const LIB_CRIT = { critique: "critique", importante: "importante", secondaire: "secondaire" };
+let compteAdmin = "admin";   // compte d'administration de l'entreprise, pour les commandes à copier
+let edition = null, editionMachine = null;   // bloc des Paramètres en cours de modification ; machine en cours de modification
+let rapportChoix = "parc";   // périmètre du rapport affiché : parc complet ou une machine
+let J = null;                // état réel des machines (/joignabilite)
+let JR = null;               // journal des actions (/journal)
+let filtreJournal = "tout";
+// Panneau Activité : fermé par défaut, ouvert tout seul quand une opération démarre.
+let activiteOuverte = false, dernierOpVu = null;
+try { activiteOuverte = localStorage.getItem("bs-activite") === "1"; } catch (e) { /* stockage indisponible */ }
+const SBX_IP_DEMO = "192.168.103.210";
+try { compteAdmin = localStorage.getItem("bs-compte-admin") || "admin"; } catch (e) { /* stockage indisponible */ }
 const MOIS = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
 // « 2026-11-03 13:38 » (dates de la forge et des rapports, heure de Paris) → « 3 nov. à 13:38 »
+const jourFr = (t) => { const d = new Date(t * 1000); return `${d.getDate()} ${MOIS[d.getMonth()]}`; };
 const dateFr = (s) => { const m = /^(\d{4})-(\d\d)-(\d\d)[ T](\d\d:\d\d)/.exec(s || ""); return m ? `${+m[3]} ${MOIS[+m[2] - 1]} à ${m[4]}` : (s || ""); };
 
 // ---------------------------------------------------------------- état dérivé
@@ -489,7 +632,7 @@ function prochaine(etapes) {
   if (cour) {
     const p = cour.pas.find((x) => x.etat === "en_cours");
     const fait = cour.pas.filter((x) => x.etat !== "avenir" && x.etat !== "en_cours").length;
-    const vers = { audit: "inventaire", decider: "ci", basculer: "bascule", preparer: "labo", remettre: "labo" }[cour.cle];
+    const vers = { audit: "inventaire", decider: "ci", basculer: "bascule", preparer: "labo", remettre: "labo" }[cour.cle] || (cour.vm ? "m-" + cour.vm : null);
     return `<div class="prochaine en_cours"><div class="sur"><span class="ico en_cours"></span>${nobr(cour.titre)} · pas ${fait + 1} sur ${cour.pas.length}</div>
       <h2>${esc(p ? p.titre : cour.titre)}</h2>
       <p>${esc(p ? p.explication : "")}</p>
@@ -524,54 +667,73 @@ function vueEnsemble() {
       <div class="chiffre"><div class="l">Perte de données max</div><div class="v">${s ? fr(s.age_h, 1) + " h" : "–"}</div><div class="s">${s ? "âge de la dernière sauvegarde" : "connue après la preuve"}</div></div>
       <div class="chiffre"><div class="l">Coupure mesurée</div><div class="v" style="${E.bascule?.coupure ? "color:var(--vert)" : ""}">${E.bascule?.coupure ? fr(E.bascule.coupure, 1) + " s" : "–"}</div><div class="s">${E.bascule?.coupure ? "arrêt → test métier vert" : "après la bascule"}</div></div>
     </div>`;
-  return `<div class="entete"><h1>bs-logistique</h1>
-      <p>Le serveur du logiciel de logistique et de sa base PostgreSQL. Aucune documentation : sait-on le reconstruire s'il disparaît demain ?</p>
-      <div class="meta"><span class="tag mono">192.168.103.200</span>${a?.machine?.os ? `<span class="tag">${esc(a.machine.os)}</span>` : ""}<span class="tag">production</span>${a ? `<span class="tag">${esc(a.machine?.resume || "")}</span>` : ""}</div></div>
+  return teteMachine(VM_LIVE) + `<p class="intro">Aucune documentation sur ce serveur : sait-on le reconstruire s'il disparaît demain ? Quatre étapes pour le prouver.</p>
     ${prochaine(etapes)}
-    <div class="bloc"><div class="fileplan">${file}</div></div>
+    <div class="fileplan">${file}</div>
     ${chiffres}`;
 }
 
 function vueParc() {
-  const pc = E.parc || {}, j = pc.joignable || {}, ph = E.phase, b = E.bascule || {};
+  const ph = E.phase, b = E.bascule || {};
   const coupe = ph === "bascule" && b.coupure_debut && !b.retabli, promue = !!b.retabli && ph !== "remise";
   const ciActive = (ph === "ci1" && E.ci1 && !E.ci1.fin) || ph === "ci2";
-  const opA = opEnCours();
-  const pasM = (opA?.pas || []).filter((p) => p.etat === "en_cours").map((p) => p.machine).join(" ");
-  const etatJ = (ip) => (ip in j ? (j[ip] ? "ok" : "ko") : "");
-  const actif = (ip) => pasM.includes(ip);
-  const m = (nom, role, ip, point, sous = "") => `<div class="machine ${point === "actif" ? "surbrillance" : ""}"><span class="point ${point}"></span>
-      <div><div class="n">${esc(nom)}</div><div class="r">${esc(role)}</div></div><div class="ip">${esc(ip)}${sous ? `<small>${esc(sous)}</small>` : ""}</div></div>`;
-  const logi = promue ? ["Copie reconstruite par Black Start, en production", "ok", "VM 1650"]
-    : coupe ? ["Original éteint, gardé pour le retour arrière", "eteint", "coupé"]
-    : [actif("103.200") ? "Audit en lecture seule en cours…" : "Logiciel de logistique + PostgreSQL", actif("103.200") ? "actif" : etatJ("192.168.103.200"), ""];
-  const sbx = promue ? ["Promue en production (IP .200)", "ok"] : ph === "ci2" ? ["Reconstruction en cours, isolée", "actif"]
-    : prouve() ? ["Copie prouvée, prête à basculer", "ok"] : [E.preparation?.etat === "ok" ? "Clone neuf, isolé, prêt pour la CI" : "Isolée de l'entreprise par pare-feu", ""];
-  const deps = E.audit?.ip_en_dur || [];
-  const noms = { "192.168.103.201": "bs-mail", "192.168.103.202": "bs-proxy", "192.168.103.203": "bs-gitlab (sauvegardes)" };
-  return `<div class="entete"><h1>Infrastructure</h1><p>Les machines de production et la plateforme Black Start installée chez l'entreprise (forge, modèle local, sandbox). ${pc.date ? `Joignabilité vérifiée à ${heure(pc.date)}.` : ""}</p></div>
-    <div class="zones">
-      <div class="bloc"><div class="tete"><h2>Production</h2></div>
-        ${m("bs-logistique", logi[0], "192.168.103.200", logi[1], logi[2])}
-        ${m("bs-mail", "Postfix + Dovecot", "192.168.103.201", etatJ("192.168.103.201"))}
-        ${m("bs-proxy", "Proxy web Nginx + DNS", "192.168.103.202", etatJ("192.168.103.202"))}
-      </div>
-      <div class="bloc"><div class="tete"><h2>Plateforme Black Start (sur site)</h2></div>
-        ${m("bs-ia", E.phase === "ia" || actif("103.204") ? "Le modèle lit les preuves masquées…" : "Modèle local qwen3.6:35b, sans GPU", "192.168.103.204", actif("103.204") ? "actif" : etatJ("192.168.103.204"))}
-        ${m("bs-gitlab", ciActive ? "Vérifie la merge request…" : "Forge Forgejo, merge requests, CI, coffre", "192.168.103.203", ciActive || actif("103.203") ? "actif" : etatJ("192.168.103.203"))}
-        ${m("sbx-logistique", sbx[0], promue ? "→ 192.168.103.200" : "192.168.103.210", sbx[1])}
-      </div>
-    </div>
-    <div class="bloc"><div class="tete"><h2>Dépendances découvertes à l'audit</h2><span class="droite doux" style="font-size:14px">adresses IP d'autres machines écrites en dur dans des fichiers modifiés</span></div>
-      ${deps.length ? `<table><thead><tr><th>Fichier</th><th>Ligne</th><th>Vers</th></tr></thead><tbody>${deps.map((d) =>
-        `<tr><td class="cle">${esc(d.fichier)}</td><td class="mono">${d.ligne ?? ""}</td><td><span class="mono">${esc(d.ip)}</span> <span class="doux">${esc(noms[d.ip] || "")}</span></td></tr>`).join("")}</tbody></table>`
-        : `<div class="vide">Visibles après l'audit.</div>`}</div>
-    <div class="doux" style="font-size:14px">Rien ne sort du laboratoire : modèle local, secrets masqués avant tout passage au modèle, sandbox sans accès à l'entreprise.</div>`;
+  const pasM = (opEnCours()?.pas || []).filter((p) => p.etat === "en_cours").map((p) => p.machine).join(" ");
+  const actif = (ip) => !!ip && pasM.includes(ip);
+  const pf = P?.plateforme || {}, fo = pf.forge || {}, mo = pf.modele || {};
+  // État réel vu par la plateforme (port SSH, API de la forge, modèles chargés), puis ce que la démo en cours y fait.
+  const sonde = (ip) => {
+    const h = J?.hotes?.[ip];
+    if (!J) return ["avenir", "Vérification…", ""];
+    if (!h) return ["avenir", "Non vérifiée", ""];
+    if (h.ok === null) return ["avenir", "Hors périmètre", ""];
+    return h.ok ? ["ok", "En ligne", `répond en ${h.ms} ms`] : ["ko", "Injoignable", h.erreur === "refusé" ? "port SSH fermé" : "ne répond pas"];
+  };
+  const ligne = (nom, role, ip, [etat, lib, detail], vers = "", note = "") => `<tr ${vers ? `data-vers="${esc(vers)}"` : ""}>
+      <td><div class="nom">${esc(nom)}</div><div class="role">${esc(role)}</div></td>
+      <td class="mono doux">${esc(ip)}</td>
+      <td>${etiquetteEtat(etat, lib)}${detail ? `<div class="petit">${esc(detail)}</div>` : ""}</td>
+      <td class="doux" style="font-size:13px">${note}</td></tr>`;
+  const prod = (P?.machines || []).map((x) => {
+    let st = sonde(x.ip);
+    if (x.vm === VM_LIVE) {
+      if (promue) st = ["ok", "En production", "copie reconstruite (VM 1650)"];
+      else if (coupe) st = ["avenir", "Éteinte", "original gardé pour le retour arrière"];
+      else if (actif(x.ip)) st = ["en_cours", "Audit en cours", "lecture seule"];
+    }
+    const acces = x.acces ? (x.acces.etat === "ok" ? `accès vérifié le ${jourFr(x.acces.date)}` : "accès en échec") : x.rapport ? "accès installé" : "accès à installer";
+    return ligne(x.vm, x.role, x.ip, st, x.vm === VM_LIVE ? "ensemble" : "m-" + x.vm, esc(acces));
+  }).join("");
+  let stF = sonde(fo.ip), stM = sonde(mo.ip), stS = sonde(SBX_IP_DEMO);
+  if (J && stF[0] === "ok") stF = J.forge.ok ? ["ok", "En ligne", J.forge.version ? `Forgejo ${J.forge.version} répond` : "l'API de Forgejo répond"] : ["attention", "Forge muette", "SSH répond, pas l'API"];
+  if (J && stM[0] === "ok") stM = J.modele.ok ? (J.modele.charges.includes(mo.modele) ? ["ok", "Modèle chargé", `${mo.modele} en mémoire`] : ["attention", "En ligne", "modèle pas en mémoire : 3 à 5 min au 1er appel"]) : ["attention", "API muette", "SSH répond, pas Ollama"];
+  if (ciActive || actif(fo.ip)) stF = ["en_cours", "Vérifie la MR", ""];
+  if (ph === "ia" || actif(mo.ip)) stM = ["en_cours", "Lit les preuves", "secrets masqués"];
+  if (stS[0] === "ko") stS = ["avenir", "Éteinte", "créée à la demande par la CI"];
+  if (ph === "ci2") stS = ["en_cours", "Reconstruction", "isolée"];
+  if (promue) stS = ["ok", "Promue", "→ 192.168.103.200"];
+  const tableau = (lignes) => `<table class="parc"><thead><tr><th>Machine</th><th>Adresse</th><th>État</th><th></th></tr></thead><tbody>${lignes}</tbody></table>`;
+  const versChemin = (l) => (l || []).map((d) => ({ path: d.fichier, line: d.ligne, ip: d.ip }));
+  const deps = (P?.machines || []).flatMap((m) => (m.vm === VM_LIVE ? versChemin(E.audit?.ip_en_dur) : m.rapport ? m.ip_en_dur || [] : versChemin(m.integration?.ip_en_dur)).map((d) => ({ ...d, vm: m.vm })));
+  return `<div class="entete avec-actions"><div><h1>Infrastructure</h1><p>Les machines que la plateforme connaît et leur état réel, vérifié toutes les 20 s sans s'y connecter (le port SSH répond-il ?).</p></div>
+      <div style="display:flex;gap:10px">${bouton({ vers: "ajout", lib: "Ajouter une machine", ok: true }, false).replace('class="bouton ', 'class="bouton second ')}</div></div>
+    <div class="bloc"><div class="tete"><h2>Production</h2><span class="droite doux">les serveurs de l'entreprise, déclarés dans le parc</span></div>${tableau(prod || `<tr><td colspan="4" class="vide">Aucune machine déclarée.</td></tr>`)}</div>
+    <div class="bloc"><div class="tete"><h2>Plateforme Black Start, sur site</h2><span class="droite doux">installée chez l'entreprise, rien ne sort du site</span></div>${tableau(
+      ligne(fo.nom || "forge", fo.role || "", fo.ip || "", stF, "", fo.url ? `<a href="${esc(fo.url)}" target="_blank" rel="noopener">ouvrir ↗</a>` : "")
+      + ligne(mo.nom || "modèle", mo.role || "", mo.ip || "", stM)
+      + ligne("sbx-logistique", "Copie isolée de bs-logistique, pour la preuve et la bascule", SBX_IP_DEMO, stS, "", pf.sandbox ? `plage ${esc(pf.sandbox.ip)}` : ""))}</div>
+    ${deps.length ? `<section class="bloc"><div class="tete"><h2>Dépendances entre machines</h2><span class="droite doux">adresses IP écrites en dur : à modifier si une machine change d'adresse</span></div>
+      <table><thead><tr><th>Machine</th><th>Fichier</th><th>Vers</th></tr></thead><tbody>${deps.map((d) =>
+        `<tr><td class="mono">${esc(d.vm)}</td><td class="cle">${esc(d.path)}${d.line ? `<span class="pale"> : ${d.line}</span>` : ""}</td><td><span class="mono">${esc(d.ip)}</span> <span class="doux">${esc(nomIP(d.ip))}</span></td></tr>`).join("")}</tbody></table></section>` : ""}
+    <div class="source">${J ? `État vérifié à ${heure(J.date)}` : "Vérification de l'état…"}<button class="lien" data-joignabilite>Actualiser</button></div>`;
 }
 
+// Audit montré par la vue : la reprise en direct de bs-logistique, ou le premier audit d'une machine intégrée.
+const vmCourante = () => vueMachineDe(vue)?.[0] || VM_LIVE;
+const auditCourant = () => vmCourante() === VM_LIVE ? E.audit : machineP(vmCourante())?.integration;
+
 function lignesInventaire() {
-  const a = E.audit, q = recherche.trim().toLowerCase();
-  const props = E.ia?.propositions || {}, prises = E.decisions?.prises || {};
+  const a = auditCourant(), q = recherche.trim().toLowerCase(), live = vmCourante() === VM_LIVE;
+  const props = live ? E.ia?.propositions || {} : {}, prises = live ? E.decisions?.prises || {} : {};
   const els = a.elements.filter((x) => (filtre === "tous" || x.statut === filtre) && (!q || x.cle.toLowerCase().includes(q) || (x.raison || "").toLowerCase().includes(q)))
     .sort((x, y) => ORDRE.indexOf(x.statut) - ORDRE.indexOf(y.statut));
   if (!els.length) return `<tr><td colspan="4" class="vide">Aucun élément.</td></tr>`;
@@ -579,7 +741,7 @@ function lignesInventaire() {
     const [cat, ...reste] = x.cle.split(":"), ouvert = ouverts.has(x.cle);
     const det = ouvert ? `<tr class="detail"><td colspan="4"><div style="display:grid;gap:8px">
         <div><span class="doux">Clé complète :</span> <span class="mono">${esc(x.cle)}</span></div>
-        <div><span class="doux">Écart :</span> ${esc(ECARTS[x.ecart] || x.ecart)} par rapport à une Debian 13 neuve · <span class="doux">Classement :</span> ${esc(x.raison)}</div>
+        <div><span class="doux">Écart :</span> ${esc(ECARTS[x.ecart] || x.ecart)} par rapport à ${live ? "une Debian 13 neuve" : "l'image de référence"} · <span class="doux">Classement :</span> ${esc(x.raison)}</div>
         ${proposition(props[x.cle])}
         ${prises[x.cle] ? `<div><span class="doux">Décision de ${esc(E.par)} :</span> <b>${esc(LIB_DECISION[prises[x.cle].decision] || prises[x.cle].decision)}</b> · ${esc(prises[x.cle].raison)}</div>` : x.statut === "inconnu" ? `<div class="doux">En attente d'une décision humaine.</div>` : ""}
       </div></td></tr>` : "";
@@ -589,10 +751,9 @@ function lignesInventaire() {
 
 function vueInventaire() {
   const a = E.audit;
-  if (!a) return `<div class="entete"><h1>Audit</h1><p>Tout ce qui distingue bs-logistique d'une Debian neuve.</p></div><div class="bloc"><div class="vide">Pas encore d'audit. Lancer l'audit depuis la vue d'ensemble.</div></div>`;
-  return `<div class="entete"><h1>Audit</h1><p>${a.total} écarts entre bs-logistique et une Debian 13 neuve, relevés le ${new Date(a.date).toLocaleString("fr-FR", { dateStyle: "long", timeStyle: "short" })}. Chaque écart porte la règle qui l'a classé.</p>
-      <div class="meta"><span class="tag">${esc(a.machine?.resume || "")}</span></div></div>
-    <div class="bloc"><div class="contenu">${repartition(a)}</div></div>
+  if (!a) return teteMachine(VM_LIVE) + `<div class="vide">Pas encore d'audit : le lancer depuis le Résumé.</div>`;
+  return teteMachine(VM_LIVE) + `<p class="intro">${a.total} écarts avec une Debian 13 neuve, relevés le ${new Date(a.date).toLocaleString("fr-FR", { dateStyle: "long", timeStyle: "short" })} (${esc(a.machine?.resume || "")}). Chaque écart porte la règle qui l'a classé.</p>
+    <div>${repartition(a)}</div>
     <div class="bloc">
       <div class="tete"><div class="filtres">${[["tous", "Tous", a.total], ...ORDRE.map((s) => [s, STATUTS[s][0], a.comptes[s] || 0])].map(([k, lib, n]) =>
         `<button class="filtre ${filtre === k ? "on" : ""}" data-filtre="${k}">${k !== "tous" ? `<i class="pt c-${k}"></i>` : ""}${lib} <b>${n}</b></button>`).join("")}</div>
@@ -604,20 +765,20 @@ function vueInventaire() {
 
 // Export de l'audit : un écart par ligne, statut, type, écart, règle ; décision humaine si elle existe.
 function exporterCSV() {
-  const a = E.audit; if (!a) return;
-  const prises = E.decisions?.prises || {}, props = E.ia?.propositions || {};
+  const a = auditCourant(); if (!a) return;
+  const live = vmCourante() === VM_LIVE, prises = live ? E.decisions?.prises || {} : {}, props = live ? E.ia?.propositions || {} : {};
   const q = (x) => `"${String(x ?? "").replace(/"/g, '""')}"`;
   const lignes = [["element", "statut", "type", "ecart", "regle", "proposition_modele", "decision", "raison_decision"].join(";")]
     .concat(a.elements.map((x) => [x.cle, STATUTS[x.statut]?.[0] || x.statut, CATEGORIES[x.cle.split(":")[0]] || x.cle.split(":")[0], ECARTS[x.ecart] || x.ecart, x.raison,
       props[x.cle] ? LIB_PROPO[props[x.cle].statut] || props[x.cle].statut : "", prises[x.cle] ? LIB_DECISION[prises[x.cle].decision] || prises[x.cle].decision : "", prises[x.cle]?.raison || ""].map(q).join(";")));
   const url = URL.createObjectURL(new Blob(["﻿" + lignes.join("\r\n")], { type: "text/csv;charset=utf-8" }));
-  const l = document.createElement("a"); l.href = url; l.download = `audit-bs-logistique-${(a.date || "").slice(0, 10)}.csv`; l.click();
+  const l = document.createElement("a"); l.href = url; l.download = `audit-${vmCourante()}-${(typeof a.date === "number" ? new Date(a.date * 1000).toISOString() : a.date || "").slice(0, 10)}.csv`; l.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 function vueDecisions() {
   const cartes = E.decisions?.cartes || [], prises = E.decisions?.prises;
-  const entete = `<div class="entete"><h1>Décisions</h1><p>Les éléments que personne n'a documentés. Le modèle local propose à partir des preuves (secrets masqués) ; ${esc(E.par)} décide et signe.</p></div>`;
+  const entete = teteMachine(VM_LIVE) + `<p class="intro">Ce que personne n'a documenté. Le modèle local propose à partir des preuves, secrets masqués ; ${esc(E.par)} décide et signe.</p>`;
   if (!cartes.length) return entete + `<div class="bloc"><div class="vide">${E.audit ? "Aucune décision en attente." : "Les inconnus apparaîtront ici après l'audit."}</div></div>`;
   if (prises) {
     return entete + `<div class="bloc"><div class="tete"><h2>${cartes.length} décisions signées ${esc(E.par)}</h2><span class="droite doux" style="font-size:14px">${E.decisions.date ? `à ${heure(E.decisions.date)} · ` : ""}versionnées dans la merge request</span></div>
@@ -627,22 +788,29 @@ function vueDecisions() {
       }).join("")}</tbody></table></div>`;
   }
   const faites = cartes.filter((c) => choix[c.cle]?.decision && choix[c.cle]?.raison?.trim()).length;
+  const conflits = conflitsDecisions(cartes), nbConflits = Object.keys(conflits).length;
   const html = cartes.map((c, i) => {
     const ch = choix[c.cle] || {}, data = c.cle.startsWith("data:");
     const opts = data ? [["accepter", "Accepter la perte", "accepter"]] : [["reproduire", "Garder", "reproduire"], ["ne pas reproduire", "Retirer", "non"]];
-    return `<div class="bloc dec ${ch.decision && ch.raison?.trim() ? "prise" : ""}" data-cle="${esc(c.cle)}">
+    const bloque = (v) => v === "reproduire" && c.garder_impossible;
+    const liees = c.liees || [], pb = conflits[c.cle] || [];
+    const signale = pb.length || (E.erreur_cles || []).includes(c.cle);
+    return `<div class="bloc dec ${ch.decision && ch.raison?.trim() && !pb.length ? "prise" : ""} ${signale ? "en-erreur" : ""}" data-cle="${esc(c.cle)}">
       <div class="info"><div class="haut-dec"><span class="cle">${esc(c.cle)}</span><span class="n">${i + 1} / ${cartes.length}</span></div>
         <div class="constat">Constat de l'audit : ${esc(c.constat)}</div>
+        ${liees.length ? `<div class="lie">Va avec <span class="mono">${liees.map(esc).join(", ")}</span> (même programme) : la décision s'applique aux deux.</div>` : ""}
         ${proposition(c.proposition)}</div>
-      <div class="geste"><div class="choix">${opts.map(([v, lib, cl]) => `<button class="${cl} ${ch.decision === v ? "on" : ""}" data-choix="${esc(v)}">${lib}</button>`).join("")}</div>
+      <div class="geste"><div class="choix">${opts.map(([v, lib, cl]) => `<button class="${cl} ${ch.decision === v ? "on" : ""}" data-choix="${esc(v)}" ${bloque(v) ? `disabled title="${esc(c.garder_impossible)}"` : ""}>${lib}</button>`).join("")}</div>
+        ${c.garder_impossible ? `<div class="avert">« Garder » indisponible : ${esc(c.garder_impossible)}</div>` : ""}
+        ${pb.map((m) => `<div class="conflit">${esc(m)}</div>`).join("")}
         <textarea placeholder="Raison de la décision (obligatoire)" data-raison>${esc(ch.raison || "")}</textarea></div>
     </div>`;
   }).join("");
   const sp = E.decisions?.sans_preuve || [];
-  const pret = faites === cartes.length && !E.occupe;
+  const pret = faites === cartes.length && !nbConflits && !E.occupe;
   return entete + `<div class="doux" style="font-size:14px">${cartes.length} points en attente : ${esc(detailAttente())}.${sp.length ? ` ${sp.length} inconnu sans preuve collectée (<span class="mono">${esc(sp.join(", "))}</span>) : ni envoyé au modèle, ni reproduit.` : ""}</div>`
     + `<div class="decisions">${html}</div>
-    <div class="pied"><button class="bouton vert grand ${pret ? "pret" : ""}" data-action="decider" data-principal id="valider" ${pret ? "" : "disabled"}>Valider ${faites} / ${cartes.length} et relancer la preuve</button>
+    <div class="pied"><button class="bouton vert grand ${pret ? "pret" : ""}" data-action="decider" data-principal id="valider" ${pret ? "" : "disabled"}>${nbConflits ? `${nbConflits} choix à corriger` : `Valider ${faites} / ${cartes.length} et relancer la preuve`}</button>
       <span class="jauge"><i id="jauge" style="width:${faites / (cartes.length || 1) * 100}%"></i></span>
       <span class="doux">Les décisions partent dans la merge request ; la CI reconstruit alors la machine sur une copie isolée.</span></div>`;
 }
@@ -655,7 +823,7 @@ function pasCI(e, i) {
 
 function vueCI() {
   const mr = E.mr, c1 = E.ci1, c2 = E.ci2, code = E.code;
-  const entete = `<div class="entete"><h1>Preuve</h1><p>Le code de reconstruction est proposé comme n'importe quel changement : une merge request, que la CI vérifie en reconstruisant la machine sur une copie isolée.</p></div>`;
+  const entete = teteMachine(VM_LIVE) + `<p class="intro">Le code de reconstruction passe par une merge request ; la CI la vérifie en reconstruisant la machine sur une copie isolée.</p>`;
   if (!mr?.numero) return entete + `<div class="bloc"><div class="vide">${E.audit ? "Merge request en préparation…" : "La merge request est ouverte à la fin de l'audit."}</div></div>`;
   const opD = derniereOp("decider");
   const resultats = {};
@@ -663,11 +831,10 @@ function vueCI() {
   const etat2 = c2 ? (c2.etat === "success" ? etiquetteEtat("ok", "Verte") : ciFinie(c2) ? etiquetteEtat("ko", "Rouge") : etiquetteEtat("en_cours")) : "";
   const etat1 = c1 ? (c1.etat === "success" ? etiquetteEtat("ok", "Verte") : ciFinie(c1) ? etiquetteEtat("bloque", "Bloquée") : etiquetteEtat("en_cours")) : "";
   const r = c2?.rapport, cmp = r?.comparaison?.summary, s = r?.sauvegarde, tm = r?.test_metier;
-  // Vérification 1 : détaillée tant qu'elle est la seule ; ensuite une ligne sous la vérification 2.
+  // Vérification 1 : montrée tant qu'elle est la seule ; dès que la vérification 2 démarre, elle disparaît.
   const refus1 = ciFinie(c1) && c1.etat !== "success";
   const dur1 = c1 ? `<span class="mono doux" style="font-size:13px">${esc(c1.sha)} · ${c1.duree != null ? duree(c1.duree) : `<span data-depuis="${c1.debut}"></span>`}</span>` : "";
-  const bloc1 = !c1 ? "" : c2
-    ? `<div class="bloc"><div class="ligne-ci">${ico(refus1 ? "bloque" : "ok")}<span><b>Vérification 1 · après l'audit :</b> <span class="doux">${refus1 ? `refusée, ${c1.attente ?? nbCartes()} décisions humaines en attente. La bascule avait été refusée elle aussi.` : "verte"}</span></span><span class="droite">${etat1}${dur1}</span></div></div>`
+  const bloc1 = !c1 || c2 ? ""
     : `<div class="bloc"><div class="tete"><h2>Vérification 1 · après l'audit</h2><span class="droite">${etat1}${dur1}</span></div>
       <div class="contenu">${refus1
         ? `<b>${c1.attente ?? nbCartes()} décisions humaines en attente : reconstruction non lancée.</b> <span class="doux">La CI refuse de prouver une machine dont on ne sait pas tout. ${E.refus ? `Le garde-fou de bascule a refusé lui aussi : « ${esc(motifRefus(E.refus.motif))} ».` : ""}</span>`
@@ -702,7 +869,7 @@ function vueBascule() {
       <div>${ico(prouve() ? "ok" : E.ci1 ? "bloque" : "avenir")}<span>CI de la merge request verte <span class="doux">(reconstruction prouvée sur une copie isolée)</span></span></div>
       <div>${ico(prouve() ? "ok" : "avenir")}<span>Copie prête : <span class="mono">sbx-logistique</span>, reconstruite, comparée, test métier vert</span></div>
       <div>${ico("ok")}<span>Retour arrière possible : l'original est éteint, jamais détruit</span></div></div></div>`;
-  const entete = `<div class="entete"><h1>Bascule</h1><p>Remplacer la production par la copie reconstruite depuis le code, et mesurer la coupure de service réelle.</p></div>`;
+  const entete = teteMachine(VM_LIVE) + `<p class="intro">Remplacer la production par la copie reconstruite depuis le code, et mesurer la coupure réelle.</p>`;
   if (!b) {
     return entete + conds + (E.refus && !prouve() ? `<div class="alerte">Tentative de bascule refusée par le garde-fou : ${esc(motifRefus(E.refus.motif))}</div>` : "")
       + `<div>${bouton({ nom: "basculer", lib: "Basculer la production", ok: prouve() && !E.occupe, rouge: true })}</div>`;
@@ -732,7 +899,7 @@ function vueBascule() {
 }
 
 function vueLabo() {
-  const p = E.preparation || {}, op = derniereOp("preparer");
+  const p = E.preparation || {}, op = derniereOp("preparer"), r = P?.remise;
   return `<div class="entete"><h1>Laboratoire</h1><p>Coulisses de la démo : préparation avant l'oral et remise en état après. Rien ici n'est montré au jury.</p></div>
     <div class="bloc"><div class="tete"><h2>Préparation</h2><span class="droite">${p.etat === "ok" ? etiquetteEtat("ok", `Prête depuis ${heure(p.date)}`) : p.etat === "en_cours" ? etiquetteEtat("en_cours") : p.etat === "ko" ? etiquetteEtat("ko") : etiquetteEtat("attention", "À faire")}
         <button class="bouton ${p.etat === "ok" ? "second" : ""}" data-action="preparer" ${E.occupe ? "disabled" : ""}>${p.etat === "ok" ? "Refaire" : "Préparer"}</button></span></div>
@@ -740,18 +907,25 @@ function vueLabo() {
       ${op ? `<div class="pipeline">${op.pas.map((x, i) => pasCI({ libelle: x.titre, explication: x.explication, resultat: x.resultat, debut: x.debut, fin: x.fin,
         code: x.etat === "ok" ? 0 : 1, duree: x.fin && x.debut ? x.fin - x.debut : null }, i)).join("")}</div>` : ""}</div>
     <div class="bloc"><div class="tete"><h2>Remise en état</h2><span class="droite"><button class="bouton second" data-action="remettre" ${E.occupe ? "disabled" : ""}>Remettre en état</button></span></div>
-      <div class="contenu doux">Après l'oral : copie éteinte, original rallumé, pièges reposés. Résultats de chaque démo dans <span class="mono">banc/resultats/demo-salle-*.json</span>.</div></div>`;
+      <div class="contenu doux">Après l'oral : copie éteinte, original rallumé, pièges reposés. Résultats de chaque démo dans <span class="mono">banc/resultats/demo-salle-*.json</span>.</div></div>
+    <div class="bloc"><div class="tete"><h2>Données de démonstration</h2><span class="droite">${r ? `<button class="bouton second" data-labo="reafficher" ${E.occupe ? "disabled" : ""}>Réafficher l'historique</button>` : ""}
+        <button class="bouton second" data-labo="reinitialiser" ${E.occupe ? "disabled" : ""}>Réinitialiser les données</button></span></div>
+      <div class="contenu doux">Repart comme avant le premier audit : état de la console, Activité, journal des actions, audits et accès vérifiés du parc ; la merge request ouverte est fermée. Rien n'est supprimé : les fichiers vont dans <span class="mono">inventaires/archives/</span>, les vérifications de la forge et les bascules plus anciennes sont seulement masquées. Registre du parc, décisions versionnées et VM inchangés.
+      ${r ? `<br>Historique masqué avant le ${new Date(r.date * 1000).toLocaleString("fr-FR", { dateStyle: "long", timeStyle: "short" })} (${esc(r.par || "?")}) · archives : <span class="mono">${esc(r.archive || "")}</span>.` : ""}</div></div>`;
 }
 
 // ---------------------------------------------------------------- parc : tableau de bord, fiches, rapport
 const machineP = (vm) => (P?.machines || []).find((m) => m.vm === vm);
-const scoreBarre = (pct) => pct == null ? `<span class="doux">–</span>`
+const scoreBarre = (pct) => pct == null ? `<span class="pale" title="Le score n'a de sens qu'une fois la reconstruction prouvée">non prouvée</span>`
   : `<span class="score"><span class="barre"><i class="${pct < 100 ? "moyen" : ""}" style="width:${pct}%"></i></span>${fr(pct, pct < 100 ? 1 : 0)} %</span>`;
 
 // Une ligne par machine, mêmes colonnes pour toutes. bs-logistique : l'état de la reprise jouée dans
 // cette console (audit, décisions, CI, bascule) ; les autres : leur dernière preuve sur la forge.
 function ligneParc(vm) {
-  if (vm === VM_LIVE) {
+  // Machine de la démo : son parcours en direct ; sans parcours (rien d'audité depuis la remise à zéro),
+  // son dernier état prouvé sur la forge, comme les autres machines.
+  const sansParcours = vm === VM_LIVE && !E.audit && derniereOp("audit")?.etat !== "en_cours" && machineP(vm)?.rapport;
+  if (vm === VM_LIVE && !sansParcours) {
     const a = E.audit, opA = derniereOp("audit"), n = nbCartes(), prises = !!E.decisions?.prises;
     let etat, lib;
     if (opA?.etat === "en_cours") [etat, lib] = ["en_cours", "Audit en cours"];
@@ -765,18 +939,20 @@ function ligneParc(vm) {
     const utiles = a ? a.total - (a.comptes.ignore || 0) : 0;
     const pct = a && utiles ? 100 * (utiles - (prises ? 0 : a.comptes.inconnu || 0)) / utiles : null;
     const s = E.ci2?.rapport?.sauvegarde;
-    return { vm, role: "Logiciel de logistique, PostgreSQL", ip: "192.168.103.200", etat, lib, pct, vers: "ensemble",
+    const reg = machineP(vm) || {};
+    return { vm, role: reg.role || "Logiciel de logistique, PostgreSQL", ip: reg.ip || "192.168.103.200", criticite: reg.criticite, etat, lib, pct, vers: "ensemble",
       reconstruction: prouve() ? E.ci2.duree : null, donnees: s ? `${fr(s.age_h, 1)} h` : null,
       coupure: E.bascule?.coupure, preuve: prouve() ? `n° ${E.mr.numero} · aujourd'hui à ${heure(E.ci2.fin)}` : null,
       attente: prises ? 0 : n };
   }
   const m = machineP(vm);
   if (!m) return null;
+  if (!m.rapport) return ligneIntegration(m);
   const p = m.forge?.preuve, v = p?.verif || {}, s = v.sauvegarde, b = (m.bascules || []).slice(-1)[0];
   const etat = { prouvee: "ok", echec: "bloque" }[m.verdict.code] || "avenir";
-  return { vm, role: m.role, ip: m.ip, etat, lib: m.verdict.lib, pct: m.score?.pct, vers: "m-" + vm,
+  return { vm, role: m.role, ip: m.ip, criticite: m.criticite, etat, lib: m.verdict.lib, pct: m.score?.pct, vers: vm === VM_LIVE ? "ensemble" : "m-" + vm,
     reconstruction: v.chronos?.total_s, donnees: s ? `${fr(s.age_h, 1)} h` : p ? "sans sauvegarde" : null,
-    coupure: b?.coupure_s, preuve: p ? `n° ${p.numero} · ${dateFr(p.date)}` : null, attente: m.score?.comptes?.attente || 0 };
+    coupure: b?.coupure_s, preuve: p ? `n° ${p.numero} · ${dateFr(p.date)}` : null, age: p ? ilYa(p.date) : "", attente: m.score?.comptes?.attente || 0 };
 }
 
 function vueTableau() {
@@ -784,8 +960,15 @@ function vueTableau() {
   const lignes = vms.map(ligneParc).filter(Boolean);
   const live = lignes[0], enCours = E.t0 && !E.t_fin;
   // Action recommandée : intégrer bs-logistique, suivre sa reprise, puis lire le rapport.
+  // Sans audit dans cette console, la ligne de bs-logistique peut venir d'une preuve plus ancienne sur la forge :
+  // la carte le dit, au lieu d'annoncer une machine jamais auditée à côté d'un statut « prouvée ».
+  const dejaProuvee = !E.audit && live?.preuve;
   const carte = !E.audit && !enCours
-    ? `<div class="prochaine"><div class="sur">Action recommandée</div><h2>bs-logistique n'a jamais été auditée</h2>
+    ? dejaProuvee
+      ? `<div class="prochaine"><div class="sur">Action recommandée</div><h2>Dernière preuve de bs-logistique : ${esc(live.age || "lors d'une reprise précédente")}</h2>
+        <p>La machine a pu changer depuis (paquets, configuration, données). Nouvel audit en lecture seule, rien n'est modifié sur la machine, puis nouvelle preuve de reconstruction.</p>
+        <div class="actions">${bouton({ vers: "ensemble", lib: "Ouvrir bs-logistique", ok: true, grand: true })}</div></div>`
+      : `<div class="prochaine"><div class="sur">Action recommandée</div><h2>bs-logistique n'a jamais été auditée</h2>
         <p>Le serveur du logiciel de logistique et de sa base PostgreSQL, sans documentation. Premier audit en lecture seule, rien n'est modifié sur la machine.</p>
         <div class="actions">${bouton({ vers: "ensemble", lib: "Ouvrir bs-logistique", ok: true, grand: true })}</div></div>`
     : enCours ? `<div class="prochaine en_cours"><div class="sur"><span class="ico en_cours"></span>Reprise en cours</div><h2>${esc(live.lib)} sur bs-logistique</h2>
@@ -802,21 +985,19 @@ function vueTableau() {
       <div class="chiffre"><div class="l">Décisions en attente</div><div class="v" style="color:${attente ? "var(--ambre)" : "inherit"}">${attente}</div><div class="s">${attente ? "bloquent la preuve" : "rien ne bloque la preuve"}</div></div>
       <div class="chiffre"><div class="l">Reconstruction la plus longue</div><div class="v">${recs.length ? duree(Math.max(...recs)) : "–"}</div><div class="s">VM vide → service vérifié</div></div>
       <div class="chiffre"><div class="l">Coupure mesurée</div><div class="v">${coupures.length ? fr(coupures[coupures.length - 1], 1) + " s" : "–"}</div><div class="s">dernière bascule en production</div></div></div>`;
-  const tableau = `<div class="bloc"><div class="tete"><h2>Machines critiques</h2><span class="droite doux">cliquer une ligne pour le détail</span></div>
-    <table class="parc"><thead><tr><th>Machine</th><th>Statut de reprise</th><th>Reconstructibilité</th><th>Reconstruction</th><th>Données restaurées</th><th>Coupure</th><th>Dernière preuve</th></tr></thead><tbody>
-    ${lignes.map((l) => `<tr data-vers="${l.vers}"><td><div class="nom">${esc(l.vm)}</div><div class="role">${esc(l.role)}</div></td>
-      <td>${etiquetteEtat(l.etat, l.lib)}</td><td>${scoreBarre(l.pct)}</td>
+  const tableau = `<section class="bloc"><div class="tete"><h2>Machines</h2><span class="droite doux">cliquer une ligne pour ouvrir la fiche</span></div>
+    <div class="defile-x"><table class="parc"><thead><tr><th>Machine</th><th>Statut de reprise</th><th>Reconstructibilité</th><th>Reconstruction</th><th>Données restaurées</th><th>Coupure</th><th>Dernière preuve</th></tr></thead><tbody>
+    ${lignes.map((l) => `<tr data-vers="${l.vers}"><td><div class="nom">${esc(l.vm)}</div><div class="role">${esc(l.role)}${l.criticite ? ` · <span class="pale">${esc(LIB_CRIT[l.criticite] || l.criticite)}</span>` : ""}</div></td>
+      <td><span title="${esc(AIDE_ETAT[l.etat] || "")}">${etiquetteEtat(l.etat, l.lib)}</span></td><td title="Part des éléments relevés que le code reproduit ou qu'un humain a tranchés">${scoreBarre(l.pct)}</td>
       <td>${l.reconstruction != null ? duree(l.reconstruction) : "<span class='pale'>–</span>"}</td>
-      <td>${l.donnees ? `${esc(l.donnees)}${l.donnees.endsWith("h") ? `<div class="petit">d'âge à la restauration</div>` : ""}` : "<span class='pale'>–</span>"}</td>
-      <td>${l.coupure != null ? `${fr(l.coupure, 1)} s` : `<span class="pale">pas de bascule</span>`}</td>
-      <td>${l.preuve ? esc(l.preuve) : "<span class='pale'>aucune</span>"}</td></tr>`).join("")}
-    </tbody></table></div>`;
-  const deps = (P?.machines || []).flatMap((m) => (m.vm === VM_LIVE && E.audit ? E.audit.ip_en_dur.map((d) => ({ path: d.fichier, line: d.ligne, ip: d.ip })) : m.ip_en_dur || []).map((d) => ({ ...d, vm: m.vm })));
-  const depsBloc = deps.length ? `<div class="bloc"><div class="tete"><h2>Dépendances entre machines</h2><span class="droite doux">adresses IP écrites en dur : à modifier si une machine change d'adresse</span></div>
-    <table><thead><tr><th>Machine</th><th>Fichier</th><th>Vers</th></tr></thead><tbody>${deps.map((d) =>
-      `<tr><td class="mono">${esc(d.vm)}</td><td class="cle">${esc(d.path)}${d.line ? `<span class="pale"> : ${d.line}</span>` : ""}</td><td><span class="mono">${esc(d.ip)}</span> <span class="doux">${esc(NOMS_IP[d.ip] || "")}</span></td></tr>`).join("")}</tbody></table></div>` : "";
-  return `<div class="entete"><h1>Tableau de bord</h1><p>Pour chaque machine critique : peut-on la reconstruire, en combien de temps, avec quelles données. Chaque statut vient d'une reconstruction réelle, vérifiée par un test métier, jamais d'une estimation.</p></div>
-    ${carte}${chiffres}${tableau}${depsBloc}${sourceParc()}`;
+      <td>${l.donnees ? `${esc(l.donnees)}${l.donnees.endsWith("h") ? `<div class="petit">d'âge</div>` : ""}` : "<span class='pale'>–</span>"}</td>
+      <td>${l.coupure != null ? `${fr(l.coupure, 1)} s` : `<span class="pale">–</span>`}</td>
+      <td>${l.preuve ? `${esc(l.preuve)}${l.age ? `<div class="petit">${esc(l.age)}</div>` : ""}` : "<span class='pale'>aucune</span>"}</td></tr>`).join("")}
+    </tbody></table></div>
+    </section>`;
+  return `<div class="entete avec-actions"><div><h1>Tableau de bord</h1><p>Peut-on reconstruire chaque machine critique, en combien de temps, avec quelles données ? Chaque statut vient d'une reconstruction réelle, jamais d'une estimation.</p></div>
+      <div>${bouton({ vers: "ajout", lib: "Ajouter une machine", ok: true }, false).replace('class="bouton ', 'class="bouton second ')}</div></div>
+    ${carte}${chiffres}${tableau}${sourceParc()}`;
 }
 
 function sourceParc() {
@@ -829,98 +1010,392 @@ const ETAPES_PREUVE = [["sandbox_s", "Sandbox isolée", "VM vide clonée d'une D
   ["restauration_s", "Restauration des données", "depuis la dernière sauvegarde restic"], ["redemarrage_s", "Redémarrage", "la configuration doit survivre à un redémarrage"],
   ["collecte_s", "Audit de la copie", "même collecte en lecture seule que sur l'original"], ["comparaison_s", "Comparaison avec l'original", "tout écart doit être justifié"], ["test_metier_s", "Test métier", "le service rend le service attendu"]];
 
-function vueMachine(vm) {
+
+// ---------------------------------------------------------------- modifier une machine
+const OPTS_CRIT = (v) => [["critique", "Critique : l'activité s'arrête sans elle"], ["importante", "Importante : l'activité est dégradée"], ["secondaire", "Secondaire : peut attendre"]]
+  .map(([k, l]) => `<option value="${k}" ${v === k ? "selected" : ""}>${l}</option>`).join("");
+const lienModifier = (vm) => P && editionMachine !== vm ? `<button class="lien" data-modifier-machine="${esc(vm)}" style="margin-left:4px">Modifier</button>` : "";
+function blocEditionMachine(m) {
+  if (editionMachine !== m.vm) return "";
+  const ipLibre = !m.rapport && m.vm !== VM_LIVE;
+  return `<form class="bloc formulaire" id="form-machine" data-vm="${esc(m.vm)}" autocomplete="off">
+    <div class="champ large"><label for="m-role">Rôle</label><input id="m-role" name="role" value="${esc(m.role)}" required maxlength="160"><small>Le service que cette machine rend à l'entreprise.</small></div>
+    <div class="champ"><label for="m-crit">Criticité</label><select id="m-crit" name="criticite">${OPTS_CRIT(m.criticite)}</select></div>
+    <div class="champ"><label for="m-ip">Adresse IP</label><input id="m-ip" name="ip" class="mono" value="${esc(m.ip)}" ${ipLibre ? "" : "disabled"}>
+      <small>${ipLibre ? "Changer l'adresse efface l'accès vérifié et l'audit : ils concernaient l'ancienne." : "Liée aux preuves de reprise : elle ne se change pas ici."}</small></div>
+    <div class="pied-form"><button type="submit" class="bouton">Enregistrer</button><button type="button" class="bouton second" data-modifier-machine="">Annuler</button><span class="erreur-form" id="erreur-machine"></span></div></form>`;
+}
+
+// ---------------------------------------------------------------- intégration d'une machine
+// Déclarer → installer l'accès de collecte (script relu et lancé par l'entreprise) → vérifier → premier audit.
+function ligneIntegration(m) {
+  const ac = m.acces, au = m.integration, inc = au?.comptes?.inconnu || 0;
+  let etat, lib;
+  if (!ac) [etat, lib] = ["avenir", "Accès à installer"];
+  else if (ac.etat !== "ok") [etat, lib] = ["ko", "Accès en échec"];
+  else if (!au) [etat, lib] = ["attention", "Accès vérifié, audit à lancer"];
+  else [etat, lib] = ["attention", inc ? `Auditée : ${inc} inconnu${inc > 1 ? "s" : ""}` : "Auditée, preuve à construire"];
+  const utiles = au ? au.total - (au.comptes.ignore || 0) : 0;
+  return { vm: m.vm, role: m.role, ip: m.ip, criticite: m.criticite, etat, lib, vers: "m-" + m.vm,
+    pct: null, reconstruction: null, donnees: null, coupure: null, preuve: null, attente: inc };
+}
+
+const commande = (texte) => `<div class="cmd"><pre>${texte}</pre><button data-copier title="Copier dans le presse-papiers">Copier</button></div>`;
+const varCompte = () => `<span class="var" data-var-compte>${esc(compteAdmin)}</span>`;
+const REVOQUER = "sudo userdel -r bs-collect && sudo rm -f /usr/local/sbin/bs-collect /usr/local/sbin/bs-collect-ssh /etc/sudoers.d/bs-collect";
+
+function blocAcces(m) {
+  const ac = m.acces, ok = ac?.etat === "ok";
+  const bt = `<button class="bouton second" data-action="acces" data-vm="${esc(m.vm)}" ${E.occupe ? "disabled" : ""}>${ac ? "Vérifier à nouveau" : "Vérifier l'accès"}</button>`;
+  const corps = !ac ? `<div class="contenu doux">Pas encore vérifié depuis la console. La vérification se connecte avec le compte <span class="mono">bs-collect</span>, s'assure qu'il ne peut rien faire d'autre que la collecte et relève le système.</div>`
+    : !ok ? `<div class="contenu"><div class="alerte">${esc(ac.erreur || "échec")}</div></div>`
+    : `<div class="liste">
+      <div>${ico("ok")}<span>Compte <span class="mono">bs-collect</span> limité à la collecte<small>toute autre commande est refusée par le serveur · vérifié le ${jourFr(ac.date)} à ${heure(ac.date)}${ac.par ? ` par ${esc(ac.par)}` : ""}</small></span><span></span></div>
+      <div>${ico("ok")}<span>Identité du serveur <span class="mono">${esc(ac.empreinte)}</span><small>exigée à chaque connexion ; à comparer avec l'empreinte affichée par le script d'installation</small></span><span></span></div>
+      <div>${ico("ok")}<span>${esc(ac.os || "")}${ac.hostname && ac.hostname !== m.vm ? ` · nom réel <span class="mono">${esc(ac.hostname)}</span>` : ""}<small>${ac.paquets} paquets, ${ac.services} services et unités, ${ac.ports} ports ouverts · collecte d'essai en ${fr(ac.duree_s, 1)} s</small></span><span></span></div></div>`;
+  return `<div class="bloc"><div class="tete"><h2>Accès de collecte</h2>${ac ? etiquetteEtat(ok ? "ok" : "ko", ok ? "Vérifié" : "En échec") : ""}<span class="droite">${bt}</span></div>${corps}
+    <details class="depli"><summary>Révoquer l'accès</summary><div>À lancer sur <span class="mono">${esc(m.vm)}</span> : le compte, le collecteur et la règle sudo disparaissent. Black Start ne peut plus s'y connecter.${commande(esc(REVOQUER))}</div></details></div>`;
+}
+
+function blocInstallation(m) {
+  const inst = P?.installateur || {}, cle = P?.cle || {};
+  const ip = esc(m.ip), nom = esc(inst.nom || "bs-collect-installer.sh");
+  return `<div class="bloc"><div class="tete"><h2>Installer l'accès de collecte</h2><span class="droite doux">par un administrateur de l'entreprise, une seule fois</span></div>
+    <div class="contenu"><ol class="etapes-cmd">
+      <li><b>Télécharger le script d'installation</b>
+        <span class="x">Un seul fichier, lisible avant exécution. Il contient le collecteur et la clé publique de la plateforme.</span>
+        <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:8px"><a class="bouton" href="/installer/${nom}" download>Télécharger ${nom}</a>
+          <span class="petit">${inst.taille ? `${Math.round(inst.taille / 1024)} Ko · ` : ""}collecteur ${esc(inst.collecteur || "")}</span></div>
+        <span class="petit" style="margin-top:6px">SHA-256 du script : <span class="mono">${esc(inst.sha256 || "")}</span></span></li>
+      <li><b>Le copier sur le serveur</b>
+        <div class="ligne-champ"><label for="compte">Compte d'administration sur ${esc(m.vm)}</label><input class="compte" id="compte" data-compte value="${esc(compteAdmin)}" spellcheck="false"></div>
+        ${commande(`scp ${nom} ${varCompte()}@${ip}:`)}</li>
+      <li><b>Le lancer en root</b>
+        ${commande(`ssh -t ${varCompte()}@${ip} sudo bash ${nom}`)}
+        <span class="x" style="margin-top:6px">À la fin, le script affiche l'empreinte du serveur : gardez-la pour la vérification.</span></li>
+    </ol></div>
+    <details class="depli"><summary>Ce que fait le script, et ce qu'il ne fait pas</summary><div><ul>
+      <li>Il copie le collecteur <span class="mono">bs-collect</span> dans <span class="mono">/usr/local/sbin</span>, après avoir vérifié son empreinte (<span class="mono">${esc((inst.collecteur_sha256 || "").slice(0, 16))}…</span>).</li>
+      <li>Il crée le compte système <span class="mono">bs-collect</span>, sans mot de passe ni terminal. Ce compte ne peut lancer qu'une commande : la collecte (commande forcée SSH, règle sudo limitée à ce seul programme).</li>
+      <li>Il autorise la clé de la plateforme pour ce seul compte : <span class="mono">${esc(cle.empreinte || "")}</span> (${esc(cle.commentaire || "")}).</li>
+      <li>Il installe <span class="mono">python3</span> et <span class="mono">iproute2</span> s'ils manquent. Il ne touche à aucun service ni à aucune configuration existante, et n'ouvre aucun port.</li>
+      <li>La collecte lit la machine sans la modifier. Elle n'emporte jamais <span class="mono">/etc/shadow</span>, les clés privées ni les fichiers lisibles par root seul.</li>
+      <li>Systèmes pris en charge : Debian 13. Le script refuse de s'exécuter ailleurs que sur Debian.</li></ul></div></details>
+    <details class="depli"><summary>Plusieurs serveurs : installer avec Ansible</summary><div>Depuis le poste d'administration de l'entreprise, sur un groupe de serveurs de l'inventaire Ansible :
+      ${commande(`ansible <span class="var">serveurs</span> -b -m ansible.builtin.script -a ${nom}`)}</div></details>
+    <details class="depli"><summary>Révoquer l'accès plus tard</summary><div>Une commande, sur le serveur :${commande(esc(REVOQUER))}</div></details></div>`;
+}
+
+// Âge d'une preuve (« 2026-11-03 13:38 », heure de Paris) : « il y a 2 jours ».
+function ilYa(s) {
+  const t = Date.parse(String(s || "").replace(" ", "T")); if (!t) return "";
+  const h = (Date.now() - t) / 3.6e6;
+  return h < 1 ? "il y a moins d'une heure" : h < 24 ? `il y a ${Math.floor(h)} h` : `il y a ${Math.floor(h / 24)} jour${Math.floor(h / 24) > 1 ? "s" : ""}`;
+}
+const tableIP = (l) => `<table><thead><tr><th>Fichier</th><th style="width:70px">Ligne</th><th>Vers</th></tr></thead><tbody>${l.map((d) =>
+  `<tr><td class="cle">${esc(d.fichier ?? d.path)}</td><td class="mono">${d.ligne ?? d.line ?? ""}</td><td><span class="mono">${esc(d.ip)}</span> <span class="doux">${esc(nomIP(d.ip))}</span></td></tr>`).join("")}</tbody></table>`;
+
+function vueMachine(vm, onglet = "resume") {
   const m = machineP(vm);
-  const entete = (p) => `<div class="entete"><h1>${esc(vm)}</h1><p>${esc(m?.role || "")}</p>
-    <div class="meta"><span class="tag mono">${esc(m?.ip || "")}</span>${p ? `<span class="tag">preuve : merge request n° ${p.numero} (${esc(p.etat)}), commit ${esc(p.sha)}</span>` : ""}</div></div>`;
-  if (!m) return `<div class="entete"><h1>${esc(vm)}</h1></div>` + (parcErreur ? sourceParc() : `<div class="bloc"><div class="vide">Lecture des preuves sur la forge…</div></div>`);
+  if (!m) return `<div class="entete"><h1>${esc(vm)}</h1></div>` + (parcErreur ? sourceParc() : `<div class="vide">Lecture des preuves sur la forge…</div>`);
+  if (onglet === "acces") return teteMachine(vm) + `<p class="intro">Le compte de collecte en lecture seule : son état, l'identité du serveur, et comment le révoquer.</p>`
+    + (m.rapport ? "" : blocInstallationSiBesoin(m)) + blocAcces(m)
+    + `<div class="pied-page">${sourceParc()}${!m.rapport && vm !== VM_LIVE ? `<button class="lien danger" data-retirer="${esc(vm)}">Retirer ${esc(vm)} du parc</button>` : ""}</div>`;
+  if (!m.rapport) return vueIntegration(m, onglet);
+  // Machine prouvée : l'audit se relance à la demande (lecture seule, résultat hors Git), sans toucher à la preuve.
+  if (onglet === "audit") {
+    if (m.integration) return vueIntegration(m, "audit");
+    const ac = m.acces, ok = ac?.etat === "ok";
+    const [nom, lib, texte] = ok
+      ? ["integrer", "Lancer l'audit", "Collecte en lecture seule, comparaison avec l'image de référence, classement de chaque écart avec la règle appliquée. Quelques secondes. La preuve de reconstruction n'est pas modifiée."]
+      : ["acces", "Vérifier l'accès", "L'audit passe par le compte de collecte en lecture seule. Black Start vérifie d'abord que le compte bs-collect est installé et limité à la collecte."];
+    return teteMachine(vm) + (ac && !ok ? `<div class="alerte"><b>Dernière vérification en échec</b> (${jourFr(ac.date)} à ${heure(ac.date)}) : ${esc(ac.erreur)}</div>` : "")
+      + `<div class="prochaine"><div class="sur">Audit</div><h2>${ok ? "Auditer " + esc(vm) : "Vérifier l'accès de collecte"}</h2><p>${texte}</p>
+        <div class="actions">${bouton({ nom, lib, ok: !E.occupe, grand: true }).replace("<button ", `<button data-vm="${esc(vm)}" `)}</div></div>`
+      + `<div class="pied-page">${sourceParc()}</div>`;
+  }
   const p = m.forge?.preuve, v = p?.verif || {}, ch = v.chronos || {}, s = v.sauvegarde, tm = v.test_metier, cmp = v.comparaison?.summary;
   const etat = { prouvee: "ok", echec: "bloque" }[m.verdict.code] || "avenir";
-  const verdict = `<div class="prochaine ${etat === "ok" ? "fin" : ""}"><div class="sur">${ico(etat)}${esc(m.verdict.lib)}</div>
+  if (onglet === "preuve") {
+    const hist = m.forge?.historique || [];
+    const chrono = `<section class="bloc"><div class="tete"><h2>Déroulé de la preuve</h2><span class="droite mono doux">${esc(ch.sandbox || "")}</span></div><div class="pipeline">${ETAPES_PREUVE.map(([k, lib, ex], i) =>
+      k === "restauration_s" && !s ? pasCI({ libelle: lib, explication: "aucune sauvegarde : rien à restaurer", debut: 1, fin: 1, code: 0, duree: null }, i)
+        : pasCI({ libelle: lib, explication: ex, debut: 1, fin: 1, code: 0, duree: ch[k] ?? null }, i)).join("")}</div></section>`;
+    const tests = `<section class="bloc"><div class="tete"><h2>Test métier</h2>${tm?.ref ? `<span class="droite mono doux">${esc(tm.ref)}</span>` : ""}</div><div class="liste">${(tm?.etapes || []).map((e) =>
+      `<div>${ico(e.ok ? "ok" : "ko")}<span>${esc(e.etape)}<small>${esc(e.detail)}</small></span><span class="doux">${e.duree_s != null ? fr(e.duree_s, 2) + " s" : ""}</span></div>`).join("") || `<div class="vide">–</div>`}</div></section>`;
+    const sauv = `<section class="bloc"><div class="tete"><h2>Sauvegarde</h2>${s ? etiquetteEtat(s.trop_vieux ? "attention" : "ok", s.trop_vieux ? "En retard" : "À jour") : ""}</div><div class="liste">${s ? `
+      <div>${ico("ok")}<span>Instantané restauré <span class="mono">${esc(s.instantane)}</span><small>pris le ${dateFr(s.date)}, ${fr(s.age_h, 1)} h avant la preuve</small></span><span></span></div>
+      <div>${ico("ok")}<span>Tâche planifiée<small class="mono">${esc(s.tache)}</small></span><span></span></div>
+      <div>${ico(s.trop_vieux ? "attention" : "ok")}<span>Dernier passage prévu : ${dateFr(s.dernier_passage_prevu)}<small>alerte si l'instantané a plus de ${fr(s.max_h, 0)} h</small></span><span></span></div>`
+      : `<div>${ico("attention")}<span>Aucune sauvegarde sur cette machine<small>données régénérables : perte acceptée par décision humaine</small></span><span></span></div>`}</div></section>`;
+    const histo = `<details class="depli"><summary>Historique des vérifications de la CI (${hist.length})</summary><div>${hist.length ? `<table><thead><tr><th>Date</th><th>Merge request</th><th>Résultat</th><th style="text-align:right">Durée</th></tr></thead><tbody>${hist.map((h) =>
+      `<tr><td>${esc(dateFr(h.date))}</td><td><a href="${esc(h.url)}" target="_blank" rel="noopener">n° ${h.numero}</a> <span class="mono pale">${esc(h.sha)}</span></td>
+        <td>${h.verte ? etiquetteEtat("ok", "Verte") + (h.depuis_vide ? "" : ` <span class="pale">copie préchauffée</span>`) : h.attente ? etiquetteEtat("bloque", `Bloquée : ${h.attente} décisions`) : etiquetteEtat("ko", "Rouge")}</td>
+        <td style="text-align:right">${h.total_s ? duree(h.total_s) : "–"}</td></tr>`).join("")}</tbody></table>` : "Aucune vérification."}</div></details>`;
+    return teteMachine(vm) + `<p class="intro">Comment la reconstruction a été prouvée : une machine vide, le code, la sauvegarde, puis la comparaison et le test métier.</p>`
+      + `<div class="grille2">${chrono}<div style="display:grid;gap:28px">${tests}${sauv}</div></div>` + histo;
+  }
+  if (onglet === "decisions") {
+    const decs = Object.entries(m.decisions || {});
+    return teteMachine(vm) + `<p class="intro">Ce que personne n'avait documenté, et ce qu'un humain a décidé, avec sa raison. Versionné avec le code.</p>
+      <section class="bloc"><div class="tete"><h2>Décisions humaines</h2></div>${decs.length ? `<table><thead><tr><th>Élément</th><th style="width:150px">Décision</th><th>Raison</th></tr></thead><tbody>${decs.map(([k, d]) =>
+        `<tr><td class="cle">${esc(k)}</td><td><b>${esc(LIB_DECISION[d.decision] || d.decision)}</b><div class="petit">${esc(d.par || "")}</div></td><td class="doux">${esc(d.raison)}</td></tr>`).join("")}</tbody></table>` : `<div class="vide">Aucune décision nécessaire : chaque élément était expliqué par une règle.</div>`}</section>
+      <section class="bloc"><div class="tete"><h2>Risques relevés à l'audit</h2></div><div class="liste">${m.risques.parts.map(([lib, n, st]) =>
+        `<div>${ico(n ? "attention" : "ok")}<span>${n} ${esc(lib)}<small>${esc(st)}</small></span><span></span></div>`).join("")}
+        ${(m.trous || []).map((t) => `<div>${ico("attention")}<span>${esc(t.replace(/`/g, ""))}</span><span></span></div>`).join("")}</div></section>
+      ${(m.ip_en_dur || []).length ? `<details class="depli"><summary>Adresses IP d'autres machines écrites en dur (${m.ip_en_dur.length})</summary><div>${tableIP(m.ip_en_dur)}</div></details>` : ""}`;
+  }
+  // Résumé : le verdict, l'âge de la preuve, quatre chiffres.
+  const verdict = `<div class="prochaine ${etat === "ok" ? "fin" : ""}"><div class="sur">${ico(etat)}${esc(m.verdict.lib)}${p ? ` · ${esc(ilYa(p.date))}` : ""}</div>
     <h2>${p ? `Reconstruite depuis le code en ${duree(ch.total_s)}, test métier ${tm?.ok ? "vert" : "rouge"}` : "Pas encore de preuve de reconstruction"}</h2>
-    <p>${p ? `Vérifiée le ${dateFr(p.date)} par la CI de la merge request n° ${p.numero} : machine vide, code, sauvegarde, puis ${cmp ? `${cmp.differences} écarts comparés avec l'original, ${cmp.unjustified} non justifié` : "comparaison avec l'original"}.` : "La CI n'a encore rien vérifié pour cette machine."}</p>
-    <div class="actions">${p ? `<a class="bouton second" href="${esc(p.url)}" target="_blank" rel="noopener">Ouvrir la merge request ↗</a>` : ""}</div></div>
+    <p>${p ? `Vérifiée le ${dateFr(p.date)} par la CI de la merge request n° ${p.numero}${cmp ? ` : ${cmp.differences} écarts avec l'original, ${cmp.unjustified} non justifié` : ""}.` : "La CI n'a encore rien vérifié pour cette machine."}</p>
+    <div class="actions"><button class="bouton second" data-rapport-vers="${esc(vm)}">Rapport de reprise</button>${p ? `<a class="bouton second" href="${esc(p.url)}" target="_blank" rel="noopener">Merge request ↗</a>` : ""}</div></div>
     ${m.suivi ? `<div class="alerte">${esc(m.suivi)}</div>` : ""}`;
   const chiffres = `<div class="chiffres">
     <div class="chiffre"><div class="l">Reconstructibilité</div><div class="v">${fr(m.score.pct, m.score.pct < 100 ? 1 : 0)} %</div><div class="s">${m.score.traites} éléments sur ${m.score.total} reproduits ou tranchés</div></div>
     <div class="chiffre"><div class="l">Reconstruction</div><div class="v">${ch.total_s ? duree(ch.total_s) : "–"}</div><div class="s">VM vide → service vérifié</div></div>
-    <div class="chiffre"><div class="l">Données restaurées</div><div class="v">${s ? fr(s.age_h, 1) + " h" : "–"}</div><div class="s">${s ? `âge de l'instantané <span class="mono">${esc(s.instantane)}</span>` : "aucune sauvegarde : perte acceptée"}</div></div>
+    <div class="chiffre"><div class="l">Données restaurées</div><div class="v">${s ? fr(s.age_h, 1) + " h" : "–"}</div><div class="s">${s ? "âge de la sauvegarde" : "aucune sauvegarde : perte acceptée"}</div></div>
     <div class="chiffre"><div class="l">Test métier</div><div class="v" style="color:${tm?.ok ? "var(--vert)" : "var(--rouge)"}">${tm ? (tm.ok ? "vert" : "rouge") : "–"}</div><div class="s">${tm ? `${tm.etapes.length} vérifications en ${fr(tm.duree_s, 2)} s` : ""}</div></div></div>`;
-  const chrono = `<div class="bloc"><div class="tete"><h2>Déroulé de la preuve</h2><span class="droite mono doux">${esc(ch.sandbox || "")}</span></div><div class="pipeline">${ETAPES_PREUVE.map(([k, lib, ex], i) =>
-    k === "restauration_s" && !s ? pasCI({ libelle: lib, explication: "aucune sauvegarde : rien à restaurer", debut: 1, fin: 1, code: 0, duree: null }, i)
-      : pasCI({ libelle: lib, explication: ex, debut: 1, fin: 1, code: 0, duree: ch[k] ?? null }, i)).join("")}</div></div>`;
-  const tests = `<div class="bloc"><div class="tete"><h2>Test métier</h2>${tm?.ref ? `<span class="droite mono doux">${esc(tm.ref)}</span>` : ""}</div><div class="liste">${(tm?.etapes || []).map((e) =>
-    `<div>${ico(e.ok ? "ok" : "ko")}<span>${esc(e.etape)}<small>${esc(e.detail)}</small></span><span class="doux">${e.duree_s != null ? fr(e.duree_s, 2) + " s" : ""}</span></div>`).join("") || `<div class="vide">–</div>`}</div></div>`;
-  const sauv = `<div class="bloc"><div class="tete"><h2>Sauvegarde</h2>${s ? etiquetteEtat(s.trop_vieux ? "attention" : "ok", s.trop_vieux ? "En retard" : "À jour") : ""}</div><div class="liste">${s ? `
-    <div>${ico("ok")}<span>Instantané restauré <span class="mono">${esc(s.instantane)}</span><small>pris le ${dateFr(s.date)}, ${fr(s.age_h, 1)} h avant la preuve</small></span><span></span></div>
-    <div>${ico("ok")}<span>Tâche planifiée<small class="mono">${esc(s.tache)}</small></span><span></span></div>
-    <div>${ico(s.trop_vieux ? "attention" : "ok")}<span>Dernier passage prévu : ${dateFr(s.dernier_passage_prevu)}<small>alerte si l'instantané a plus de ${fr(s.max_h, 0)} h</small></span><span></span></div>`
-    : `<div>${ico("attention")}<span>Aucune sauvegarde sur cette machine<small>données régénérables : perte acceptée par décision humaine</small></span><span></span></div>`}</div></div>`;
-  const decs = Object.entries(m.decisions || {});
-  const decBloc = `<div class="bloc"><div class="tete"><h2>Décisions humaines</h2><span class="droite doux">versionnées avec le code</span></div>${decs.length ? `<table><thead><tr><th>Élément</th><th style="width:150px">Décision</th><th>Raison</th></tr></thead><tbody>${decs.map(([k, d]) =>
-    `<tr><td class="cle">${esc(k)}</td><td><b>${esc(LIB_DECISION[d.decision] || d.decision)}</b><div class="petit">${esc(d.par || "")}</div></td><td class="doux">${esc(d.raison)}</td></tr>`).join("")}</tbody></table>` : `<div class="vide">Aucune décision nécessaire.</div>`}</div>`;
-  const risques = `<div class="bloc"><div class="tete"><h2>Risques relevés à l'audit</h2></div><div class="liste">${m.risques.parts.map(([lib, n, st]) =>
-    `<div>${ico(n ? "attention" : "ok")}<span>${n} ${esc(lib)}<small>${esc(st)}</small></span><span></span></div>`).join("")}
-    ${(m.trous || []).map((t) => `<div>${ico("attention")}<span>${esc(t.replace(/`/g, ""))}</span><span></span></div>`).join("")}</div></div>`;
-  return entete(p) + verdict + chiffres + `<div class="grille2">${chrono}<div style="display:grid;gap:20px">${tests}${sauv}</div></div>` + risques + decBloc + sourceParc();
+  return teteMachine(vm) + verdict + chiffres + sourceParc();
 }
+
+// Machine en cours d'intégration : résumé (où en est-on, quoi faire), audit (écarts), accès.
+function blocInstallationSiBesoin(m) { return m.acces?.etat === "ok" ? "" : blocInstallation(m); }
+function vueIntegration(m, onglet = "resume") {
+  const ac = m.acces, ok = ac?.etat === "ok", au = m.integration;
+  const enCours = (cle) => { const o = opEnCours(); return o && o.cle === cle && o.vm === m.vm; };
+  if (onglet === "audit" && au) {
+    const c = au.comptes;
+    return teteMachine(m.vm) + `<p class="intro">Tout ce qui distingue ${esc(m.vm)} de l'image de référence, avec la règle qui a classé chaque écart. Audit du ${jourFr(au.date)} à ${heure(au.date)}${au.par ? ` par ${esc(au.par)}` : ""}.</p>`
+      + `<div>${repartition(au)}</div>`
+      + `<section class="bloc"><div class="tete"><div class="filtres">${[["tous", "Tous", au.total], ...ORDRE.map((st) => [st, STATUTS[st][0], c[st] || 0])].map(([k, lib, n]) =>
+          `<button class="filtre ${filtre === k ? "on" : ""}" data-filtre="${k}">${k !== "tous" ? `<i class="pt c-${k}"></i>` : ""}${lib} <b>${n}</b></button>`).join("")}</div>
+          <input type="search" placeholder="Chercher un fichier, un paquet…" id="recherche" value="${esc(recherche)}">
+          <button class="bouton second" data-export>Exporter (CSV)</button>
+          <button class="bouton second" data-action="integrer" data-vm="${esc(m.vm)}" ${E.occupe ? "disabled" : ""}>Refaire l'audit</button></div>
+        <table><thead><tr><th style="width:120px">Statut</th><th>Élément</th><th style="width:190px">Type</th><th>Pourquoi</th></tr></thead><tbody id="lignes">${lignesInventaire()}</tbody></table></section>
+      ${(au.ip_en_dur || []).length ? `<details class="depli"><summary>Adresses IP d'autres machines écrites en dur (${au.ip_en_dur.length})</summary><div>${tableIP(au.ip_en_dur)}</div></details>` : ""}`;
+  }
+  const etapes = [
+    { titre: "Déclarée", etat: "ok", court: `le ${dateFr(m.ajoutee_le + " 00:00").replace(/ à .*/, "")}${m.ajoutee_par ? ` par ${m.ajoutee_par}` : ""}` },
+    { titre: "Accès de collecte", etat: enCours("acces") ? "en_cours" : ok ? "ok" : ac ? "ko" : "attention", court: enCours("acces") ? "vérification…" : ok ? `vérifié le ${jourFr(ac.date)}` : ac ? "en échec" : "à installer" },
+    { titre: "Premier audit", etat: enCours("integrer") ? "en_cours" : au ? "ok" : ok ? "attention" : "avenir", court: enCours("integrer") ? "en cours…" : au ? `${au.total} écarts, ${au.comptes.inconnu || 0} inconnus` : ok ? "à lancer" : "après l'accès" },
+    { titre: "Preuve de reconstruction", etat: "avenir", court: "sauvegarde, test métier, CI" },
+  ];
+  const courante = etapes.find((x) => x.etat !== "ok");
+  const file = `<div class="fileplan">${etapes.map((x, i) => `<div class="e ${x === courante ? "courante" : ""} ${x.etat === "ok" ? "fait" : ""}">
+      <div class="rang">${ico(x.etat)}<span class="num">Étape ${i + 1}</span></div><div class="t">${esc(x.titre)}</div><div class="c">${esc(x.court)}</div></div>`).join("")}</div>`;
+  const bt = (nom, lib) => bouton({ nom, lib, ok: !E.occupe, grand: true }).replace("<button ", `<button data-vm="${esc(m.vm)}" `);
+  let corps;
+  if (!ok) {
+    corps = (ac ? `<div class="alerte"><b>Dernière vérification en échec</b> (${jourFr(ac.date)} à ${heure(ac.date)}) : ${esc(ac.erreur)}</div>` : "")
+      + `<div class="prochaine"><div class="sur">À faire maintenant</div><h2>Installer l'accès, puis le vérifier</h2>
+          <p>Un administrateur lance le script d'installation sur le serveur (ci-dessous). Black Start vérifie ensuite que le compte <span class="mono">bs-collect</span> est limité à la collecte. Rien n'est modifié sur la machine.</p>
+          <div class="actions">${bt("acces", "Vérifier l'accès")}</div></div>` + blocInstallation(m);
+  } else if (!au) {
+    corps = `<div class="prochaine"><div class="sur">À faire maintenant</div><h2>Lancer le premier audit</h2>
+        <p>Collecte en lecture seule, comparaison avec l'image de référence, classement de chaque écart avec la règle appliquée. Quelques secondes.</p>
+        <div class="actions">${bt("integrer", "Lancer le premier audit")}</div></div>`;
+  } else {
+    const c = au.comptes, liste = (st) => au.elements.filter((x) => x.statut === st).map((x) => x.cle);
+    const donnees = liste("donnee"), secrets = liste("secret"), inc = c.inconnu || 0;
+    corps = `<div class="chiffres">
+      <div class="chiffre"><div class="l">Écarts relevés</div><div class="v">${au.total}</div><div class="s">en ${duree(au.duree_s)}, en lecture seule</div></div>
+      <div class="chiffre"><div class="l">Inconnus</div><div class="v" style="color:${inc ? "var(--ambre)" : "var(--vert)"}">${inc}</div><div class="s">${inc ? "un humain doit trancher" : "tout est expliqué"}</div></div>
+      <div class="chiffre"><div class="l">Secrets</div><div class="v">${c.secret || 0}</div><div class="s">pour le coffre, jamais dans Git</div></div>
+      <div class="chiffre"><div class="l">Données</div><div class="v">${c.donnee || 0}</div><div class="s">dossiers à sauvegarder</div></div></div>
+      <section class="bloc"><div class="tete"><h2>Ce qui reste avant la preuve de reconstruction</h2><span class="droite"><button class="lien" data-vers="m-${esc(m.vm)}~audit">Voir les ${au.total} écarts</button></span></div><div class="liste">
+      <div>${ico(inc ? "attention" : "ok")}<span>${inc ? `${inc} élément${inc > 1 ? "s" : ""} inconnu${inc > 1 ? "s" : ""} à trancher` : "Aucun élément inconnu"}<small>${inc ? "une décision et une raison par élément ; le modèle local propose, un humain décide" : "chaque écart a une règle qui l'explique"}</small></span><span></span></div>
+      <div>${ico(donnees.length ? "attention" : "ok")}<span>${donnees.length ? `${donnees.length} dossier${donnees.length > 1 ? "s" : ""} de données à confier à la sauvegarde` : "Aucun dossier de données"}<small class="mono">${esc(donnees.map((k) => k.replace(/^data:/, "")).join(", "))}</small></span><span></span></div>
+      <div>${ico(secrets.length ? "attention" : "ok")}<span>${secrets.length} secret${secrets.length > 1 ? "s" : ""} à mettre au coffre<small class="mono">${esc(secrets.map((k) => k.replace(/^file:/, "")).join(", "))}</small></span><span></span></div>
+      <div>${ico("avenir")}<span>Test métier à écrire<small>ce que la machine doit rendre comme service, vérifié après chaque reconstruction</small></span><span></span></div>
+      <div>${ico("avenir")}<span>Code de reconstruction, merge request et CI<small>générés depuis cet audit ; la CI reconstruit la machine sur une copie isolée et la compare à l'original</small></span><span></span></div></div>
+      <p class="intro" style="margin-top:12px">Ces étapes forment la migration de la machine, menée avec un consultant Black Start. Ensuite, la preuve tourne seule à chaque changement.</p></section>`;
+  }
+  return teteMachine(m.vm) + file + corps + `<div class="pied-page">${sourceParc()}</div>`;
+}
+
+function vueAjout() {
+  const pe = P?.perimetre || {};
+  return `<div class="entete"><div class="fil-page">Machines</div><h1>Ajouter une machine</h1>
+      <p>Déclarez un serveur de l'entreprise. Black Start ne s'y connecte qu'une fois l'accès de collecte installé par vos soins, avec un script que vous pouvez relire.</p></div>
+    <form class="bloc formulaire" id="form-ajout" autocomplete="off">
+      <div class="champ"><label for="f-vm">Nom de la machine</label><input id="f-vm" name="vm" class="mono" placeholder="srv-compta" required pattern="[a-z0-9][a-z0-9\\-]{1,40}" spellcheck="false">
+        <small>Minuscules, chiffres et tirets. C'est le nom affiché dans le parc et dans les rapports.</small></div>
+      <div class="champ"><label for="f-ip">Adresse IP</label><input id="f-ip" name="ip" class="mono" placeholder="${esc((pe.reseaux || ["192.168.0.0/24"])[0].replace(/\.0\/\d+$/, ".x"))}" required pattern="\\d{1,3}(\\.\\d{1,3}){3}" spellcheck="false">
+        <small>Réseaux autorisés : <span class="mono">${esc((pe.reseaux || []).join(", ") || "aucun")}</span></small></div>
+      <div class="champ large"><label for="f-role">Rôle</label><input id="f-role" name="role" placeholder="Ex. : logiciel de comptabilité et sa base PostgreSQL" required maxlength="160">
+        <small>Le service que cette machine rend à l'entreprise. Il guidera le test métier.</small></div>
+      <div class="champ"><label for="f-crit">Criticité</label><select id="f-crit" name="criticite">${OPTS_CRIT("importante")}</select></div>
+      <div class="champ"><label>Système</label><div style="height:38px;display:flex;align-items:center;font-size:14px">Debian 13</div><small>Seul système pris en charge pour l'instant.</small></div>
+      <div class="pied-form"><button type="submit" class="bouton grand">Déclarer la machine</button><span class="erreur-form" id="erreur-ajout"></span></div>
+    </form>
+    <div class="bloc"><div class="tete"><h2>Ce que Black Start demande, et ce qu'il ne demande pas</h2></div><div class="liste">
+      <div>${ico("ok")}<span>Un compte dédié, <span class="mono">bs-collect</span>, limité à une seule commande : la collecte en lecture seule<small>pas de mot de passe, pas de terminal, pas d'accès administrateur pour Black Start</small></span><span></span></div>
+      <div>${ico("ok")}<span>Vous installez l'accès vous-même<small>un script autonome, identifié par son empreinte SHA-256, que vous pouvez relire avant de le lancer</small></span><span></span></div>
+      <div>${ico("ok")}<span>Rien ne quitte le site<small>forge, modèle local et sandbox tournent chez vous ; les secrets ne vont jamais dans Git ni au modèle</small></span><span></span></div>
+      <div>${ico("ok")}<span>Révocable à tout moment, en une commande<small class="mono">${esc(REVOQUER)}</small></span><span></span></div></div></div>`;
+}
+
+function vueParametres() {
+  if (!P) return `<div class="entete"><h1>Paramètres</h1></div>` + sourceParc();
+  const pe = P.perimetre || {}, ref = P.reference || {}, pf = P.plateforme || {}, cle = P.cle || {}, inst = P.installateur || {};
+  const ligne = (k, v) => `<div>${esc(k)}</div><div>${v}</div>`;
+  const lignes = (o) => Object.entries(o || {}).map(([k, v]) => `${k} ${v}`).join("\n");
+  const enEdition = (s) => edition === s;
+  const btModif = (s) => enEdition(s) ? "" : `<button class="bouton second" data-editer="${s}" ${edition ? "disabled" : ""}>Modifier</button>`;
+  const pied = `<div class="pied-form"><button type="submit" class="bouton">Enregistrer</button><button type="button" class="bouton second" data-editer="">Annuler</button><span class="erreur-form" id="erreur-reglages"></span></div>`;
+  const form = (s, champs) => `<form class="formulaire" id="form-reglages" data-section="${s}" autocomplete="off">${champs}${pied}</form>`;
+  const champ = (lib, html, aide = "", large = false) => `<div class="champ ${large ? "large" : ""}"><label>${esc(lib)}</label>${html}${aide ? `<small>${aide}</small>` : ""}</div>`;
+  const verrou = `<span class="droite doux" title="Ces réglages déterminent la CI et la sandbox : ils se changent à l'installation de la plateforme.">fixé à l'installation · lecture seule</span>`;
+
+  const org = enEdition("organisation") ? form("organisation",
+      champ("Nom de l'organisation", `<input name="organisation" value="${esc(P.organisation || "")}" required maxlength="80">`, "Affiché en haut de la console et sur la couverture du rapport.")
+      + champ("Description", `<input name="description" value="${esc(P.description || "")}" maxlength="160">`, "Une ligne, reprise sous le nom dans le rapport."))
+    : `<div class="reglages">${ligne("Nom", esc(P.organisation || ""))}${ligne("Description", esc(P.description || "") || "<span class='pale'>–</span>")}${ligne("Machines déclarées", `${(P.machines || []).length}`)}</div>`;
+  const per = enEdition("perimetre") ? form("perimetre",
+      champ("Réseaux autorisés", `<textarea name="reseaux" rows="3" class="mono" spellcheck="false">${esc((pe.reseaux || []).join("\n"))}</textarea>`, "Un réseau par ligne, notation CIDR (192.168.10.0/24). Black Start refuse toute connexion en dehors.")
+      + champ("Adresses exclues", `<textarea name="exclues" rows="4" class="mono" spellcheck="false">${esc(lignes(pe.exclues))}</textarea>`, "Une par ligne : l'adresse, puis pourquoi. Jamais contactées, même dans un réseau autorisé."))
+    : `<div class="reglages">${ligne("Réseaux autorisés", `<span class="mono">${esc((pe.reseaux || []).join(", "))}</span>`)}
+      ${ligne("Adresses exclues", Object.entries(pe.exclues || {}).map(([ip, lib]) => `<span class="mono">${esc(ip)}</span> <span class="doux">${esc(lib)}</span>`).join("<br>") || "aucune")}</div>`;
+  const refs = P.references || [];
+  const refB = enEdition("reference") ? form("reference",
+      champ("Image relevée", `<select name="fichier">${refs.map((r) => `<option value="${esc(r.fichier)}" ${r.fichier === ref.fichier ? "selected" : ""}>${esc(r.machine)} · ${esc(r.os || "")} · ${r.paquets} paquets · ${esc(dateFr((r.date || "").replace("T", " ")))}</option>`).join("")}</select>`, "Une Debian neuve, telle qu'installée par l'entreprise, relevée par la même collecte.")
+      + champ("Nom affiché", `<input name="nom" value="${esc(ref.nom || "")}" maxlength="120">`, "Ex. : « Debian 13 neuve (image de base de l'entreprise) »."))
+    : `<div class="reglages">${ligne("Nom", esc(ref.nom || ""))}
+      ${ref.disponible ? ligne("Système", `${esc(ref.os)} · noyau <span class="mono">${esc(ref.noyau || "")}</span> · ${ref.paquets} paquets`) + ligne("Relevée le", ref.date ? `${jourFr(Date.parse(ref.date) / 1000)} à ${heure(Date.parse(ref.date) / 1000)}` : "") : ligne("État", `<span style="color:var(--rouge)">fichier introuvable : ${esc(ref.fichier || "")}</span>`)}</div>`;
+  const adr = enEdition("adresses") ? form("adresses",
+      champ("Adresses connues", `<textarea name="adresses_connues" rows="4" class="mono" spellcheck="false">${esc(lignes(P.adresses_connues))}</textarea>`, "Une par ligne : l'adresse, puis son nom. Sert à nommer les dépendances trouvées à l'audit (« 192.168.103.54 DNS amont »).", true))
+    : `<div class="reglages">${Object.entries(P.adresses_connues || {}).map(([ip, n]) => ligne(ip, esc(n))).join("") || ligne("Aucune", "")}</div>`;
+
+  return `<div class="entete"><h1>Paramètres</h1><p>Les réglages de ${esc(P.organisation || "l'entreprise")} : où Black Start a le droit d'aller, à quoi chaque machine est comparée, et comment s'appellent les adresses du réseau. Les réglages de la plateforme elle-même sont fixés à son installation.</p></div>
+    <div class="bloc"><div class="tete"><h2>Organisation</h2><span class="droite">${btModif("organisation")}</span></div>${org}</div>
+    <div class="bloc"><div class="tete"><h2>Périmètre autorisé</h2><span class="droite">${btModif("perimetre")}</span></div>${per}</div>
+    <div class="bloc"><div class="tete"><h2>Image de référence</h2><span class="droite">${btModif("reference")}</span></div>${refB}</div>
+    <div class="bloc"><div class="tete"><h2>Adresses connues</h2><span class="droite">${btModif("adresses")}</span></div>${adr}</div>
+    <div class="bloc"><div class="tete"><h2>Accès de collecte</h2>${verrou}</div><div class="reglages">
+      ${ligne("Compte sur les serveurs", `<span class="mono">bs-collect</span> · commande forcée, sudo limité à <span class="mono">/usr/local/sbin/bs-collect</span>`)}
+      ${ligne("Clé de la plateforme", `<span class="mono">${esc(cle.type || "")} ${esc(cle.empreinte || cle.erreur || "")}</span> <span class="doux">${esc(cle.commentaire || "")}</span>`)}
+      ${ligne("Clé publique", commande(esc(cle.publique || "")))}
+      ${ligne("Script d'installation", `<a href="/installer/${esc(inst.nom)}" download class="mono">${esc(inst.nom)}</a> <span class="doux">· collecteur ${esc(inst.collecteur || "")} · ${inst.taille ? Math.round(inst.taille / 1024) + " Ko" : ""}</span><div class="petit mono">SHA-256 ${esc(inst.sha256 || "")}</div>`)}
+      ${ligne("Identité des serveurs", "empreinte de la clé d'hôte SSH enregistrée à la première vérification, exigée ensuite : un serveur réinstallé ou usurpé est refusé")}</div></div>
+    <div class="bloc"><div class="tete"><h2>Plateforme sur site</h2>${verrou}</div><div class="reglages">
+      ${pf.forge ? ligne("Forge et CI", `<a href="${esc(pf.forge.url)}" target="_blank" rel="noopener" class="mono">${esc(pf.forge.url)}</a> · dépôt <span class="mono">${esc(pf.forge.depot || "")}</span><div class="petit">${esc(pf.forge.role || "")}</div>`) : ""}
+      ${pf.modele ? ligne("Modèle local", `<span class="mono">${esc(pf.modele.modele)}</span> sur <span class="mono">${esc(pf.modele.url)}</span><div class="petit">${esc(pf.modele.role || "")}</div>`) : ""}
+      ${pf.sandbox ? ligne("Sandbox", `VM ${esc(pf.sandbox.vmid)} · <span class="mono">${esc(pf.sandbox.ip)}</span><div class="petit">${esc(pf.sandbox.hyperviseur || "")} · ${esc(pf.sandbox.role || "")}</div>`) : ""}</div></div>
+    <div class="bloc"><div class="tete"><h2>Confidentialité</h2></div><div class="liste">
+      <div>${ico("ok")}<span>Le modèle tourne sur la plateforme, sur site<small>il ne reçoit que les éléments inconnus, avec leurs preuves, secrets masqués</small></span><span></span></div>
+      <div>${ico("ok")}<span>Les inventaires complets restent sur la plateforme<small>le contenu des fichiers de configuration n'est jamais versionné ; les secrets vont au coffre de la forge, lisible par la CI seule</small></span><span></span></div>
+      <div>${ico("ok")}<span>Les copies reconstruites sont isolées<small>pare-feu de sandbox : aucun accès au réseau de l'entreprise pendant la preuve</small></span><span></span></div></div></div>`;
+}
+
+function vueJournal() {
+  const l = JR || [], cibles = [...new Set(l.map((x) => x.cible).filter(Boolean))];
+  const vis = l.filter((x) => filtreJournal === "tout" || x.cible === filtreJournal);
+  return `<div class="entete"><h1>Journal</h1><p>Qui a fait quoi, quand, sur quelle machine : audits, accès, décisions signées, preuves, bascules, changements du parc et des paramètres.</p></div>
+    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><div class="filtres">${[["tout", "Tout"], ...cibles.map((c) => [c, c])].map(([k, lib]) =>
+      `<button class="filtre ${filtreJournal === k ? "on" : ""}" data-filtre-journal="${esc(k)}">${esc(lib)}</button>`).join("")}</div>
+      <span style="margin-left:auto" class="source">${JR ? `${l.length} actions` : "Lecture…"} <button class="lien" data-recharger-journal>Actualiser</button></span></div>
+    <section class="bloc">${vis.length ? `<table><thead><tr><th style="width:150px">Date</th><th style="width:110px">Par</th><th>Action</th><th style="width:150px">Machine</th><th style="width:110px">Résultat</th></tr></thead><tbody>${vis.map((x) =>
+      `<tr><td class="doux">${jourFr(x.date)} à ${heure(x.date)}</td><td>${esc(x.par || "")}</td><td>${nobr(x.action)}${x.detail ? `<div class="petit">${nobr(virgule(x.detail))}</div>` : ""}</td>
+        <td class="mono">${esc(x.cible || "")}</td><td>${etiquetteEtat(x.resultat === "ok" ? "ok" : "ko", x.resultat === "ok" ? "Réussie" : "Échec")}</td></tr>`).join("")}</tbody></table>`
+      : `<div class="vide">${JR ? "Aucune action enregistrée pour l'instant. Chaque audit, décision, preuve, bascule ou changement du parc s'inscrit ici." : "Lecture du journal…"}</div>`}</section>`;
+}
+function chargerJournal() { return fetch("/journal").then((r) => r.json()).then((d) => { JR = d; if (vue === "journal") rendre(); }).catch(() => {}); }
 
 function vueRapport() {
-  return `<div class="entete"><h1>Rapport de reprise</h1><p>Le livrable remis à la direction : verdict, chrono, risques et preuve pour chaque machine, générés uniquement depuis les résultats réels. Aucune valeur n'est estimée.</p></div>
-    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-      <a class="bouton" href="/rapport" target="_blank" rel="noopener">Ouvrir pour imprimer ou exporter en PDF ↗</a>
-      <button class="bouton second" data-parc="force">Régénérer</button>${sourceParc()}</div>
-    ${P ? `<iframe class="cadre-rapport" id="cadre-rapport" src="/rapport?v=${Math.round(P.date)}" title="Rapport de reprise"></iframe>` : ""}`;
+  const ms = P?.machines || [];
+  return `<div class="entete avec-actions"><div><h1>Rapport de reprise</h1><p>Le document à remettre à la direction et à joindre au plan de continuité : synthèse, points d'attention, puis une section par machine avec sa preuve, son historique et les décisions prises. Tout vient des résultats mesurés, rien n'est estimé.</p></div>
+      <div style="display:flex;gap:10px"><button class="bouton" data-imprimer>Imprimer ou enregistrer en PDF</button><a class="bouton second" href="/rapport?vm=${encodeURIComponent(rapportChoix)}" target="_blank" rel="noopener">Ouvrir à part ↗</a></div></div>
+    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><span class="doux" style="font-size:14px">Périmètre du rapport</span>
+      <div class="filtres">${[["parc", "Parc complet"], ...ms.map((m) => [m.vm, m.vm])].map(([k, l]) => `<button class="filtre ${rapportChoix === k ? "on" : ""}" data-rapport="${esc(k)}">${esc(l)}</button>`).join("")}</div>
+      <span style="margin-left:auto">${sourceParc()}</span></div>
+    ${P ? `<iframe class="cadre-rapport" id="cadre-rapport" src="/rapport?vm=${encodeURIComponent(rapportChoix)}&nu=1&v=${Math.round(P.date)}" title="Rapport de reprise"></iframe>` : ""}`;
 }
 
-const VUES = { tableau: ["Tableau de bord", vueTableau], ensemble: ["Vue d'ensemble", vueEnsemble], parc: ["Infrastructure", vueParc], inventaire: ["Audit", vueInventaire],
-  decisions: ["Décisions", vueDecisions], ci: ["Preuve", vueCI], bascule: ["Bascule", vueBascule], rapport: ["Rapport de reprise", vueRapport], labo: ["Laboratoire", vueLabo] };
-const vueDe = (v) => VUES[v] || (v.startsWith("m-") ? [v.slice(2), () => vueMachine(v.slice(2))] : null);
+const VUES = { tableau: ["Tableau de bord", vueTableau], ajout: ["Ajouter une machine", vueAjout], parametres: ["Paramètres", vueParametres], ensemble: ["Résumé", vueEnsemble], parc: ["Infrastructure", vueParc], inventaire: ["Audit", vueInventaire],
+  decisions: ["Décisions", vueDecisions], ci: ["Preuve", vueCI], bascule: ["Bascule", vueBascule], rapport: ["Rapport de reprise", vueRapport], journal: ["Journal", vueJournal], labo: ["Laboratoire", vueLabo] };
+// Fiche machine : « m-<vm> » (résumé) ou « m-<vm>~<onglet> ». bs-logistique garde ses vues de démo (ensemble, inventaire…).
+const ONGLETS_LIVE = ["ensemble", "inventaire", "decisions", "ci", "bascule"];
+const vueMachineDe = (v) => { if (ONGLETS_LIVE.includes(v)) return [VM_LIVE, v]; if (!v.startsWith("m-")) return null; const [vm, o] = v.slice(2).split("~"); return [vm, o || "resume"]; };
+const LIB_ONGLET = { resume: "Résumé", ensemble: "Résumé", inventaire: "Audit", audit: "Audit", decisions: "Décisions", ci: "Preuve", preuve: "Preuve", bascule: "Bascule", acces: "Accès" };
+function vueDe(v) {
+  if (VUES[v]) return VUES[v];
+  const mv = vueMachineDe(v);
+  if (!mv) return null;
+  if (mv[0] === VM_LIVE && mv[1] === "resume") return VUES.ensemble;
+  return [mv[0], () => vueMachine(mv[0], mv[1])];
+}
+
+// En-tête commun des fiches machine : nom, rôle, repères, puis les onglets.
+function ongletsDe(vm) {
+  const m = machineP(vm), k = (o) => (vm === VM_LIVE && ONGLETS_LIVE.includes(o) ? o : `m-${vm}~${o}`);
+  if (vm === VM_LIVE) {
+    return [["ensemble", "Résumé"], ["inventaire", "Audit", E.audit ? E.audit.total : ""], ["decisions", "Décisions", ...badgeDecisions()],
+      ["ci", "Preuve", prouve() ? "verte" : E.ci2 && !ciFinie(E.ci2) ? "en cours" : E.ci1 && ciFinie(E.ci1) ? "bloquée" : "", prouve() ? "vert" : E.ci1 && ciFinie(E.ci1) && !E.ci2 ? "rouge" : "ambre"],
+      ["bascule", "Bascule"], [k("acces"), "Accès"]];
+  }
+  if (m?.rapport) return [[`m-${vm}`, "Résumé"], [k("audit"), "Audit", m.integration?.total ?? ""], [k("preuve"), "Preuve"], [k("decisions"), "Décisions", Object.keys(m.decisions || {}).length || ""], [k("acces"), "Accès"]];
+  return [[`m-${vm}`, "Résumé"], ...(m?.integration ? [[k("audit"), "Audit", m.integration.total]] : []), [k("acces"), "Accès"]];
+}
+// Onglet Décisions : ce qui reste à faire, recalculé à chaque choix et à chaque frappe dans une raison.
+// Chiffre ambre = décisions encore incomplètes, rouge = dont au moins une contradiction, « prêtes » = tout est
+// rempli et cohérent, « signées » = envoyées dans la merge request.
+function badgeDecisions() {
+  const cartes = E.decisions?.cartes || [];
+  if (!cartes.length) return ["", ""];
+  if (E.decisions?.prises) return ["signées", "vert"];
+  const conflits = conflitsDecisions(cartes);
+  const restantes = cartes.filter((c) => conflits[c.cle] || !(choix[c.cle]?.decision && choix[c.cle]?.raison?.trim())).length;
+  return restantes ? [restantes, Object.keys(conflits).length ? "rouge" : "ambre"] : ["prêtes", "vert"];
+}
+function majOngletDecisions() {
+  const b = document.querySelector('.onglets [data-vers="decisions"]');
+  if (!b) return;
+  const [n, cl] = badgeDecisions();
+  b.innerHTML = `Décisions${n !== "" ? `<span class="badge ${cl}">${esc(n)}</span>` : ""}`;
+}
+function teteMachine(vm) {
+  const m = machineP(vm) || {}, os = m.acces?.os || (vm === VM_LIVE ? E.audit?.machine?.os : "");
+  const onglets = ongletsDe(vm).map(([k, lib, n, cl]) => `<button class="${vue === k ? "on" : ""}" data-vers="${esc(k)}">${esc(lib)}${n !== "" && n != null ? `<span class="badge ${cl || ""}">${esc(n)}</span>` : ""}</button>`).join("");
+  return `<div class="entete"><h1>${esc(vm)}</h1><p>${esc(m.role || "")}</p>
+      <div class="meta"><span class="tag mono">${esc(m.ip || "")}</span>${m.criticite ? `<span class="tag">${esc(LIB_CRIT[m.criticite])}</span>` : ""}${os ? `<span class="tag">${esc(os)}</span>` : ""}${lienModifier(vm)}</div>
+      <div class="onglets" role="tablist">${onglets}</div></div>${m.vm ? blocEditionMachine(m) : ""}`;
+}
 
 // ---------------------------------------------------------------- navigation, haut, activité
 function rendreNav() {
   const badge = {};
-  if (E.audit) badge.inventaire = `<span class="badge">${E.audit.total}</span>`;
-  if (nbCartes() && !E.decisions?.prises) badge.decisions = `<span class="badge ambre">${nbCartes()}</span>`;
-  else if (E.decisions?.prises) badge.decisions = `<span class="badge vert"><svg class="i" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>`;
-  if (prouve()) badge.ci = `<span class="badge vert">Verte</span>`;
-  else if (E.ci2 && !ciFinie(E.ci2)) badge.ci = `<span class="badge ambre">En cours</span>`;
-  else if (E.ci1 && ciFinie(E.ci1)) badge.ci = `<span class="badge rouge">Bloquée</span>`;
-  if (basculeFaite()) badge.bascule = `<span class="badge vert"><svg class="i" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>`;
-  if (E.preparation?.etat !== "ok") badge.labo = `<span class="badge ambre">!</span>`;
+  if (E.preparation?.etat !== "ok") badge.labo = `<span class="badge ambre" title="À préparer avant l'oral">!</span>`;
   const item = (k, cls = "") => `<button class="${cls} ${vue === k ? "actif" : ""}" data-vers="${k}"><svg viewBox="0 0 24 24">${ICONES[k]}</svg>${VUES[k][0]}${badge[k] || ""}</button>`;
-  // Machines du parc : point d'état ; bs-logistique déplie les étapes de sa reprise.
+  // Une entrée par machine, avec son point d'état ; ses étapes sont dans les onglets de sa fiche.
   const machine = (vm) => {
     const l = ligneParc(vm), k = vm === VM_LIVE ? "ensemble" : "m-" + vm;
-    const actif = vm === VM_LIVE ? ["ensemble", "inventaire", "decisions", "ci", "bascule"].includes(vue) : vue === k;
-    return `<button class="machine-nav ${actif ? "actif" : ""}" data-vers="${k}"><i class="pt ${l ? l.etat : "avenir"}"></i>${esc(vm)}</button>`
-      + (vm === VM_LIVE ? ["inventaire", "decisions", "ci", "bascule"].map((x) => item(x, "sous")).join("") : "");
+    const actif = vueMachineDe(vue)?.[0] === vm;
+    return `<button class="machine-nav ${actif ? "actif" : ""}" data-vers="${k}" title="${esc(l ? l.lib : "")}"><i class="pt ${l ? l.etat : "avenir"}"></i>${esc(vm)}</button>`;
   };
   const autres = (P?.machines || []).map((m) => m.vm).filter((v) => v !== VM_LIVE);
-  $("#nav").innerHTML = `${item("tableau")}<div class="titre-nav">Machines</div>${[VM_LIVE, ...autres].map(machine).join("")}
-    <div class="titre-nav">Pilotage</div>${item("rapport")}${item("parc")}<div class="bas">${item("labo")}</div>`;
+  $("#nav").innerHTML = `${item("tableau")}<div class="titre-nav">Machines</div>${[VM_LIVE, ...autres].map(machine).join("")}${item("ajout", "ajout")}
+    <div class="titre-nav">Pilotage</div>${item("rapport")}${item("parc")}${item("journal")}${item("parametres")}<div class="bas">${item("labo")}</div>`;
 }
 
 function rendreHaut() {
-  const p = E.preparation || {};
-  // Laboratoire : signalé en haut seulement s'il n'est pas prêt (coulisses de la démo).
-  const labo = p.etat === "ok" ? "" : p.etat === "en_cours" ? `<span class="pastille en_cours"><i></i>Préparation…</span>`
-    : `<span class="pastille attention"><i></i>Laboratoire à préparer</span>`;
   const chrono = E.t0 ? `<span class="pastille ${E.t_fin ? "ok" : "en_cours"}"><i></i>${E.t_fin ? "Reprise complète en" : "Reprise en cours"} <b id="chrono">${mmss((E.t_fin || maintenant()) - E.t0)}</b></span>` : "";
-  $("#haut-droite").innerHTML = `${chrono}${labo}<span class="utilisateur"><span>${esc((E.par || "?")[0])}</span><div>${esc(E.par)}<small>responsable de la reprise</small></div></span>`;
-  const sousLog = ["inventaire", "decisions", "ci", "bascule"].includes(vue);
-  $("#fil").innerHTML = `<span>PME Logistique</span><span class="sep">/</span>${vue === "ensemble" ? "<b>bs-logistique</b>"
-    : sousLog ? `<span>bs-logistique</span><span class="sep">/</span><b>${VUES[vue][0]}</b>` : `<b>${esc(vueDe(vue)[0])}</b>`}`;
+  $("#haut-droite").innerHTML = `${chrono}<span class="utilisateur"><span>${esc((E.par || "?")[0])}</span><div>${esc(E.par)}<small>responsable de la reprise</small></div></span>`;
+  const mv = vueMachineDe(vue);
+  $("#fil").innerHTML = `<span>${esc(P?.organisation || "Parc")}</span><span class="sep">/</span>${mv
+    ? `<span>${esc(mv[0])}</span><span class="sep">/</span><b>${esc(LIB_ONGLET[mv[1]] || mv[1])}</b>` : `<b>${esc(vueDe(vue)[0])}</b>`}`;
 }
 
+// Préparation et remise en état sont des coulisses : visibles seulement depuis le Laboratoire.
+const opsVisibles = () => vue === "labo" ? ops() : ops().filter((o) => !["preparer", "remettre"].includes(o.cle));
 function rendreActivite() {
-  // Préparation et remise en état sont des coulisses : visibles seulement depuis le Laboratoire.
-  const liste = vue === "labo" ? ops() : ops().filter((o) => !["preparer", "remettre"].includes(o.cle));
+  const liste = opsVisibles();
   const cour = liste.find((o) => o.etat === "en_cours");
   const montree = liste.find((o) => o.id === opChoisie) || cour || liste[liste.length - 1];
   $("#activite-etat").innerHTML = cour ? etiquetteEtat("en_cours") : "";
   if (!montree) {
-    $("#activite").innerHTML = `<div class="op doux">Aucune opération pour l'instant. Chaque action lancée ici apparaît pas à pas : ce qui va se passer, sur quelle machine, et le résultat.</div>`;
+    $("#activite").innerHTML = `<div class="op doux">Aucune opération pour l'instant. Chaque action lancée apparaît ici pas à pas : ce qui va se passer, sur quelle machine, et le résultat.</div>`;
   } else {
     const etatOp = montree.etat === "en_cours" ? "en_cours" : montree.etat;
     const pas = montree.pas.map((p) => {
@@ -934,7 +1409,7 @@ function rendreActivite() {
     $("#activite").innerHTML = `<div class="op"><div class="titre-op">${nobr(montree.titre)}</div>
         <div class="sous">${etiquetteEtat(etatOp, etatOp === "ok" ? "Terminée" : undefined)}<span>Lancée à ${heure(montree.debut)}</span>
           <span>${montree.fin ? duree(montree.fin - montree.debut) : `<span data-depuis="${montree.debut}"></span>`}</span></div>
-        ${montree.erreur ? `<div class="alerte" style="margin-bottom:14px;font-size:14px">${esc(montree.erreur)}</div>` : ""}
+        ${montree.erreur ? `<div class="erreur-op">${esc(montree.erreur)}</div>` : ""}
         ${pas}</div>
       ${liste.length > 1 ? `<div class="historique"><div class="titre-nav">Historique</div>${[...liste].reverse().map((o) =>
         `<button class="${o === montree ? "on" : ""}" data-op="${esc(o.id)}"><span class="point ${o.etat === "ok" ? "ok" : o.etat === "ko" ? "ko" : o.etat === "en_cours" ? "actif" : ""}"></span><span>${nobr(o.titre)}</span><span class="mono">${heure(o.debut)}</span></button>`).join("")}</div>` : ""}`;
@@ -947,13 +1422,54 @@ function rendreActivite() {
 // ---------------------------------------------------------------- rendu
 function signatureVue() {
   // Les vues avec saisie (décisions, recherche) ne sont reconstruites que si leur contenu change.
-  if (vue === "decisions") return "d" + JSON.stringify([E.decisions?.cartes?.map((c) => c.cle), !!E.decisions?.prises, E.occupe, E.ia?.propositions ? 1 : 0]);
-  if (vue === "inventaire") return "i" + JSON.stringify([E.audit?.date, E.ia?.nombre, !!E.decisions?.prises, filtre]);
-  if (vue === "bascule") return "b" + JSON.stringify([E.bascule, E.refus, E.ci2?.etat, E.occupe, E.phase, (derniereOp("basculer") || {}).pas]);
-  if (vue === "rapport") return "r" + JSON.stringify([P?.date, parcErreur]);   // l'iframe ne se recharge qu'au nouveau rapport
-  if (vue.startsWith("m-")) return vue + JSON.stringify([P?.date, parcErreur]);
-  return vue + JSON.stringify([P?.date, parcErreur, E.phase, E.preparation, E.parc, E.audit?.date, E.ia, E.code, E.mr, E.ci1, E.refus, E.ci2, E.decisions?.prises, E.bascule, E.occupe,
+  if (vue === "decisions") return "d" + JSON.stringify([P?._v, editionMachine, E.decisions?.cartes?.map((c) => c.cle), !!E.decisions?.prises, E.occupe, E.ia?.propositions ? 1 : 0]);
+  if (vue === "inventaire") return "i" + JSON.stringify([P?._v, editionMachine, E.audit?.date, E.ia?.nombre, !!E.decisions?.prises, filtre]);
+  if (vue === "bascule") return "b" + JSON.stringify([P?._v, editionMachine, nbCartes(), E.bascule, E.refus, E.ci2?.etat, E.occupe, E.phase, (derniereOp("basculer") || {}).pas]);
+  if (vue === "rapport") return "r" + JSON.stringify([P?.date, parcErreur, rapportChoix]);   // l'iframe ne se recharge qu'au nouveau rapport
+  if (vue === "parametres") return "p" + JSON.stringify([P?._v, parcErreur, edition]);
+  if (vue === "journal") return "j" + JSON.stringify([JR?.length, JR?.[0]?.date, filtreJournal]);
+  if (vue === "parc") return "inf" + JSON.stringify([P?._v, J?.date, E.phase, E.bascule, E.ci1?.fin, ops().map((o) => [o.id, o.pas.map((x) => x.etat)])]);
+  if (vue === "ajout") return "ajout" + JSON.stringify([P?.perimetre]);
+  if (vue.startsWith("m-")) return vue + JSON.stringify([P?._v, parcErreur, E.occupe, filtre, editionMachine, ops().filter((o) => o.vm).map((o) => [o.id, o.etat])]);
+  return vue + JSON.stringify([P?._v, parcErreur, editionMachine, E.phase, E.preparation, E.parc, E.audit?.date, E.ia, E.code, E.mr, E.ci1, E.refus, E.ci2, E.decisions?.prises, E.bascule, E.occupe,
     ops().map((o) => [o.id, o.etat, o.pas.map((p) => p.etat + (p.resultat || ""))])]);
+}
+
+// Bandeau d'erreur : ce qui a échoué, pourquoi, et où voir le détail (pas de lien vers la vue déjà ouverte).
+function bandeauErreur() {
+  if (!E.erreur) return "";
+  const [cible, lib] = E.erreur_vers || [];
+  return `<div class="bandeau-erreur" role="alert"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.2v.3"/></svg>
+    <div class="texte"><b>${esc(E.erreur_titre || "Erreur")}</b>${E.erreur_details?.length
+      ? `<ul>${E.erreur_details.map((d) => `<li>${esc(d)}</li>`).join("")}</ul>` : `<span>${esc(E.erreur)}</span>`}</div>
+    ${cible && cible !== vue ? `<button class="lien" data-vers="${esc(cible)}">${esc(lib)} →</button>` : ""}</div>`;
+}
+// Erreur née dans la page (requête refusée, connexion perdue) : pas de titre ni de lien hérités du serveur.
+function erreurLocale(texte) { Object.assign(E, { erreur: texte, erreur_titre: null, erreur_vers: null, erreur_details: null, erreur_cles: null }); signature = ""; rendre(); }
+
+// Même contrôle que le serveur (controler_decisions) : ce qui se contredit ou ne peut pas s'appliquer,
+// par carte, pour le dire sous la carte concernée avant même d'envoyer.
+const LIB_CHOIX = { reproduire: "Garder", "ne pas reproduire": "Retirer", accepter: "Accepter la perte" };
+function libelleCle(cle) {
+  const [genre, ...r] = cle.split(":"), reste = r.join(":");
+  if (genre === "listen") return `le port ${reste.split(":").pop()}/${r[0]}`;
+  if (genre === "process") { const [exe, user, unit] = reste.split("@"); return `le processus ${exe} (${user}${unit === "session.scope" ? ", lancé à la main" : ""})`; }
+  if (genre === "sysctl") return `le réglage noyau ${reste}`;
+  return reste || cle;
+}
+function conflitsDecisions(cartes) {
+  const c = {};
+  const ajoute = (k, m) => { (c[k] ||= []).push(m); };
+  for (const x of cartes) {
+    const d = choix[x.cle]?.decision;
+    if (!d) continue;
+    if (d === "reproduire" && x.garder_impossible) ajoute(x.cle, `« Garder » n'est pas applicable : ${x.garder_impossible}`);
+    for (const l of x.liees || []) {
+      const dl = choix[l]?.decision;
+      if (dl && dl !== d) ajoute(x.cle, `Contredit le choix « ${LIB_CHOIX[dl]} » sur ${libelleCle(l)} : ils vont ensemble, choisir la même décision.`);
+    }
+  }
+  return c;
 }
 
 function rendre() {
@@ -962,21 +1478,22 @@ function rendre() {
   rendreNav(); rendreHaut(); rendreActivite();
   const sig = signatureVue() + (E.erreur || "");
   if (sig !== signature) {
-    $("#vue").innerHTML = (E.erreur ? `<div class="alerte">${esc(E.erreur)}</div>` : "") + vueDe(vue)[1]();
+    $("#vue").innerHTML = bandeauErreur() + vueDe(vue)[1]();
     signature = sig;
-    const cadre = $("#cadre-rapport");   // le rapport prend sa hauteur réelle (même origine)
-    if (cadre) cadre.onload = () => { try { cadre.style.height = cadre.contentDocument.documentElement.scrollHeight + 24 + "px"; } catch (e) { /* hauteur par défaut */ } };
   }
 }
 
 function chargerParc(force) {
   return fetch("/parc" + (force ? "?force=1" : "")).then((r) => r.json()).then((d) => {
-    if (d.erreur) parcErreur = d.erreur; else { P = d; parcErreur = null; }
+    if (d.erreur) parcErreur = d.erreur; else { P = d; P._v = Date.now(); parcErreur = d.rapport_erreur || null; }
   }).catch((e) => { parcErreur = String(e); }).then(() => { signature = ""; rendre(); });
 }
 
 function aller(v) {
+  if (v !== vue) { edition = null; editionMachine = null; }
   vue = v; signature = "";
+  if (v === "parc") chargerJoignabilite();
+  if (v === "journal") chargerJournal();
   if (!CAPTURE) history.replaceState(null, "", "#" + v);
   rendre(); document.querySelector("main").scrollTop = 0;
   // Fondu à l'arrivée sur une vue (navigation seulement, pas à chaque mise à jour d'état).
@@ -996,7 +1513,7 @@ function tic() {
 
 function poster(action, corps) {
   return fetch(`/action/${action}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(corps || {}) })
-    .then((r) => r.ok ? null : r.json().then((j) => { E.erreur = j.erreur; signature = ""; rendre(); }));
+    .then((r) => r.ok ? null : r.json().then((j) => { erreurLocale(j.erreur); }));
 }
 
 // ---------------------------------------------------------------- interactions
@@ -1004,25 +1521,73 @@ document.addEventListener("click", (ev) => {
   const a = ev.target.closest("[data-action]"), v = ev.target.closest("[data-vers]"), c = ev.target.closest("[data-choix]");
   const f = ev.target.closest("[data-filtre]"), el = ev.target.closest("[data-el]"), o = ev.target.closest("[data-op]");
   if (ev.target.closest("[data-parc]")) { chargerParc(true); return; }
+  if (ev.target.closest("[data-joignabilite]")) { chargerJoignabilite(); return; }
+  if (ev.target.closest("[data-activite]")) {
+    activiteOuverte = !activiteOuverte;
+    try { localStorage.setItem("bs-activite", activiteOuverte ? "1" : "0"); } catch (e) { /* stockage indisponible */ }
+    rendre(); return;
+  }
+  if (ev.target.closest("[data-recharger-journal]")) { chargerJournal(); return; }
+  const fj = ev.target.closest("[data-filtre-journal]");
+  if (fj) { filtreJournal = fj.dataset.filtreJournal; rendre(); return; }
+  if (ev.target.closest("[data-imprimer]")) { $("#cadre-rapport")?.contentWindow.print(); return; }
+  const rp = ev.target.closest("[data-rapport]");
+  if (rp) { rapportChoix = rp.dataset.rapport; signature = ""; rendre(); return; }
+  const rv = ev.target.closest("[data-rapport-vers]");
+  if (rv) { rapportChoix = rv.dataset.rapportVers; aller("rapport"); return; }
+  const ed = ev.target.closest("[data-editer]");
+  if (ed) { if (!ed.disabled) { edition = ed.dataset.editer || null; signature = ""; rendre(); } return; }
+  const em = ev.target.closest("[data-modifier-machine]");
+  if (em) { editionMachine = em.dataset.modifierMachine || null; signature = ""; rendre(); document.querySelector("#form-machine input")?.focus(); return; }
+  const cp = ev.target.closest("[data-copier]");
+  if (cp) {
+    copier(cp.parentElement.querySelector("pre").textContent).then(() => { cp.textContent = "Copié"; setTimeout(() => { cp.textContent = "Copier"; }, 1500); },
+      () => { cp.textContent = "Copie impossible"; });
+    return;
+  }
+  const rt = ev.target.closest("[data-retirer]");
+  if (rt) {
+    const vm = rt.dataset.retirer;
+    if (!confirm(`Retirer ${vm} du parc ? Son accès vérifié et son audit sont effacés de la plateforme. Le compte bs-collect reste sur le serveur tant qu'il n'est pas révoqué.`)) return;
+    fetch("/parc/retirer", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ vm }) })
+      .then((r) => r.json().then((j) => { if (!r.ok) { erreurLocale(j.erreur); } else { chargerJournal(); chargerParc().then(() => aller("tableau")); } }));
+    return;
+  }
   if (ev.target.closest("[data-export]")) { exporterCSV(); return; }
+  const lb = ev.target.closest("[data-labo]");
+  if (lb) {
+    if (lb.disabled) return;
+    const q = lb.dataset.labo;
+    if (q === "reinitialiser" && !confirm("Réinitialiser les données de la console ? Audits, accès vérifiés, journal et Activité repartent à zéro (archivés dans inventaires/archives/), la merge request ouverte est fermée et l'historique de la forge est masqué. Les machines repassent « Pas encore reconstruite »."))
+      return;
+    fetch(`/action/labo/${q}`, { method: "POST" })
+      .then((r) => r.json().then((j) => { if (!r.ok || j.erreur) erreurLocale(j.erreur); chargerJournal(); chargerParc(true); }));
+    return;
+  }
   if (a) {
     if (a.disabled) return;
     const nom = a.dataset.action;
     opChoisie = null;
     if (nom === "decider") { poster("decider", { choix }); aller("ci"); }
+    else if (a.dataset.vm) poster(nom, { vm: a.dataset.vm });
     else { poster(nom); if (a.dataset.vers) aller(a.dataset.vers); }
   } else if (v) aller(v.dataset.vers);
   else if (f) { filtre = f.dataset.filtre; signature = ""; rendre(); }
   else if (el) { const k = el.dataset.el; ouverts.has(k) ? ouverts.delete(k) : ouverts.add(k); $("#lignes").innerHTML = lignesInventaire(); }
   else if (o) { opChoisie = o.dataset.op === (opEnCours() || ops()[ops().length - 1])?.id ? null : o.dataset.op; rendreActivite(); }
   else if (c) {
-    const carte = c.closest("[data-cle]"), cle = carte.dataset.cle;
+    const cle = c.closest("[data-cle]").dataset.cle, cartes = E.decisions.cartes;
     // Raison préparée pour ce choix ; elle remplace une raison préparée pour l'autre choix,
-    // jamais un texte tapé à la main.
-    const raisons = (E.decisions.cartes.find((x) => x.cle === cle) || {}).raisons || {};
-    const ta = carte.querySelector("textarea"), tape = ta.value.trim();
-    const prepare = !tape || Object.values(raisons).some((r) => r.trim() === tape);
-    choix[cle] = { decision: c.dataset.choix, raison: prepare ? (raisons[c.dataset.choix] || "") : tape };
+    // jamais un texte tapé à la main. Les éléments liés (port et processus qui l'ouvre) reçoivent
+    // la même décision : impossible de se contredire.
+    const appliquer = (k) => {
+      const raisons = (cartes.find((x) => x.cle === k) || {}).raisons || {};
+      const tape = (choix[k]?.raison || "").trim();
+      const prepare = !tape || Object.values(raisons).some((r) => r.trim() === tape);
+      choix[k] = { decision: c.dataset.choix, raison: prepare ? (raisons[c.dataset.choix] || "") : tape };
+    };
+    [cle, ...((cartes.find((x) => x.cle === cle) || {}).liees || [])].forEach(appliquer);
+    if (E.erreur_cles) E.erreur_cles = E.erreur_cles.filter((k) => k !== cle && !((cartes.find((x) => x.cle === cle) || {}).liees || []).includes(k));
     signature = ""; rendre();
     const neuf = document.querySelector(`[data-cle="${CSS.escape(cle)}"] textarea`);
     if (neuf && !choix[cle].raison) neuf.focus();
@@ -1030,14 +1595,69 @@ document.addEventListener("click", (ev) => {
 });
 document.addEventListener("input", (ev) => {
   if (ev.target.id === "recherche") { recherche = ev.target.value; $("#lignes").innerHTML = lignesInventaire(); return; }
+  if (ev.target.matches("[data-compte]")) {
+    compteAdmin = ev.target.value.trim() || "admin";
+    try { localStorage.setItem("bs-compte-admin", compteAdmin); } catch (e) { /* stockage indisponible */ }
+    document.querySelectorAll("[data-var-compte]").forEach((x) => { x.textContent = compteAdmin; });
+    return;
+  }
   if (!ev.target.matches("[data-raison]")) return;
   const cle = ev.target.closest("[data-cle]").dataset.cle;
   choix[cle] = { ...(choix[cle] || {}), raison: ev.target.value };
   const cartes = E.decisions?.cartes || [];
   const faites = cartes.filter((x) => choix[x.cle]?.decision && choix[x.cle]?.raison?.trim()).length;
-  const b = $("#valider"); if (b) { b.disabled = faites !== cartes.length || E.occupe; b.classList.toggle("pret", !b.disabled); b.textContent = `Valider ${faites} / ${cartes.length} et relancer la preuve`; }
+  const nbConflits = Object.keys(conflitsDecisions(cartes)).length;
+  const b = $("#valider"); if (b) { b.disabled = faites !== cartes.length || nbConflits > 0 || E.occupe; b.classList.toggle("pret", !b.disabled); b.textContent = nbConflits ? `${nbConflits} choix à corriger` : `Valider ${faites} / ${cartes.length} et relancer la preuve`; }
   const g = $("#jauge"); if (g) g.style.width = `${faites / (cartes.length || 1) * 100}%`;
+  majOngletDecisions();
   ev.target.closest(".dec").classList.toggle("prise", !!(choix[cle].decision && choix[cle].raison.trim()));
+});
+// Presse-papiers : l'API n'existe qu'en contexte sûr (localhost, https) ; sur http://blackstart.local on passe par une zone de texte.
+function copier(t) {
+  if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(t);
+  return new Promise((ok, ko) => {
+    const z = document.createElement("textarea"); z.value = t; z.style.cssText = "position:fixed;opacity:0";
+    document.body.appendChild(z); z.select();
+    try { document.execCommand("copy") ? ok() : ko(); } catch (e) { ko(e); } finally { z.remove(); }
+  });
+}
+const posterJSON = (url, corps) => fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(corps) })
+  .then((r) => r.json().then((j) => { if (!r.ok) throw new Error(j.erreur || "erreur"); return j; }));
+const lignesEnDict = (t) => Object.fromEntries(String(t || "").split("\n").map((l) => l.trim()).filter(Boolean).map((l) => { const [ip, ...r] = l.split(/\s+/); return [ip, r.join(" ")]; }));
+
+// Paramètres : un bloc modifié à la fois ; machine : rôle, criticité, adresse.
+document.addEventListener("submit", (ev) => {
+  const f = ev.target;
+  if (f.id !== "form-reglages" && f.id !== "form-machine") return;
+  ev.preventDefault();
+  const d = Object.fromEntries(new FormData(f)), err = f.querySelector(".erreur-form"), b = f.querySelector("button[type=submit]");
+  let corps;
+  if (f.id === "form-machine") corps = { vm: f.dataset.vm, ...d };
+  else {
+    const sec = f.dataset.section;
+    corps = { organisation: P.organisation, description: P.description };
+    if (sec === "organisation") Object.assign(corps, { organisation: d.organisation, description: d.description });
+    if (sec === "perimetre") Object.assign(corps, { reseaux: d.reseaux.split(/[\s,]+/).filter(Boolean), exclues: lignesEnDict(d.exclues) });
+    if (sec === "reference") corps.reference = { fichier: d.fichier, nom: d.nom };
+    if (sec === "adresses") corps.adresses_connues = lignesEnDict(d.adresses_connues);
+  }
+  b.disabled = true; err.textContent = "";
+  posterJSON(f.id === "form-machine" ? "/parc/modifier" : "/parc/reglages", corps)
+    .then(() => { edition = null; editionMachine = null; chargerJournal(); return chargerParc(); })
+    .catch((e) => { err.textContent = e.message; b.disabled = false; });
+});
+
+// Ajout d'une machine : déclarée dans le registre, puis on ouvre sa fiche (étape « installer l'accès »).
+document.addEventListener("submit", (ev) => {
+  if (ev.target.id !== "form-ajout") return;
+  ev.preventDefault();
+  const corps = Object.fromEntries(new FormData(ev.target)), err = $("#erreur-ajout"), b = ev.target.querySelector("button[type=submit]");
+  b.disabled = true; err.textContent = "";
+  fetch("/parc/ajouter", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(corps) })
+    .then((r) => r.json().then((j) => {
+      if (!r.ok) { err.textContent = j.erreur || "erreur"; b.disabled = false; return; }
+      chargerJournal(); return chargerParc().then(() => aller("m-" + j.vm));
+    })).catch((e) => { err.textContent = String(e); b.disabled = false; });
 });
 // Raccourci discret pour le présentateur : → déclenche l'action principale de la vue affichée.
 document.addEventListener("keydown", (ev) => {
@@ -1048,21 +1668,48 @@ document.addEventListener("keydown", (ev) => {
   }
 });
 
+// Rapport : l'iframe prend la hauteur réelle du document (message envoyé par rapport.html).
+window.addEventListener("message", (ev) => {
+  if (ev.origin === location.origin && ev.data?.rapportHauteur) { const c = $("#cadre-rapport"); if (c) c.style.height = ev.data.rapportHauteur + 4 + "px"; }
+});
+// Infrastructure : état réel des machines, relu toutes les 20 s tant que la vue est ouverte.
+function chargerJoignabilite() {
+  return fetch("/joignabilite").then((r) => r.json()).then((d) => { J = d; if (vue === "parc") rendre(); }).catch(() => {});
+}
+setInterval(() => { if (vue === "parc" && !CAPTURE) chargerJoignabilite(); }, 20000);
+
+// Lien direct ou retour arrière du navigateur : la vue suit l'adresse.
+window.addEventListener("hashchange", () => { const v = location.hash.replace(/^#/, ""); if (!CAPTURE && v && v !== vue && vueDe(v)) aller(v); });
+
 function brancher() {
+  let versionPage = null;
   const src = new EventSource("/flux");
   src.onmessage = (m) => {
     const neuf = JSON.parse(m.data);
+    // index.html a changé depuis le chargement : recharger, plutôt que de garder des règles périmées.
+    if (versionPage == null) versionPage = neuf.page; else if (neuf.page && neuf.page !== versionPage) { location.reload(); return; }
     decalage = neuf.maintenant - Date.now() / 1000;
     if (neuf.phase === "accueil" && E && E.phase !== "accueil") { for (const k in choix) delete choix[k]; ouverts.clear(); }
     const finie = E && E.phase !== "fini" && neuf.phase === "fini";
-    E = neuf; rendre();
+    // Vérification d'accès ou premier audit terminé : le registre a changé, on le relit.
+    const integ = (x) => (x?.operations || []).filter((o) => o.vm && o.etat !== "en_cours").map((o) => o.id).join();
+    const integFinie = E && integ(E) !== integ(neuf);
+    const finies = (x) => (x?.operations || []).filter((o) => o.etat !== "en_cours").length;
+    const opFinie = E && finies(E) !== finies(neuf);
+    E = neuf;
+    // Une opération démarre : le panneau Activité s'ouvre pour la suivre pas à pas.
+    const cour = opsVisibles().find((o) => o.etat === "en_cours");
+    if (cour && cour.id !== dernierOpVu) { dernierOpVu = cour.id; activiteOuverte = true; }
+    rendre();
+    if (integFinie) chargerParc();
+    if (opFinie) chargerJournal();
     if (finie) chargerParc(true);   // la reprise vient d'aboutir : preuve et bascule relues, rapport régénéré
   };
-  src.onerror = () => { if (E) { E.erreur = "Connexion au serveur de la console perdue : nouvelle tentative…"; signature = ""; rendre(); } };
+  src.onerror = () => { if (E) { erreurLocale("Connexion au serveur de la console perdue : nouvelle tentative…"); } };
 }
 // #capture[-vue] : état lu une fois, sans flux (captures d'écran sans navigateur affiché).
-if (CAPTURE) fetch("/etat").then((r) => r.json()).then((d) => { decalage = d.maintenant - Date.now() / 1000; E = d; return chargerParc(); }).then(tic);
-else { brancher(); requestAnimationFrame(tic); chargerParc(); setInterval(() => chargerParc(), 5 * 60 * 1000); }
+if (CAPTURE) fetch("/etat").then((r) => r.json()).then((d) => { decalage = d.maintenant - Date.now() / 1000; E = d; return chargerParc(); }).then(() => vue === "parc" ? chargerJoignabilite() : vue === "journal" ? chargerJournal() : null).then(() => { signature = ""; rendre(); tic(); });
+else { brancher(); requestAnimationFrame(tic); chargerParc(); chargerJournal(); if (vue === "parc") chargerJoignabilite(); setInterval(() => chargerParc(), 5 * 60 * 1000); }
 </script>
 </body>
 </html>

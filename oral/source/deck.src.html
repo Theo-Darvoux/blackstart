@@ -669,7 +669,7 @@ body.ov .slide::after{content:counter(diapo);position:absolute;left:0;top:0;z-in
       <div class="ind"><div class="v">139/176</div><div class="t">écarts reproduits par le code<small>le reste au coffre, aux sauvegardes ou à l'humain : la reprise ne dépend plus d'une personne</small></div></div>
     </div>
     <div class="moins"><h3>Négatif</h3>
-      <div class="ind"><div class="v">3 min 34 s</div><div class="t">de VM en plus à chaque test de reprise<small>≈ 0,6 Wh estimés : 1 cœur Xeon à 10,5 W</small></div></div>
+      <div class="ind"><div class="v">3 min 34 s</div><div class="t">de machine virtuelle de test allumée à chaque preuve de reprise<small>≈ 0,6 Wh estimés : 1 cœur sur les 10 d'un Xeon de 105 W</small></div></div>
       <div class="ind"><div class="v">69 s</div><div class="t">de calcul IA sur 10 cœurs par audit<small>≈ 2 Wh estimés : processeur entier, 105 W</small></div></div>
       <div class="ind"><div class="v">48 Go</div><div class="t">de mémoire gardés pour le modèle en permanence</div></div>
     </div>
@@ -708,10 +708,10 @@ body.ov .slide::after{content:counter(diapo);position:absolute;left:0;top:0;z-in
     <div class="kicker">Annexe · Le livrable</div>
     <h2>Ce que reçoit le DSI.</h2>
     <ul>
-      <li><b>verdict</b> reconstruction prouvée ou non</li>
-      <li><b>chrono</b> reprise mesurée, étape par étape</li>
-      <li><b>risques</b> ce que la reprise doit traiter</li>
-      <li><b>preuve</b> merge request et CI</li>
+      <li><b>synthèse</b> machines prouvées, durée, perte de données</li>
+      <li><b>attention</b> ce que la reprise doit traiter</li>
+      <li><b>déroulé</b> chaque étape mesurée, test métier</li>
+      <li><b>preuve</b> merge request, CI, validation signée</li>
     </ul>
   </div>
   <div class="shot"><img src="%%IMG:rapport%%" alt="Rapport de reprise généré par le prototype"></div>

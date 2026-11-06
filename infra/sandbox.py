@@ -150,6 +150,15 @@ echo bootstrap-ok
 
 
 NEUVE = "[neuve]"  # sandbox préchauffée : clone neuf du template, jamais utilisé
+EN_PRODUCTION = "en production depuis"  # posé par infra/bascule.py vers-copie : la copie sert la production
+
+
+def en_production(pve, vmid):
+    """Vrai si la sandbox est la copie qui sert la production après une bascule : elle ne se détruit pas."""
+    try:
+        return EN_PRODUCTION in (pve.get(f"{vm_path(pve, vmid)}/config").get("description") or "")
+    except Exception:
+        return False
 
 
 def create(pve, name, vmid, ip, neuve=False):
@@ -212,6 +221,8 @@ def destroy(pve, vmid):
         sys.exit(f"VMID {vmid} absente")
     name = vms[vmid].get("name", "")
     check_guard(pve, vmid, name)
+    if en_production(pve, vmid):
+        sys.exit(f"refusé : {vmid} {name} sert la production depuis une bascule ; infra/bascule.py retour d'abord")
     if vms[vmid].get("status") == "running":
         log(f"arrêt de {vmid} {name}")
         pve.wait_task(pve.post(f"{vm_path(pve, vmid)}/status/stop"))

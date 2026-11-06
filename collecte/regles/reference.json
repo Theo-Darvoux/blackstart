@@ -1,0 +1,14 @@
+{
+  "description": "Écarts justifiés quand on audite une machine contre l'image de référence de l'entreprise (une Debian neuve relevée sur une autre machine) : seule l'identité réseau diffère par construction. Chargé par le premier audit de la console (infra/salle/serveur.py). Contrairement à identite.json, les clés d'hôte SSH et /etc/shadow ne sont pas justifiées : ce sont des secrets de la machine, à reprendre au coffre.",
+  "rules": [
+    {"match": "addr:*", "reason": "adresse IP propre à chaque machine"},
+    {"match": "file:/etc/hostname", "reason": "nom de la machine"},
+    {"match": "file:/etc/hosts", "reason": "contient le nom et l'IP de la machine"},
+    {"match": "file:/etc/network/interfaces", "reason": "contient l'IP de la machine (la passerelle est comparée à part : route:default)"},
+    {"match": "file:/etc/mailname", "reason": "nom de la machine pour Postfix"},
+    {"match": "file:/etc/passwd", "reason": "bases des comptes : l'ordre des lignes dépend de l'ordre de création ; comptes comparés un par un (user:)"},
+    {"match": "file:/etc/group", "reason": "bases des comptes : l'ordre des lignes dépend de l'ordre de création ; groupes comparés un par un (group:)"},
+    {"match": "file:/etc/ssl/private/ssl-cert-snakeoil.key", "reason": "paire auto-signée régénérée par le paquet ssl-cert, propre à chaque machine"},
+    {"match": "file:/etc/ssl/certs/ssl-cert-snakeoil.pem", "reason": "paire auto-signée régénérée par le paquet ssl-cert, propre à chaque machine"}
+  ]
+}

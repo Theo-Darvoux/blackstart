@@ -78,6 +78,44 @@ def group_names(inv):
     return {}
 
 
+def cle_processus(p):
+    """Clé d'un processus, construite comme collecte/bs-compare."""
+    unit = re.sub(r"^session-\d+\.scope$", "session.scope", p.get("unit") or "-")
+    return f"process:{p.get('exe') or p['name']}@{p['user']}@{unit}"
+
+
+def processus_du_port(cur, cle):
+    """Clé du processus qui ouvre le port `listen:proto:adresse:port` (même PID dans l'inventaire), ou None."""
+    proto, reste = cle[len("listen:"):].split(":", 1)
+    addr, port = reste.rsplit(":", 1)
+    pids = {p for l in cur.get("listening", []) if l.get("proto") == proto and str(l.get("port")) == port
+            and (l.get("address") == addr or addr == "<ip-locale>") for p in l.get("pids", [])}
+    return next((cle_processus(p) for p in cur.get("processes", []) if p.get("pid") in pids), None)
+
+
+def service_pour_processus(cur, cle):
+    """Service systemd qui relance un processus lancé à la main, à partir de sa ligne de commande relevée.
+    argv[0] est gardé tel quel (« python3 » et non « python3.13 ») et résolu dans le dossier de l'exécutable :
+    le nom du processus, et donc la comparaison des ports, reste celui de l'original."""
+    p = next((p for p in cur.get("processes", []) if cle_processus(p) == cle and p.get("cmdline")), None)
+    if not p:
+        return None
+    argv0 = p["cmdline"][0]
+    if not argv0.startswith("/"):
+        argv0 = os.path.join(os.path.dirname(p.get("exe") or "/usr/bin/x"), argv0)
+    ports = sorted({str(l["port"]) for l in cur.get("listening", []) if p["pid"] in l.get("pids", [])}, key=int)
+    nom = re.sub(r"[^a-z0-9]+", "-", os.path.basename(p["cmdline"][0]).lower()).strip("-") or "processus"
+    unit = f"blackstart-{nom}{''.join('-' + x for x in ports)}.service"
+    return {"cle": cle, "unit": unit, "user": p["user"], "exe": p.get("exe") or p["name"], "cmdline": p["cmdline"],
+            "execstart": [argv0] + p["cmdline"][1:]}
+
+
+def arg_systemd(a):
+    """Argument d'ExecStart= : entre guillemets s'il contient un blanc ou un caractère spécial, % doublé."""
+    a = a.replace("%", "%%")
+    return a if re.fullmatch(r"[\w@%+=:,./-]+", a) else '"' + a.replace("\\", "\\\\").replace('"', '\\"') + '"'
+
+
 def generate(ref, cur, out, decided=None, props=None):
     decided = decided or {}
     props = props or {}
@@ -244,15 +282,56 @@ def generate(ref, cur, out, decided=None, props=None):
     open(os.path.join(out, "tasks", "50-services.yml"), "w").write(w.text())
 
     # Autres inconnus (sysctl à chaud, processus manuels, ports)
-    sysctl_keep = []
+    sysctl_keep, services_garde, just_services = [], {}, []
     for i in items:
         if i["statut"] == "inconnu" and not i["key"].startswith(("file:", "pkgfile-modified:")):
             d = decided.get(i["key"])
             if d and d["decision"] == "reproduire" and i["key"].startswith("sysctl:"):
                 k = i["key"].split(":", 1)[1]
                 sysctl_keep.append((k, cur["kernel"]["sysctl_effective"][k], d))
+            elif d and d["decision"] == "reproduire" and i["key"].startswith("process:"):
+                svc = service_pour_processus(cur, i["key"])
+                if svc:
+                    services_garde[svc["unit"]] = dict(svc, decision=d)
+                else:
+                    decisions.append((i["key"], "« reproduire » demandé, mais la ligne de commande du processus "
+                                                "n'est pas dans l'inventaire : impossible d'en faire un service"))
+            elif d and d["decision"] == "reproduire" and i["key"].startswith("listen:"):
+                # Un port n'existe que par le processus qui l'ouvre : gardé si ce processus est gardé.
+                proc = processus_du_port(cur, i["key"])
+                if not proc or (decided.get(proc) or {}).get("decision") != "reproduire":
+                    decisions.append((i["key"], "« reproduire » demandé pour le port, mais pas pour le processus qui "
+                                                f"l'ouvre ({proc or 'inconnu'}) : même décision requise"))
             elif not d:
                 decisions.append((i["key"], i["raison"]))
+    if services_garde:
+        # Processus lancés à la main, gardés par décision humaine : recréés en service systemd, à l'identique
+        # (même commande, même compte), pour qu'ils survivent enfin à un redémarrage.
+        w = Writer()
+        for unit, s in sorted(services_garde.items()):
+            d = s["decision"]
+            contenu = ("# Recréé par Black Start : processus lancé à la main sur l'original, gardé par décision humaine\n"
+                       f"# {d.get('par', '?')} : {d.get('raison', '')}\n"
+                       f"# Origine : {s['cle']} (compte {s['user']}, à durcir si possible)\n"
+                       "[Unit]\n"
+                       f"Description=Black Start : {' '.join(s['cmdline'])}\n"
+                       "After=network-online.target\nWants=network-online.target\n\n"
+                       "[Service]\n"
+                       f"User={s['user']}\n"
+                       f"ExecStart={' '.join(arg_systemd(a) for a in s['execstart'])}\n"
+                       "Restart=on-failure\n\n"
+                       "[Install]\nWantedBy=multi-user.target\n")
+            w.task(f"Service {unit} (décision humaine : reproduire)", "ansible.builtin.copy",
+                   {"content": contenu, "dest": f"/etc/systemd/system/{unit}", "owner": "root", "group": "root",
+                    "mode": "0644"}, comment=s["cle"])
+            w.task(f"Activer {unit}", "ansible.builtin.systemd_service",
+                   {"name": unit, "enabled": True, "state": "started", "daemon_reload": True})
+            raison = f"processus lancé à la main, recréé en service {unit} (décision humaine : reproduire, par {d.get('par', '?')})"
+            just_services += [{"match": s["cle"], "reason": raison},
+                              {"match": f"process:{s['exe']}@{s['user']}@{unit}", "reason": raison},
+                              {"match": f"unit:{unit}", "reason": raison}, {"match": f"unit-file:{unit}", "reason": raison},
+                              {"match": f"file:/etc/systemd/system/*{unit}", "reason": raison}]
+        open(os.path.join(out, "tasks", "55-services-gardes.yml"), "w").write(w.text())
     if sysctl_keep:
         w = Writer()
         conf = "# Réglages faits à chaud sur l'original, persistés après décision humaine\n" + "".join(
@@ -268,6 +347,7 @@ def generate(ref, cur, out, decided=None, props=None):
             for k, d in sorted(decided.items()) if d["decision"] != "reproduire"]
     just += [{"match": f"file:{p}", "reason": f"base régénérée par « {c} » sur la cible : contenu binaire différent attendu"}
              for p, c, _ in regen]
+    just += just_services
     if sysctl_keep:
         just.append({"match": "file:/etc/sysctl.d/90-blackstart.conf",
                      "reason": "ajouté volontairement : persistance des réglages noyau décidée par "
@@ -293,7 +373,8 @@ def generate(ref, cur, out, decided=None, props=None):
     - ansible.builtin.import_tasks: tasks/30-fichiers.yml
     - ansible.builtin.import_tasks: tasks/40-cron.yml
     - ansible.builtin.import_tasks: tasks/50-services.yml
-""" + ("    - ansible.builtin.import_tasks: tasks/60-sysctl.yml\n" if sysctl_keep else ""))
+""" + ("    - ansible.builtin.import_tasks: tasks/55-services-gardes.yml\n" if services_garde else "")
+          + ("    - ansible.builtin.import_tasks: tasks/60-sysctl.yml\n" if sysctl_keep else ""))
     # Restauration des données : PostgreSQL sauvegardé par restic
     has_pg = any(i["key"] == "data:/var/lib/postgresql" for i in items)
     restic_env = [p for p in files_by_path if p.startswith("/etc/restic/") and p.endswith(".env")]

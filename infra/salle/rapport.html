@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rapport de reprise · Black Start</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Rapport de reprise : document A4 à remettre à la direction, généré depuis les résultats réels (/parc). */
+:root {
+  --encre: #121614; --doux: #4f5a55; --pale: #7d8883; --trait: #dde2df; --trait2: #c7cecb; --fond: #f6f7f6;
+  --vert: #0f7a3e; --vert-fond: #e6f4ec; --ambre: #9a5b00; --ambre-fond: #fbf0dc; --rouge: #b42318; --rouge-fond: #fdeceb;
+  --gris-fond: #eef0ef; --marque: #0f7a3e;
+  --sans: "IBM Plex Sans", system-ui, sans-serif; --mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+* { box-sizing: border-box; }
+html { background: #d9dddb; }
+body { margin: 0; color: var(--encre); font: 400 10pt/1.5 var(--sans); -webkit-font-smoothing: antialiased; font-feature-settings: "tnum"; }
+.barre { position: sticky; top: 0; z-index: 2; display: flex; gap: 12px; align-items: center; padding: 10px 20px; background: #101413; color: #e8f2ec; font-size: 13px; }
+.barre label { color: #96a59e; } .barre select { font: 13px var(--sans); background: #1a2220; color: #e8f2ec; border: 1px solid #2c3633; border-radius: 6px; height: 30px; padding: 0 8px; }
+.barre button { margin-left: auto; font: 600 13px var(--sans); background: #3dff8a; color: #03140a; border: 0; border-radius: 6px; height: 30px; padding: 0 14px; cursor: pointer; }
+.barre .info { color: #96a59e; }
+.feuilles { padding: 24px 0 48px; display: grid; gap: 24px; justify-content: center; }
+.feuille { width: 210mm; min-height: 297mm; background: #fff; padding: 18mm 17mm 16mm; box-shadow: 0 1px 3px rgba(0,0,0,.12), 0 8px 24px rgba(0,0,0,.08); position: relative; }
+.mono { font-family: var(--mono); font-size: .92em; }
+.doux { color: var(--doux); } .pale { color: var(--pale); }
+h1 { font-size: 24pt; line-height: 1.15; margin: 0; letter-spacing: -.02em; font-weight: 600; }
+h2 { font-size: 13.5pt; margin: 0 0 3mm; font-weight: 600; letter-spacing: -.01em; display: flex; gap: 3mm; align-items: baseline; }
+h2 .num { color: var(--marque); font-weight: 600; }
+h3 { font-size: 10.5pt; margin: 6mm 0 2mm; font-weight: 600; }
+p { margin: 0 0 2.5mm; }
+section { margin-top: 8mm; }
+section:first-of-type { margin-top: 0; }
+
+/* en-tête de page */
+.entete-page { display: flex; justify-content: space-between; align-items: center; padding-bottom: 4mm; border-bottom: 1px solid var(--trait); margin-bottom: 7mm; font-size: 8.5pt; color: var(--pale); }
+.entete-page svg { height: 11px; width: auto; display: block; }
+
+/* couverture */
+.couverture { display: grid; grid-template-rows: auto 1fr auto; min-height: calc(297mm - 34mm); }
+.couverture .logo svg { height: 22px; width: auto; display: block; }
+.couverture .titre { align-self: center; padding: 20mm 0; }
+.couverture .sur { font-size: 10pt; font-weight: 600; color: var(--marque); letter-spacing: .06em; text-transform: uppercase; margin-bottom: 4mm; }
+.couverture h1 { font-size: 30pt; }
+.couverture .org { font-size: 15pt; color: var(--doux); margin-top: 4mm; }
+.couverture .verdict-c { margin-top: 12mm; padding: 6mm 7mm; border-left: 3px solid var(--marque); background: var(--fond); font-size: 12pt; line-height: 1.45; max-width: 150mm; }
+.meta { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm 10mm; padding-top: 6mm; border-top: 1px solid var(--trait); font-size: 9pt; }
+.meta div span { display: block; color: var(--pale); font-size: 8pt; text-transform: uppercase; letter-spacing: .05em; margin-bottom: .5mm; }
+
+/* chiffres */
+.kpis { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--trait); border-radius: 2mm; margin: 4mm 0 2mm; }
+.kpi { padding: 3.5mm 4mm; border-left: 1px solid var(--trait); }
+.kpi:first-child { border-left: 0; }
+.kpi .l { font-size: 8pt; color: var(--doux); line-height: 1.3; min-height: 2.6em; }
+.kpi .v { font-size: 17pt; font-weight: 600; letter-spacing: -.02em; line-height: 1.2; margin-top: 1mm; white-space: nowrap; }
+.kpi .v small { font-size: 10pt; color: var(--pale); font-weight: 500; }
+.kpi .s { font-size: 7.5pt; color: var(--pale); margin-top: .5mm; line-height: 1.3; }
+.v.ok { color: var(--vert); } .v.att { color: var(--ambre); } .v.ko { color: var(--rouge); }
+
+/* tableaux */
+table { width: 100%; border-collapse: collapse; font-size: 8.8pt; margin: 2mm 0 1mm; }
+th { text-align: left; font-weight: 600; font-size: 7.5pt; color: var(--doux); text-transform: uppercase; letter-spacing: .04em; padding: 2mm 2.5mm; border-bottom: 1.5px solid var(--encre); vertical-align: bottom; }
+td { padding: 2.2mm 2.5mm; border-bottom: 1px solid var(--trait); vertical-align: top; }
+tr { break-inside: avoid; }
+td.n, th.n { text-align: right; white-space: nowrap; }
+/* Synthèse : colonnes de largeur fixe, le tableau ne sort jamais de la feuille. */
+table.synthese { table-layout: fixed; }
+table.synthese th { letter-spacing: .02em; }
+table.synthese td, table.synthese th { padding-left: 1.8mm; padding-right: 1.8mm; }
+table.synthese td:first-child .mono { white-space: nowrap; }
+table.synthese td.n, table.synthese th.n { white-space: normal; }
+td.cle { font-family: var(--mono); font-size: 8pt; word-break: break-all; }
+td .sous { display: block; color: var(--pale); font-size: 7.8pt; }
+.badge { display: inline-block; font-size: 7.8pt; font-weight: 600; padding: .6mm 2mm; border-radius: 1mm; white-space: nowrap; }
+.badge.ok { background: var(--vert-fond); color: var(--vert); } .badge.att { background: var(--ambre-fond); color: var(--ambre); }
+.badge.ko { background: var(--rouge-fond); color: var(--rouge); } .badge.neutre { background: var(--gris-fond); color: var(--doux); }
+
+/* points d'attention : un tableau, comme dans un rapport d'audit */
+.prio { font-size: 7.5pt; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+.prio.haute { color: var(--rouge); } .prio.moyenne { color: var(--ambre); } .prio.info { color: var(--doux); }
+table.points-t td b { font-weight: 600; }
+.points { display: grid; gap: 2.5mm; margin-top: 3mm; }
+.point { display: grid; grid-template-columns: 18mm 1fr; gap: 4mm; padding: 3mm 4mm; border: 1px solid var(--trait); border-radius: 1.5mm; break-inside: avoid; }
+.point .p { font-size: 7.5pt; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+.point.haute .p { color: var(--rouge); } .point.moyenne .p { color: var(--ambre); } .point.info .p { color: var(--doux); }
+.point b { font-weight: 600; }
+.point .a { color: var(--doux); font-size: 8.8pt; margin-top: .5mm; }
+
+/* section machine */
+.tete-machine { display: flex; justify-content: space-between; align-items: flex-start; gap: 6mm; padding-bottom: 4mm; border-bottom: 1px solid var(--trait); margin-bottom: 3mm; }
+.tete-machine .nom { font: 600 17pt var(--mono); letter-spacing: -.01em; }
+.tete-machine .role { color: var(--doux); font-size: 10pt; margin-top: 1mm; }
+.tete-machine .tags { margin-top: 2mm; display: flex; gap: 2mm; flex-wrap: wrap; font-size: 8pt; color: var(--doux); }
+.tete-machine .tags span { border: 1px solid var(--trait2); border-radius: 1mm; padding: .3mm 1.8mm; }
+.verdict-m { padding: 3.5mm 4.5mm; border-radius: 1.5mm; font-size: 10pt; margin: 3mm 0; }
+.verdict-m.ok { background: var(--vert-fond); } .verdict-m.att { background: var(--ambre-fond); } .verdict-m.ko { background: var(--rouge-fond); } .verdict-m.neutre { background: var(--gris-fond); }
+.verdict-m b { font-weight: 600; }
+.deux { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; }
+.liste-faits { margin: 1mm 0 0; padding: 0; list-style: none; font-size: 9pt; }
+.liste-faits li { padding: 1.6mm 0; border-bottom: 1px solid var(--trait); display: flex; justify-content: space-between; gap: 4mm; }
+.liste-faits li span:first-child { color: var(--doux); }
+.liste-faits li span:last-child { text-align: right; }
+.vide { color: var(--pale); font-style: italic; font-size: 9pt; padding: 2mm 0; }
+
+/* méthode, validation */
+.defs { display: grid; grid-template-columns: 42mm 1fr; gap: 0; font-size: 9pt; margin-top: 2mm; }
+.defs > div { padding: 2mm 0; border-bottom: 1px solid var(--trait); }
+.defs > div:nth-child(odd) { font-weight: 600; padding-right: 4mm; }
+.signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 8mm; margin-top: 4mm; }
+.signature { border: 1px solid var(--trait2); border-radius: 1.5mm; padding: 4mm 5mm; min-height: 44mm; display: grid; align-content: start; gap: 2mm; font-size: 9pt; }
+.signature .r { font-size: 7.5pt; text-transform: uppercase; letter-spacing: .05em; color: var(--pale); font-weight: 600; }
+.signature .ligne { border-bottom: 1px solid var(--trait2); height: 7mm; display: flex; align-items: flex-end; color: var(--pale); font-size: 8pt; }
+.pied-page { position: absolute; left: 17mm; right: 17mm; bottom: 8mm; display: flex; justify-content: space-between; font-size: 7.5pt; color: var(--pale); border-top: 1px solid var(--trait); padding-top: 2mm; }
+.chargement { color: #e8f2ec; text-align: center; padding: 80px; font-size: 14px; }
+.erreur { background: var(--rouge-fond); color: var(--rouge); padding: 4mm; border-radius: 1.5mm; }
+
+/* Impression : marges et pied de page sur chaque page imprimée (texte du pied posé par le script). */
+@page { size: A4; margin: 15mm 17mm 17mm; }
+@page :first { margin: 0; }
+@media print {
+  html { background: #fff; }
+  .barre, .pied-page { display: none; }
+  .feuilles { padding: 0; gap: 0; display: block; }
+  .feuille { box-shadow: none; break-after: page; width: auto; min-height: 0; padding: 0; }
+  .feuille:first-child { padding: 18mm 17mm 16mm; height: 297mm; }
+  .entete-page { margin-bottom: 5mm; }
+  h3, .kpis, .verdict-m, .tete-machine { break-after: avoid; break-inside: avoid; }
+}
+@media screen and (max-width: 230mm) { .feuilles { justify-content: stretch; padding: 0; } .feuille { width: 100%; min-height: 0; } }
+</style>
+</head>
+<body>
+<div class="barre" id="barre">
+  <label for="choix">Rapport</label><select id="choix"></select>
+  <span class="info" id="info"></span>
+  <button onclick="window.print()">Imprimer ou enregistrer en PDF</button>
+</div>
+<div class="feuilles" id="feuilles"><div class="chargement">Lecture des preuves…</div></div>
+<script>
+"use strict";
+const esc = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const fr = (x, d = 1) => Number(x).toLocaleString("fr-FR", { minimumFractionDigits: d, maximumFractionDigits: d });
+const duree = (s) => s == null ? "–" : s < 60 ? `${Math.round(s)} s` : `${Math.floor(s / 60)} min ${String(Math.round(s % 60)).padStart(2, "0")} s`;
+const MOIS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
+const MOISC = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
+// « 2026-11-03 13:38 » → « 3 nov. 2026, 13:38 »
+const dateFr = (s, court = true) => { const m = /^(\d{4})-(\d\d)-(\d\d)(?:[ T](\d\d:\d\d))?/.exec(s || ""); return m ? `${+m[3]} ${(court ? MOISC : MOIS)[+m[2] - 1]} ${m[1]}${m[4] ? `, ${m[4]}` : ""}` : (s || "–"); };
+const dateEpoch = (t) => { const d = new Date(t * 1000); return `${d.getDate()} ${MOISC[d.getMonth()]} ${d.getFullYear()}, ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`; };
+const LIB_DEC = { reproduire: "Garder", "ne pas reproduire": "Retirer", accepter: "Perte acceptée" };
+const CRIT = { critique: "Critique", importante: "Importante", secondaire: "Secondaire" };
+const ETAPES = [["sandbox_s", "Machine vide isolée", "VM neuve clonée d'une Debian vierge, coupée du réseau de l'entreprise"],
+  ["reconstruction_s", "Reconstruction depuis le code", "le code de la merge request est appliqué, personne au clavier"],
+  ["restauration_s", "Restauration des données", "depuis la dernière sauvegarde"], ["redemarrage_s", "Redémarrage", "la configuration doit survivre à un redémarrage"],
+  ["collecte_s", "Audit de la copie", "même collecte en lecture seule que sur l'original"], ["comparaison_s", "Comparaison avec l'original", "tout écart doit être justifié"],
+  ["test_metier_s", "Test métier", "le service rend le service attendu"]];
+const LOGO = (encre, vert) => `<svg viewBox="0 0 880.3 90.7" role="img" aria-label="Black Start"><g transform="translate(0 90.72)"><path d="M64.41 -70.53 A35.51 35.51 0 0 1 71.86 -22.50" fill="none" stroke="${vert}" stroke-width="14.07"/><path d="M69.09 -18.95 A35.51 35.51 0 1 1 20.68 -70.53" fill="none" stroke="${encre}" stroke-width="14.07"/><rect x="35.51" y="-90.72" width="14.07" height="48.17" fill="${encre}"/><path d="M161.13 0.0H116.23V-67.0H158.83Q180.53 -67.0 180.53 -50.800000000000004Q180.53 -36.300000000000004 163.83 -35.6V-34.6Q173.63 -34.2 178.63 -30.0Q183.63 -25.8 183.63 -18.6Q183.63 0.0 161.13 0.0ZM134.93 -50.1V-41.6H156.83Q159.63 -41.6 160.68 -42.5Q161.73000000000002 -43.400000000000006 161.73000000000002 -45.800000000000004Q161.73000000000002 -48.1 160.48000000000002 -49.1Q159.23000000000002 -50.1 156.33 -50.1ZM134.93 -26.200000000000003V-16.900000000000002H158.73000000000002Q162.13 -16.900000000000002 163.38 -17.85Q164.63 -18.8 164.63 -21.6Q164.63 -24.400000000000002 163.43 -25.300000000000004Q162.23000000000002 -26.200000000000003 158.73000000000002 -26.200000000000003ZM247.13 0.0H189.63V-67.0H208.43V-16.900000000000002H247.13ZM271.23 0.0H250.13L279.03 -67.0H305.93L334.93 0.0H313.33L308.23 -12.4H276.43ZM287.43 -38.7 283.53 -29.3H301.33L297.43 -38.7L293.03 -50.0H291.73ZM374.93 1.0Q357.63 1.0 347.78 -8.35Q337.93 -17.7 337.93 -33.5Q337.93 -49.300000000000004 347.78 -58.650000000000006Q357.63 -68.0 374.93 -68.0Q391.83000000000004 -68.0 401.38 -60.400000000000006Q410.93 -52.800000000000004 410.93 -39.400000000000006V-37.7H389.93V-39.400000000000006Q389.93 -45.2 386.68 -47.6Q383.43 -50.0 375.23 -50.0Q364.93 -50.0 361.43 -46.7Q357.93 -43.400000000000006 357.93 -33.5Q357.93 -23.6 361.43 -20.3Q364.93 -17.0 375.23 -17.0Q383.43 -17.0 386.68 -19.4Q389.93 -21.8 389.93 -27.6V-29.3H410.93V-27.6Q410.93 -14.200000000000001 401.38 -6.6000000000000005Q391.83000000000004 1.0 374.93 1.0ZM436.73 0.0H417.93V-67.0H436.73V-42.1H450.23L466.53000000000003 -67.0H489.03000000000003L465.83000000000004 -34.1L488.53000000000003 0.0H466.03000000000003L450.43 -23.8H436.73Z" fill="${encre}"/><path d="M547.53 1.0Q514.53 1.0 514.53 -23.3V-23.900000000000002H533.3299999999999V-21.8Q533.3299999999999 -18.3 535.8299999999999 -17.200000000000003Q538.3299999999999 -16.1 547.53 -16.1Q555.73 -16.1 557.9300000000001 -16.85Q560.13 -17.6 560.13 -20.0Q560.13 -21.8 558.73 -22.700000000000003Q557.3299999999999 -23.6 553.3299999999999 -24.1L532.3299999999999 -26.900000000000002Q513.53 -29.5 513.53 -46.1Q513.53 -55.2 521.38 -61.6Q529.23 -68.0 546.03 -68.0Q561.63 -68.0 569.5799999999999 -61.6Q577.53 -55.2 577.53 -43.7V-43.1H558.73V-44.6Q558.73 -48.400000000000006 555.9300000000001 -49.7Q553.13 -51.0 544.03 -51.0Q537.13 -51.0 534.73 -50.05Q532.3299999999999 -49.1 532.3299999999999 -46.800000000000004Q532.3299999999999 -45.2 533.3799999999999 -44.400000000000006Q534.43 -43.6 537.13 -43.2L558.13 -40.1Q578.93 -37.1 578.93 -20.700000000000003Q578.93 -11.3 571.18 -5.15Q563.43 1.0 547.53 1.0ZM626.43 0.0H607.63V-50.1H583.93V-67.0H650.03V-50.1H626.43ZM673.63 0.0H652.53L681.43 -67.0H708.3299999999999L737.3299999999999 0.0H715.73L710.63 -12.4H678.8299999999999ZM689.8299999999999 -38.7 685.93 -29.3H703.73L699.8299999999999 -38.7L695.43 -50.0H694.13ZM760.1299999999999 0.0H741.3299999999999V-67.0H780.43Q793.6299999999999 -67.0 800.53 -61.7Q807.43 -56.400000000000006 807.43 -46.5Q807.43 -38.400000000000006 803.0799999999999 -33.800000000000004Q798.7299999999999 -29.200000000000003 789.3299999999999 -28.0V-27.0Q794.1299999999999 -25.8 796.4799999999999 -23.5Q798.8299999999999 -21.200000000000003 800.93 -16.8L809.2299999999999 0.0H787.53L779.53 -16.400000000000002Q777.7299999999999 -20.200000000000003 775.4799999999999 -21.5Q773.2299999999999 -22.8 767.8299999999999 -22.8H760.1299999999999ZM760.1299999999999 -50.1V-36.800000000000004H780.2299999999999Q784.53 -36.800000000000004 786.1299999999999 -38.10000000000001Q787.7299999999999 -39.400000000000006 787.7299999999999 -43.5Q787.7299999999999 -47.400000000000006 786.0799999999999 -48.75Q784.43 -50.1 780.2299999999999 -50.1ZM855.2299999999999 0.0H836.43V-50.1H812.7299999999999V-67.0H878.8299999999999V-50.1H855.2299999999999Z" fill="${vert}"/></g></svg>`;
+
+const params = new URLSearchParams(location.search);
+let P = null, choix = params.get("vm") || "parc";
+
+// ------------------------------------------------------------ données dérivées (rien n'est estimé)
+function etatMachine(m) {
+  if (m.rapport) {
+    const code = m.verdict?.code;
+    if (code === "prouvee") return { cls: "ok", lib: "Reconstruction prouvée" };
+    if (m.forge?.erreur) return { cls: "neutre", lib: "Forge injoignable" };
+    if (code === "echec") return { cls: "att", lib: m.verdict.lib };
+    return { cls: "neutre", lib: m.verdict?.lib || "Pas encore reconstruite" };
+  }
+  if (!m.acces) return { cls: "neutre", lib: "Intégration : accès à installer" };
+  if (m.acces.etat !== "ok") return { cls: "ko", lib: "Intégration : accès en échec" };
+  if (!m.integration) return { cls: "neutre", lib: "Intégration : audit à lancer" };
+  return { cls: "att", lib: "Auditée, preuve à construire" };
+}
+const preuve = (m) => m.forge?.preuve;
+const verif = (m) => preuve(m)?.verif || {};
+const derniereBascule = (m) => (m.bascules || []).slice(-1)[0];
+const dateBascule = (b) => { const x = /bascule-(\d{4})(\d\d)(\d\d)-(\d\d)(\d\d)/.exec(b?.fichier || ""); return x ? `${x[1]}-${x[2]}-${x[3]} ${x[4]}:${x[5]}` : ""; };
+
+function pointsAttention(ms) {
+  // Ce qui reste à faire, tiré des résultats : priorité haute = la reprise n'est pas prouvée.
+  const out = [];
+  for (const m of ms) {
+    const e = etatMachine(m), v = verif(m), s = v.sauvegarde;
+    if (m.rapport && !preuve(m)) out.push({ p: "haute", m: m.vm, t: "Aucune reconstruction prouvée", a: e.lib + ". Trancher les décisions en attente puis relancer la vérification de la merge request." });
+    const att = m.rapport ? m.score?.comptes?.attente || 0 : m.integration?.comptes?.inconnu || 0;
+    if (att) out.push({ p: "haute", m: m.vm, t: `${att} élément${att > 1 ? "s" : ""} inconnu${att > 1 ? "s" : ""} sans décision`, a: "Personne ne sait dire s'ils doivent être reconstruits. Une décision et une raison par élément, signées." });
+    if (m.suivi) out.push({ p: "moyenne", m: m.vm, t: "Vérification plus récente que la preuve, non verte", a: m.suivi });
+    if (s?.trop_vieux) out.push({ p: "haute", m: m.vm, t: "Sauvegarde en retard", a: `Instantané restauré vieux de ${fr(s.age_h, 1)} h, au-delà du seuil de ${fr(s.max_h, 0)} h : vérifier la tâche ${s.tache || "de sauvegarde"}.` });
+    for (const [k, d] of (m.score?.accepte || [])) out.push({ p: "info", m: m.vm, t: `Perte acceptée : ${String(k).replace(/^data:/, "")}`, a: `Données non sauvegardées, perte acceptée par ${d.par || "décision humaine"} : « ${d.raison} ».` });
+    for (const t of (m.trous || [])) out.push({ p: "moyenne", m: m.vm, t: "Trou dans la sauvegarde d'origine", a: t.replace(/`/g, "") });
+    if (!m.rapport && m.integration) out.push({ p: "moyenne", m: m.vm, t: "Machine auditée, reconstruction pas encore construite", a: `${(m.integration.elements || []).filter((x) => x.statut === "donnee").length} dossiers de données à sauvegarder, test métier à écrire, merge request et CI à mettre en place.` });
+    if (!m.rapport && (!m.acces || m.acces.etat !== "ok")) out.push({ p: "moyenne", m: m.vm, t: "Accès de collecte non vérifié", a: "Installer le script d'accès sur le serveur, puis « Vérifier l'accès » dans la console." });
+    const ips = m.rapport ? m.ip_en_dur || [] : m.integration?.ip_en_dur || [];
+    if (ips.length) out.push({ p: "info", m: m.vm, t: `${ips.length} adresse${ips.length > 1 ? "s" : ""} IP d'autres machines écrite${ips.length > 1 ? "s" : ""} en dur`, a: "À modifier si une de ces machines change d'adresse lors d'une reprise. Détail dans la section de la machine." });
+  }
+  const ordre = { haute: 0, moyenne: 1, info: 2 };
+  return out.sort((x, y) => ordre[x.p] - ordre[y.p]);
+}
+
+// ------------------------------------------------------------ morceaux
+const kpi = (l, v, s, cls = "") => `<div class="kpi"><div class="l">${l}</div><div class="v ${cls}">${v}</div>${s ? `<div class="s">${s}</div>` : ""}</div>`;
+const badge = (e) => `<span class="badge ${e.cls}">${esc(e.lib)}</span>`;
+const enteteP = (ref) => `<div class="entete-page">${LOGO("#121614", "#0f7a3e")}<span>Rapport de reprise · ${esc(P.organisation || "")} · réf. ${esc(ref)}</span></div>`;
+const pied = (ref, n) => `<div class="pied-page"><span>Généré par Black Start depuis les résultats mesurés · aucune valeur estimée</span><span>${esc(ref)} · page ${n}</span></div>`;
+
+function synthese(ms) {
+  const suivies = ms.filter((m) => m.rapport), prouvees = suivies.filter((m) => preuve(m));
+  const recs = prouvees.map((m) => verif(m).chronos?.total_s).filter((x) => x != null);
+  const ages = prouvees.map((m) => verif(m).sauvegarde?.age_h).filter((x) => x != null);
+  const coupures = ms.map((m) => derniereBascule(m)?.coupure_s).filter((x) => x != null);
+  const att = ms.reduce((n, m) => n + (m.rapport ? m.score?.comptes?.attente || 0 : m.integration?.comptes?.inconnu || 0), 0);
+  return { suivies, prouvees, recMax: recs.length ? Math.max(...recs) : null, ageMax: ages.length ? Math.max(...ages) : null,
+    coupure: coupures.length ? coupures[coupures.length - 1] : null, att, integ: ms.filter((m) => !m.rapport) };
+}
+
+function phraseVerdict(ms, S) {
+  if (ms.length === 1) {
+    const m = ms[0], e = etatMachine(m), v = verif(m);
+    if (preuve(m)) return `<b>${esc(m.vm)}</b> sait repartir : la machine a été reconstruite depuis le code sur une machine vide, en ${duree(v.chronos?.total_s)}, avec ses données et un test métier vert.`;
+    return `<b>${esc(m.vm)}</b> : ${esc(e.lib.toLowerCase())}. La capacité à la reconstruire n'est pas encore démontrée.`;
+  }
+  const n = S.suivies.length + S.integ.length;
+  let t = `<b>${S.prouvees.length} machine${S.prouvees.length > 1 ? "s" : ""} sur ${n}</b> ${S.prouvees.length > 1 ? "savent" : "sait"} repartir : reconstruite${S.prouvees.length > 1 ? "s" : ""} depuis le code sur une machine vide, avec leurs données, et vérifiée${S.prouvees.length > 1 ? "s" : ""} par un test métier.`;
+  if (S.recMax != null) t += ` La plus longue demande ${duree(S.recMax)}.`;
+  const reste = n - S.prouvees.length;
+  if (reste) t += ` ${reste} machine${reste > 1 ? "s ne sont" : " n'est"} pas encore prouvée${reste > 1 ? "s" : ""}.`;
+  return t;
+}
+
+function tableauParc(ms) {
+  return `<table class="synthese"><colgroup><col style="width:22%"><col style="width:12%"><col style="width:21%"><col style="width:14%"><col style="width:11%"><col style="width:9%"><col style="width:11%"></colgroup>
+    <thead><tr><th>Machine</th><th>Criticité</th><th>Statut</th><th class="n">Reconstruction</th><th class="n">Données</th><th class="n">Coupure</th><th>Preuve</th></tr></thead><tbody>
+    ${ms.map((m) => { const v = verif(m), p = preuve(m), b = derniereBascule(m);
+      return `<tr><td><span class="mono">${esc(m.vm)}</span><span class="sous">${esc(m.role)}</span></td><td>${esc(CRIT[m.criticite] || "–")}</td><td>${badge(etatMachine(m))}</td>
+        <td class="n">${p ? duree(v.chronos?.total_s) : "–"}</td><td class="n">${v.sauvegarde ? fr(v.sauvegarde.age_h, 1) + " h" : p ? "sans sauvegarde" : "–"}</td>
+        <td class="n">${b ? fr(b.coupure_s, 1) + " s" : "–"}</td><td>${p ? `MR n° ${p.numero}<span class="sous">${esc(dateFr(p.date).replace(/ \d{4},/, ","))}</span>` : "–"}</td></tr>`; }).join("")}
+  </tbody></table>`;
+}
+
+function sectionMachine(m, i) {
+  const e = etatMachine(m), p = preuve(m), v = verif(m), ch = v.chronos || {}, s = v.sauvegarde, tm = v.test_metier, cmp = v.comparaison?.summary, b = derniereBascule(m);
+  const tete = `<div class="tete-machine"><div><div class="nom">${esc(m.vm)}</div><div class="role">${esc(m.role)}</div>
+      <div class="tags"><span class="mono">${esc(m.ip)}</span><span>${esc(CRIT[m.criticite] || "criticité non renseignée")}</span>${m.acces?.os ? `<span>${esc(m.acces.os)}</span>` : ""}</div></div>${badge(e)}</div>`;
+  if (!m.rapport) {
+    const a = m.integration, ac = m.acces;
+    return tete + `<div class="verdict-m ${e.cls}"><b>Machine en cours d'intégration.</b> Aucune reconstruction n'a encore été tentée : sa capacité à repartir n'est pas démontrée.</div>
+      <div class="deux"><div><h3>Accès de collecte</h3><ul class="liste-faits">
+        <li><span>État</span><span>${ac ? (ac.etat === "ok" ? "vérifié" : "en échec") : "non installé"}</span></li>
+        ${ac?.etat === "ok" ? `<li><span>Vérifié le</span><span>${dateEpoch(ac.date)}</span></li><li><span>Empreinte du serveur</span><span class="mono" style="font-size:7.5pt">${esc(ac.empreinte)}</span></li><li><span>Système</span><span>${ac.paquets} paquets, ${ac.ports} ports ouverts</span></li>` : ac ? `<li><span>Erreur</span><span>${esc(ac.erreur)}</span></li>` : ""}</ul></div>
+      <div><h3>Premier audit</h3>${a ? `<ul class="liste-faits"><li><span>Date</span><span>${dateEpoch(a.date)}</span></li><li><span>Écarts avec l'image de référence</span><span>${a.total}</span></li>
+        <li><span>Inconnus à trancher</span><span>${a.comptes.inconnu || 0}</span></li><li><span>Secrets pour le coffre</span><span>${a.comptes.secret || 0}</span></li><li><span>Dossiers de données</span><span>${a.comptes.donnee || 0}</span></li></ul>` : `<div class="vide">Pas encore audité.</div>`}</div></div>
+      ${a?.ip_en_dur?.length ? `<h3>Dépendances écrites en dur</h3><table><thead><tr><th>Fichier</th><th class="n">Ligne</th><th>Vers</th></tr></thead><tbody>${a.ip_en_dur.map((d) => `<tr><td class="cle">${esc(d.fichier)}</td><td class="n">${d.ligne ?? ""}</td><td class="mono">${esc(d.ip)} <span class="pale">${esc(nomIP(d.ip))}</span></td></tr>`).join("")}</tbody></table>` : ""}`;
+  }
+  const verdictM = p ? `<b>Reconstruite depuis le code en ${duree(ch.total_s)}</b>, d'une machine vide au service vérifié, le ${esc(dateFr(p.date))} (merge request n° ${p.numero}, commit <span class="mono">${esc(p.sha)}</span>). ${cmp ? `${cmp.differences} écarts comparés avec l'original, ${cmp.unjustified} non justifié.` : ""} Test métier ${tm?.ok ? "vert" : "rouge"}.`
+    : `<b>${esc(e.lib)}.</b> ${m.forge?.erreur ? "Les preuves n'ont pas pu être lues sur la forge." : "Aucune vérification verte partie d'une machine vide."}`;
+  const kp = `<div class="kpis">${kpi("Reconstructibilité", `${fr(m.score?.pct ?? 0, m.score?.pct < 100 ? 1 : 0)} %`, `${m.score?.traites} éléments sur ${m.score?.total} reproduits ou tranchés`, m.score?.pct >= 100 ? "ok" : "att")}
+    ${kpi("Durée de reconstruction mesurée", p ? duree(ch.total_s) : "–", "machine vide → service vérifié")}
+    ${kpi("Perte de données maximale", s ? `${fr(s.age_h, 1)} h` : "–", s ? "âge de la sauvegarde restaurée" : p ? "aucune sauvegarde : perte acceptée" : "")}
+    ${kpi("Dernière bascule réelle", b ? `${fr(b.coupure_s, 1)} s` : "–", b ? `coupure mesurée le ${esc(dateFr(dateBascule(b)))}` : "pas de bascule en production")}</div>`;
+  const deroule = p ? `<h3>Déroulé de la preuve</h3><table><thead><tr><th>Étape</th><th>Ce qui est vérifié</th><th class="n">Durée</th></tr></thead><tbody>
+    ${ETAPES.map(([k, lib, ex]) => `<tr><td>${lib}</td><td class="doux">${k === "restauration_s" && !s ? "aucune sauvegarde : rien à restaurer" : ex}</td><td class="n">${ch[k] != null ? duree(ch[k]) : "–"}</td></tr>`).join("")}
+    <tr><td><b>Total</b></td><td class="doux">${ch.sandbox ? `sur la copie <span class="mono">${esc(ch.sandbox)}</span>` : ""}</td><td class="n"><b>${duree(ch.total_s)}</b></td></tr></tbody></table>` : "";
+  const tests = tm ? `<h3>Test métier${tm.ref ? ` <span class="pale mono" style="font-weight:400">${esc(tm.ref)}</span>` : ""}</h3><table><thead><tr><th>Vérification</th><th>Résultat</th><th class="n">Durée</th></tr></thead><tbody>
+    ${(tm.etapes || []).map((x) => `<tr><td>${x.ok ? "✓" : "✗"} ${esc(x.etape)}</td><td class="doux">${esc(x.detail)}</td><td class="n">${x.duree_s != null ? fr(x.duree_s, 2) + " s" : ""}</td></tr>`).join("")}</tbody></table>` : "";
+  const sauv = `<h3>Sauvegarde</h3>${s ? `<ul class="liste-faits"><li><span>Instantané restauré</span><span class="mono">${esc(s.instantane)}</span></li><li><span>Pris le</span><span>${esc(dateFr(s.date))}</span></li>
+      <li><span>Âge à la restauration</span><span>${fr(s.age_h, 1)} h (seuil ${fr(s.max_h, 0)} h)</span></li><li><span>Tâche planifiée</span><span class="mono" style="font-size:7.5pt">${esc(s.tache)}</span></li></ul>`
+    : `<div class="vide">Aucune sauvegarde sur cette machine : données régénérables, perte acceptée par décision humaine.</div>`}`;
+  const risques = `<h3>Risques relevés à l'audit</h3><table><thead><tr><th>Risque</th><th class="n">Nombre</th><th>Traitement</th></tr></thead><tbody>
+    ${(m.risques?.parts || []).map(([lib, n, st]) => `<tr><td>${esc(lib)}</td><td class="n">${n}</td><td class="doux">${esc(st)}</td></tr>`).join("")}</tbody></table>`;
+  const decs = Object.entries(m.decisions || {});
+  const decBloc = `<h3>Décisions humaines</h3>${decs.length ? `<table><thead><tr><th>Élément</th><th>Décision</th><th>Raison</th><th>Par</th></tr></thead><tbody>
+    ${decs.map(([k, d]) => `<tr><td class="cle">${esc(k)}</td><td>${esc(LIB_DEC[d.decision] || d.decision)}</td><td class="doux">${esc(d.raison)}</td><td>${esc(d.par || "")}</td></tr>`).join("")}</tbody></table>` : `<div class="vide">Aucune décision nécessaire : chaque élément était expliqué par une règle.</div>`}`;
+  const hist = (m.forge?.historique || []).slice(0, 8);
+  const histBloc = `<h3>Historique des vérifications</h3>${hist.length ? `<table><thead><tr><th>Date</th><th>Merge request</th><th>Résultat</th><th class="n">Durée</th></tr></thead><tbody>
+    ${hist.map((h) => `<tr><td>${esc(dateFr(h.date))}</td><td>n° ${h.numero} <span class="pale mono">${esc(h.sha)}</span> <span class="pale">· ${esc(h.etat)}</span></td>
+      <td>${h.verte ? `<span class="badge ok">Verte</span>${h.depuis_vide ? "" : ` <span class="pale">copie préchauffée</span>`}` : h.attente ? `<span class="badge att">Bloquée : ${h.attente} décision${h.attente > 1 ? "s" : ""}</span>` : h.echec ? `<span class="badge ko">Échec</span>` : `<span class="badge ko">Rouge</span>`}</td>
+      <td class="n">${h.total_s ? duree(h.total_s) : "–"}</td></tr>`).join("")}</tbody></table>${(m.forge.historique || []).length > hist.length ? `<div class="pale" style="font-size:8pt">${m.forge.historique.length - hist.length} vérifications plus anciennes sur la forge.</div>` : ""}` : `<div class="vide">Aucune vérification sur la forge.</div>`}`;
+  const deps = (m.ip_en_dur || []).length ? `<h3>Dépendances écrites en dur</h3><table><thead><tr><th>Fichier</th><th class="n">Ligne</th><th>Vers</th></tr></thead><tbody>
+    ${m.ip_en_dur.map((d) => `<tr><td class="cle">${esc(d.path)}</td><td class="n">${d.line ?? ""}</td><td class="mono">${esc(d.ip)} <span class="pale">${esc(nomIP(d.ip))}</span></td></tr>`).join("")}</tbody></table>` : "";
+  return tete + `<div class="verdict-m ${e.cls}">${verdictM}</div>` + (m.suivi ? `<div class="verdict-m att">${esc(m.suivi)}</div>` : "") + kp
+    + `<div class="deux"><div>${deroule}</div><div>${sauv}${tests}</div></div>` + risques + decBloc + histBloc + deps;
+}
+
+function nomIP(ip) {
+  const m = (P.machines || []).find((x) => x.ip === ip); if (m) return m.vm;
+  const p = Object.values(P.plateforme || {}).find((x) => x.ip === ip); if (p) return p.nom;
+  return P.adresses_connues?.[ip] || "";
+}
+
+// ------------------------------------------------------------ rendu
+function rendre() {
+  const toutes = P.machines || [];
+  const ms = choix === "parc" ? toutes : toutes.filter((m) => m.vm === choix);
+  if (!ms.length) { document.getElementById("feuilles").innerHTML = `<div class="feuille"><div class="erreur">Machine inconnue : ${esc(choix)}</div></div>`; return; }
+  const now = new Date(), d2 = (x) => String(x).padStart(2, "0");
+  const ref = `BS-RR-${now.getFullYear()}${d2(now.getMonth() + 1)}${d2(now.getDate())}-${d2(now.getHours())}${d2(now.getMinutes())}${choix === "parc" ? "" : "-" + choix.toUpperCase()}`;
+  const S = synthese(ms), pts = pointsAttention(ms);
+  document.title = `Rapport de reprise ${choix === "parc" ? P.organisation : choix} · ${now.toLocaleDateString("fr-FR")}`;
+  let n = 0;
+  const feuille = (contenu, longue = false) => `<div class="feuille ${longue ? "longue" : ""}">${contenu}${pied(ref, ++n)}</div>`;
+  const pages = [];
+  pages.push(feuille(`<div class="couverture"><div class="logo">${LOGO("#121614", "#0f7a3e")}</div>
+    <div class="titre"><div class="sur">Rapport de reprise d'activité</div><h1>${choix === "parc" ? "Capacité de l'entreprise à redémarrer ses services critiques" : `Capacité à redémarrer <span class="mono">${esc(choix)}</span>`}</h1>
+      <div class="org">${esc(P.organisation || "")}</div><div class="verdict-c">${phraseVerdict(ms, S)}</div></div>
+    <div class="meta"><div><span>Édité le</span>${now.getDate()} ${MOIS[now.getMonth()]} ${now.getFullYear()} à ${d2(now.getHours())}:${d2(now.getMinutes())}</div><div><span>Référence</span>${esc(ref)}</div>
+      <div><span>Périmètre</span>${ms.length} machine${ms.length > 1 ? "s" : ""} : ${ms.map((m) => esc(m.vm)).join(", ")}</div><div><span>Responsable de la reprise</span>${esc(P.par || "")}</div>
+      <div><span>Source des preuves</span><span class="mono" style="display:inline;text-transform:none;letter-spacing:0;font-size:9pt;color:var(--encre)">${esc(P.forge || "")}</span></div><div><span>Établi pour</span>${esc(P.organisation || "")}${P.description ? ` <span class="pale" style="display:inline;text-transform:none;letter-spacing:0;font-size:9pt">· ${esc(P.description)}</span>` : ""}</div></div></div>`));
+  pages.push(feuille(enteteP(ref) + `<section><h2><span class="num">1</span>Synthèse</h2>
+      <p>${phraseVerdict(ms, S)}</p>
+      <div class="kpis">${kpi("Machines prouvées", `${S.prouvees.length}<small> / ${ms.length}</small>`, "reconstruites depuis le code, test métier vert", S.prouvees.length === ms.length ? "ok" : "att")}
+        ${kpi("Reconstruction la plus longue", duree(S.recMax), "machine vide → service vérifié")}
+        ${kpi("Perte de données maximale", S.ageMax != null ? `${fr(S.ageMax, 1)} h` : "–", "âge de la plus vieille sauvegarde restaurée")}
+        ${kpi("Décisions en attente", S.att, S.att ? "bloquent la preuve" : "rien ne bloque la preuve", S.att ? "att" : "ok")}</div>
+      ${tableauParc(ms)}
+      <p class="pale" style="font-size:8pt;margin-top:2mm">Reconstruction : de la création d'une machine vide au test métier vert, mesurée par la CI. Données : âge de la sauvegarde restaurée au moment de la preuve. Coupure : dernière bascule réelle en production. Preuve : merge request dont la vérification est retenue.</p></section>
+    <section><h2><span class="num">2</span>Points d'attention</h2>${pts.length ? `<table class="points-t"><colgroup><col style="width:17%"><col style="width:17%"><col></colgroup>
+        <thead><tr><th>Priorité</th><th>Machine</th><th>Constat et action</th></tr></thead><tbody>${pts.map((x) => `<tr><td><span class="prio ${x.p}">${{ haute: "Haute", moyenne: "À traiter", info: "Pour info" }[x.p]}</span></td>
+          <td class="mono">${esc(x.m)}</td><td><b>${esc(x.t)}</b><span class="sous" style="color:var(--doux);font-size:8.5pt">${esc(x.a)}</span></td></tr>`).join("")}</tbody></table>`
+        : `<p>Aucun point ouvert : chaque machine est prouvée, sans décision en attente ni sauvegarde en retard.</p>`}</section>`, true));
+  ms.forEach((m, i) => pages.push(feuille(enteteP(ref) + `<section><h2><span class="num">3.${i + 1}</span>Machine ${esc(m.vm)}</h2>${sectionMachine(m, `${CRIT[m.criticite] || ""}`)}</section>`, true)));
+  const mrs = ms.flatMap((m) => preuve(m) ? [[m.vm, preuve(m)]] : []);
+  pages.push(feuille(enteteP(ref) + `<section><h2><span class="num">4</span>Méthode et définitions</h2>
+      <p>Chaque chiffre de ce rapport vient d'une exécution réelle : audit en lecture seule, reconstruction automatique sur une copie isolée, test métier, bascule chronométrée. Une valeur absente est affichée comme absente, jamais estimée.</p>
+      <div class="defs">
+        <div>Reconstruction prouvée</div><div>La CI a recréé la machine sur une VM vide, depuis le code et la dernière sauvegarde, puis l'a comparée à l'original (0 écart non justifié) et a passé le test métier.</div>
+        <div>Reconstructibilité</div><div>Part des éléments relevés à l'audit (paquets, fichiers, services, tâches, comptes…) reproduits par le code ou tranchés par une décision humaine, hors bruit ignoré par règle.</div>
+        <div>Inconnu</div><div>Élément que ni le code ni une règle n'explique. Il n'est jamais reproduit tant qu'un humain n'a pas décidé, avec une raison.</div>
+        <div>Durée de reconstruction</div><div>De la création de la machine vide au test métier vert, mesurée par la CI. C'est le temps de reprise constaté, hors délai de décision.</div>
+        <div>Perte de données maximale</div><div>Âge de la sauvegarde restaurée au moment de la preuve : les données plus récentes auraient été perdues.</div>
+        <div>Coupure</div><div>Durée mesurée entre l'arrêt de l'original et le test métier vert sur la copie, lors d'une bascule réelle en production.</div>
+        <div>Confidentialité</div><div>Modèle local sur site, qui ne reçoit que les inconnus, secrets masqués. Secrets au coffre de la forge, jamais dans Git. Copies isolées du réseau de l'entreprise.</div></div></section>
+    <section><h2><span class="num">5</span>Sources</h2>${mrs.length ? `<table><thead><tr><th>Machine</th><th>Preuve retenue</th><th>Adresse</th></tr></thead><tbody>${mrs.map(([vm, p]) => `<tr><td class="mono">${esc(vm)}</td><td>MR n° ${p.numero}, commit <span class="mono">${esc(p.sha)}</span>, ${esc(dateFr(p.date))}</td><td class="mono" style="font-size:7.5pt">${esc(p.url)}</td></tr>`).join("")}</tbody></table>` : `<p class="pale">Aucune preuve sur la forge pour ce périmètre.</p>`}</section>
+    <section><h2><span class="num">6</span>Validation</h2><p class="doux">Ce rapport engage la capacité de reprise décrite ci-dessus à la date d'édition. Il est à joindre au plan de continuité d'activité et à refaire après tout changement important.</p>
+      <div class="signatures"><div class="signature"><div class="r">Responsable de la reprise</div><div>${esc(P.par || "")}</div><div class="ligne">Date</div><div class="ligne">Signature</div></div>
+        <div class="signature"><div class="r">Direction</div><div class="ligne">Nom</div><div class="ligne">Date</div><div class="ligne">Signature</div></div></div></section>`));
+  document.getElementById("feuilles").innerHTML = pages.join("");
+  // Pied de page imprimé : référence et numéro de page, sur toutes les pages sauf la couverture.
+  let st = document.getElementById("style-pied");
+  if (!st) { st = document.createElement("style"); st.id = "style-pied"; document.head.appendChild(st); }
+  st.textContent = `@page { @bottom-left { content: "Black Start · rapport de reprise · ${esc(P.organisation || "").replace(/"/g, "")} · aucune valeur estimée"; font: 7pt 'IBM Plex Sans', sans-serif; color: #7d8883; }
+    @bottom-right { content: "${ref} · page " counter(page) " / " counter(pages); font: 7pt 'IBM Plex Sans', sans-serif; color: #7d8883; } }
+    @page :first { @bottom-left { content: none; } @bottom-right { content: none; } }`;
+  document.getElementById("info").textContent = `${ms.length} machine${ms.length > 1 ? "s" : ""} · preuves lues à ${now.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}`;
+  // Console : l'iframe prend la hauteur réelle du rapport.
+  requestAnimationFrame(() => { try { parent.postMessage({ rapportHauteur: document.documentElement.scrollHeight }, location.origin); } catch (e) { /* hors console */ } });
+}
+
+function remplirChoix() {
+  const sel = document.getElementById("choix");
+  sel.innerHTML = `<option value="parc">Parc complet (${(P.machines || []).length} machines)</option>` + (P.machines || []).map((m) => `<option value="${esc(m.vm)}">${esc(m.vm)}</option>`).join("");
+  sel.value = choix;
+  sel.onchange = () => { choix = sel.value; const u = new URL(location); u.searchParams.set("vm", choix); history.replaceState(null, "", u); rendre(); };
+}
+
+if (params.get("nu")) document.getElementById("barre").style.display = "none";
+fetch("/parc" + (params.get("force") ? "?force=1" : "")).then((r) => r.json()).then((d) => {
+  if (d.erreur) throw new Error(d.erreur);
+  P = d; remplirChoix(); rendre();
+}).catch((e) => { document.getElementById("feuilles").innerHTML = `<div class="feuille"><div class="erreur">Rapport indisponible : ${esc(e.message || e)}</div></div>`; });
+</script>
+</body>
+</html>

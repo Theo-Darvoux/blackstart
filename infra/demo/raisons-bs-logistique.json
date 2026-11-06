@@ -9,11 +9,11 @@
     "ne pas reproduire": "binaire sans origine connue ni licence : retiré ; export-edi l'appelle avec « || true », l'export continue sans lui"
   },
   "listen:tcp:0.0.0.0:9100": {
-    "reproduire": "le transporteur récupère les fichiers EDI sortants sur ce port ; gardé, à transformer en service systemd",
+    "reproduire": "le transporteur récupère les fichiers EDI sortants sur ce port : gardé, recréé en service systemd à la reconstruction",
     "ne pas reproduire": "relais HTTP lancé à la main pour le transporteur ; s'il est utile, en faire un service systemd"
   },
   "process:/usr/bin/python3.13@root@session.scope": {
-    "reproduire": "processus du relais :9100, gardé avec lui (même décision que le port)",
+    "reproduire": "processus du relais :9100, recréé en service systemd avec son port (même décision que le port)",
     "ne pas reproduire": "processus du relais :9100 lancé à la main (même décision que le port)"
   },
   "sysctl:vm.swappiness": {

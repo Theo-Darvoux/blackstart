@@ -140,10 +140,13 @@ const LIVRABLES = {
   landing: () => ({
     url: fichier("landing/index.html"), largeur: 1440, hauteur: 900, pageUnique: true,
     sortie: join(SORTIE, "landing-black-start.pdf"),
-    prep: `document.querySelectorAll('.fade-up').forEach(e => e.classList.add('visible'));
-      document.querySelectorAll('.hero-stats,.etapes-grid,.cta-final').forEach(e => e.classList.add('in'));
-      document.documentElement.classList.add('pret');
-      ${injecter(COULEURS + "*,*::before,*::after{transition:none!important;animation:none!important}")}`,
+    // La page détecte le mouvement réduit (émulé plus haut) et s'affiche à l'état final ;
+    // la barre de navigation fixe est remise dans le flux pour ne pas recouvrir le haut.
+    prep: `document.documentElement.classList.add('statique');
+      document.querySelectorAll('.fade').forEach(e => e.classList.add('vu'));
+      ${injecter(COULEURS + ".nav{position:absolute!important}*,*::before,*::after{transition:none!important;animation:none!important}")}`,
+    // Sans largeur de papier, Chromium évalue les media queries sur 8,5 pouces : mise en page mobile.
+    pdf: { paperWidth: 1440 / 96 },
   }),
   rapport: () => ({
     url: fichier("rapport/sortie/index.html"), largeur: 1280, hauteur: 900, pageUnique: true,

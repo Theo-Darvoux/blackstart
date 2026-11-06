@@ -29,6 +29,10 @@ Chaque ligne de texte d'un fichier collecté est aussi scannée à la recherche 
 - Même avec `--with-content`, ces contenus ne sont jamais embarqués (`content_withheld`, seul le hash reste) : `/etc/shadow`, `/etc/gshadow`, tout fichier non lisible par tous (par exemple `/etc/sssd/sssd.conf`), les clés SSH d'hôte, les fichiers `.key` et tout fichier contenant `PRIVATE KEY`.
 - Les lignes de commande des processus et les crontabs sont copiées telles quelles et peuvent contenir un mot de passe.
 
+## Installer depuis la console (parcours client)
+
+Console → Machines → « Ajouter une machine », puis la fiche de la machine propose le script `bs-collect-installer.sh` (route `/installer/bs-collect-installer.sh` de `infra/salle/serveur.py`). C'est un fichier autonome : `bs-collect` et `install-on-vm.sh` encodés en base64 et vérifiés par leur SHA-256, plus la clé publique `~/.ssh/id_blackstart.pub`. Il se lance en root (`sudo bash bs-collect-installer.sh`), refuse un système autre que Debian, et affiche l'empreinte de la clé d'hôte du serveur, à comparer avec celle de « Vérifier l'accès ». Révocation : `sudo userdel -r bs-collect && sudo rm -f /usr/local/sbin/bs-collect /usr/local/sbin/bs-collect-ssh /etc/sudoers.d/bs-collect`.
+
 ## Installer sur une VM de démo
 
 Les VM sont sur `luna.minet.lan`. Ces commandes sont à lancer depuis votre poste, pas par Claude Code. Les noms des VM ne sont pas résolus par DNS : remplacer `VM` par l'IP de la VM (`192.168.103.200` pour `bs-logistique`, voir `CLAUDE.md`).

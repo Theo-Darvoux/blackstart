@@ -1,0 +1,68 @@
+{
+  "organisation": "PME Logistique",
+  "description": "PME de logistique fictive (domaine pme.test)",
+  "perimetre": {
+    "reseaux": [
+      "192.168.103.0/24"
+    ],
+    "exclues": {
+      "192.168.103.59": "hyperviseur",
+      "192.168.103.54": "DNS de l'hébergeur",
+      "192.168.103.55": "DNS de l'hébergeur",
+      "192.168.103.250": "passerelle"
+    }
+  },
+  "reference": {
+    "nom": "Debian 13 neuve (image de base de l'entreprise)",
+    "fichier": "inventaires/bs-logistique-vierge.json"
+  },
+  "plateforme": {
+    "forge": {
+      "nom": "bs-gitlab",
+      "ip": "192.168.103.203",
+      "url": "http://192.168.103.203:3000",
+      "depot": "pme/infra",
+      "role": "Forge Forgejo : merge requests, CI, coffre des secrets"
+    },
+    "modele": {
+      "nom": "bs-ia",
+      "ip": "192.168.103.204",
+      "url": "http://192.168.103.204:11434",
+      "modele": "qwen3.6:35b",
+      "role": "Modèle local, sans GPU : propose, ne décide pas"
+    },
+    "sandbox": {
+      "vmid": "1650 à 1659",
+      "ip": "192.168.103.210 à .219",
+      "hyperviseur": "Proxmox, API limitée au pool blackstart",
+      "role": "Copies isolées par pare-feu, détruites après la preuve"
+    }
+  },
+  "adresses_connues": {
+    "192.168.103.54": "DNS amont",
+    "192.168.103.55": "DNS amont"
+  },
+  "machines": [
+    {
+      "vm": "bs-logistique",
+      "ip": "192.168.103.200",
+      "role": "Logiciel de logistique, PostgreSQL",
+      "criticite": "critique",
+      "ajoutee_le": "2026-11-02"
+    },
+    {
+      "vm": "bs-mail",
+      "ip": "192.168.103.201",
+      "role": "Messagerie interne (Postfix, Dovecot)",
+      "criticite": "importante",
+      "ajoutee_le": "2026-11-02"
+    },
+    {
+      "vm": "bs-proxy",
+      "ip": "192.168.103.202",
+      "role": "Proxy web (Nginx) et DNS interne (Unbound)",
+      "criticite": "critique",
+      "ajoutee_le": "2026-11-02"
+    }
+  ]
+}
